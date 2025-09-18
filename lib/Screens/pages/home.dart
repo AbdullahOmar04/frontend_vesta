@@ -1,6 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
+import 'package:frontend_vesta/Screens/pages/budgeting.dart';
+import 'package:frontend_vesta/Screens/pages/household.dart';
+import 'package:frontend_vesta/Screens/pages/savings.dart';
+import 'package:frontend_vesta/Screens/pages/spending_analysis.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -26,7 +30,7 @@ class _HomePageState extends State<HomePage> {
       drawer: drawer(context),
       body: Column(
         children: [
-          SizedBox(height: 10),
+          const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(24),
             margin: const EdgeInsets.symmetric(horizontal: 12),
@@ -37,7 +41,7 @@ class _HomePageState extends State<HomePage> {
             child: Center(
               child: RichText(
                 textAlign: TextAlign.center,
-                text: TextSpan(
+                text: const TextSpan(
                   children: [
                     TextSpan(
                       text: 'Total Balance\n',
@@ -60,14 +64,14 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          SizedBox(height: 50),
+          const SizedBox(height: 50),
           IntrinsicHeight(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 RichText(
                   textAlign: TextAlign.center,
-                  text: TextSpan(
+                  text: const TextSpan(
                     children: [
                       WidgetSpan(
                         alignment: PlaceholderAlignment.middle,
@@ -96,10 +100,10 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                 ),
-                VerticalDivider(color: Colors.grey, thickness: 1),
+                const VerticalDivider(color: Colors.grey, thickness: 1),
                 RichText(
                   textAlign: TextAlign.center,
-                  text: TextSpan(
+                  text: const TextSpan(
                     children: [
                       WidgetSpan(
                         alignment: PlaceholderAlignment.middle,
@@ -131,7 +135,7 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-          SizedBox(height: 50),
+          const SizedBox(height: 50),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -140,14 +144,28 @@ class _HomePageState extends State<HomePage> {
                 "Budgeting",
                 Icons.money,
                 Theme.of(context).colorScheme.primary,
-                () {},
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PersonalBudgetScreen(),
+                    ),
+                  );
+                },
               ),
               squareButton(
                 context,
-                "Analytics",
+                "Spendings",
                 Icons.search,
                 Theme.of(context).colorScheme.primary,
-                () {},
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SpendingAnalysis(),
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -159,26 +177,31 @@ class _HomePageState extends State<HomePage> {
                 "Savings",
                 Icons.savings,
                 Theme.of(context).colorScheme.primary,
-                () {},
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SavingsPage(),
+                    ),
+                  );
+                },
               ),
               squareButton(
                 context,
                 "Household",
                 Icons.family_restroom,
                 Theme.of(context).colorScheme.primary,
-                () {},
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const HouseholdPage(),
+                    ),
+                  );
+                },
               ),
             ],
           ),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        backgroundColor: Colors.grey[200],
-        
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home), label: ''),
-          NavigationDestination(icon: Icon(Icons.wallet), label: ''),
-          NavigationDestination(icon: Icon(Icons.person), label: ''),
         ],
       ),
     );

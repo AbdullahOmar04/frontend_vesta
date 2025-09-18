@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/onboarding/login.dart';
-import 'package:frontend_vesta/Screens/pages/home.dart';
+import 'package:frontend_vesta/Screens/pages/main_screen.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -66,7 +66,7 @@ class _RegisterState extends State<Register> {
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
+          MaterialPageRoute(builder: (context) => const MainScreen()),
         );
       }
     } on FirebaseAuthException catch (e) {
