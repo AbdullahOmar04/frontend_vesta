@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/onboarding/register.dart';
 import 'package:frontend_vesta/Screens/pages/main_screen.dart';
@@ -54,11 +55,12 @@ class _LoginState extends State<Login> {
         email = snapshot.docs.first["email"];
       }
 
-      // Login with email + password
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      syncAccounts();
 
       if (mounted) {
         Navigator.pushReplacement(

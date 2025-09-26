@@ -53,7 +53,7 @@ class _RegisterState extends State<Register> {
       await userCredential.user!.updateDisplayName(_username.text.trim());
       await userCredential.user!.reload();
 
-      // Save username + email mapping in Firestore
+      // Save user data in Firestore with initial balances
       await FirebaseFirestore.instance
           .collection("users")
           .doc(userCredential.user!.uid)
@@ -61,6 +61,10 @@ class _RegisterState extends State<Register> {
             "username": _username.text.trim(),
             "email": _email.text.trim(),
             "createdAt": FieldValue.serverTimestamp(),
+            "currency": "JOD",
+            "totalBalance": 0.0,
+            "totalIncome": 0.0,
+            "totalExpense": 0.0,
           });
 
       if (mounted) {

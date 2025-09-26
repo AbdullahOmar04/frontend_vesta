@@ -33,6 +33,7 @@ class _SpendingAnalysisPageState extends State<SpendingAnalysis> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            
             // Toggle Tabs
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -41,8 +42,9 @@ class _SpendingAnalysisPageState extends State<SpendingAnalysis> {
                 (index) => ChoiceChip(
                   label: Text(_tabs[index]),
                   selected: _selectedTab == index,
+                  checkmarkColor: Colors.white,
                   onSelected: (_) => setState(() => _selectedTab = index),
-                  selectedColor: Colors.black,
+                  selectedColor: Theme.of(context).colorScheme.primary,
                   labelStyle: TextStyle(
                     color: _selectedTab == index ? Colors.white : Colors.black,
                   ),
