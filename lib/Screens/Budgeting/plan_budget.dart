@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:frontend_vesta/Helpers/widgets.dart';
 
 class PlanBudgetScreen extends StatefulWidget {
   const PlanBudgetScreen({super.key});
@@ -18,6 +18,7 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
   final _savingController = TextEditingController();
   final _spendingController = TextEditingController();
   final _luxuriesController = TextEditingController();
+  final _totalIncomeController = TextEditingController();
 
   bool _loading = false;
 
@@ -29,7 +30,7 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
 
   Future<void> _loadExistingBudget() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    
+
     if (uid == null) return;
 
     try {
@@ -39,7 +40,11 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
           .collection("budget")
           .doc("plan")
           .get();
-          
+
+      final doc2 = await FirebaseFirestore.instance
+          .collection("users")
+          .doc(uid)
+          .get();
 
       if (doc.exists) {
         final data = doc.data()!;
@@ -47,6 +52,11 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
         _savingController.text = (data["saving"] ?? 0).toString();
         _spendingController.text = (data["spending"] ?? 0).toString();
         _luxuriesController.text = (data["luxuries"] ?? 0).toString();
+      }
+
+      if (doc2.exists) {
+        final data = doc2.data()!;
+        _totalIncomeController.text = (data["totalIncome"] ?? 0).toString();
       }
     } catch (e) {
       // Handle error silently, user can still enter data
@@ -71,27 +81,31 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
     setState(() => _loading = true);
 
     try {
+      // Get the totalIncome value
+      final totalIncome = double.tryParse(_totalIncomeController.text) ?? 0;
+
       await FirebaseFirestore.instance
           .collection("users")
           .doc(uid)
           .collection("budget")
           .doc("plan")
           .set({
-        "income": double.tryParse(_incomeController.text) ?? 0,
-        "saving": double.tryParse(_savingController.text) ?? 0,
-        "spending": double.tryParse(_spendingController.text) ?? 0,
-        "luxuries": double.tryParse(_luxuriesController.text) ?? 0,
-        "updatedAt": FieldValue.serverTimestamp(),
-      });
+            "income":
+                totalIncome,
+            "saving": double.tryParse(_savingController.text) ?? 0,
+            "spending": double.tryParse(_spendingController.text) ?? 0,
+            "luxuries": double.tryParse(_luxuriesController.text) ?? 0,
+            "updatedAt": FieldValue.serverTimestamp(),
+          });
 
       if (mounted) {
-        Navigator.pop(context, true); // Return true to indicate success
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving budget: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error saving budget: $e')));
       }
     } finally {
       if (mounted) {
@@ -105,8 +119,10 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text("Plan Your Budget",
-          style: TextStyle(fontWeight: FontWeight.w600)),
+        title: const Text(
+          "Plan Your Budget",
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 0,
@@ -122,13 +138,13 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
               _buildSectionHeader("Monthly Income", Icons.attach_money),
               const SizedBox(height: 12),
               _buildIncomeField(),
-              
+
               const SizedBox(height: 32),
-              
+
               // Budget Allocation Section
               _buildSectionHeader("Budget Allocation", Icons.pie_chart),
               const SizedBox(height: 16),
-              
+
               _buildPercentageField(
                 controller: _savingController,
                 label: "Savings",
@@ -136,9 +152,9 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
                 color: Colors.green,
                 hint: "How much to save each month",
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               _buildPercentageField(
                 controller: _spendingController,
                 label: "Essential Spending",
@@ -146,9 +162,9 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
                 color: Colors.blue,
                 hint: "Rent, groceries, bills, etc.",
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               _buildPercentageField(
                 controller: _luxuriesController,
                 label: "Luxuries & Entertainment",
@@ -182,7 +198,10 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
                         ),
                         child: const Text(
                           "Save Budget Plan",
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
               ),
@@ -211,39 +230,52 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
   }
 
   Widget _buildIncomeField() {
-    return TextFormField(
-      controller: _incomeController,
-      decoration: InputDecoration(
-        labelText: "Monthly Income",
-        hintText: "Enter your monthly income",
-        prefixText: "JOD ",
-        prefixIcon: const Icon(Icons.account_balance_wallet),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Theme.of(context).primaryColor),
-        ),
-        filled: true,
-        fillColor: Colors.white,
+    final totalIncome = double.tryParse(_totalIncomeController.text) ?? 0;
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
       ),
-      keyboardType: TextInputType.number,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter your income';
-        }
-        final amount = double.tryParse(value);
-        if (amount == null || amount <= 0) {
-          return 'Please enter a valid income amount';
-        }
-        return null;
-      },
+      child: Row(
+        children: [
+          Icon(Icons.attach_money, color: Colors.green, size: 28),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextFormField(
+              controller: _totalIncomeController,
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                hintText: "Enter your monthly income",
+              ),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+              keyboardType: TextInputType.number,
+              onChanged: (value) => setState(() {}),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => inputIncome(context, totalIncome),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            ),
+            child: Text(
+              totalIncome > 0 ? "Edit" : "Enter",
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -327,10 +359,7 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
           if (remaining > 0)
             Text(
               "Unallocated: ${remaining.toStringAsFixed(0)}%",
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           if (!isValid)
             Text(
@@ -352,6 +381,7 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
     _savingController.dispose();
     _spendingController.dispose();
     _luxuriesController.dispose();
+    _totalIncomeController.dispose();
     super.dispose();
   }
 }

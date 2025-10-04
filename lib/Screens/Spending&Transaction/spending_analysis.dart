@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:frontend_vesta/Screens/Spending&Transaction/transactions.dart';
 
 class SpendingAnalysis extends StatefulWidget {
   const SpendingAnalysis({super.key});
@@ -15,10 +16,30 @@ class _SpendingAnalysisPageState extends State<SpendingAnalysis> {
   final List<String> _tabs = ["Day", "Week", "Month", "Year"];
 
   final List<Map<String, dynamic>> _spending = [
-    {"label": "Food And Drinks", "amount": -150.0, "color": Colors.blue, "icon": Icons.restaurant},
-    {"label": "Groceries", "amount": -150.0, "color": Colors.amber, "icon": Icons.shopping_bag},
-    {"label": "Entertainment", "amount": -150.0, "color": Colors.orange, "icon": Icons.movie},
-    {"label": "Others", "amount": -200.0, "color": Colors.black87, "icon": Icons.more_horiz},
+    {
+      "label": "Food And Drinks",
+      "amount": -150.0,
+      "color": Colors.blue,
+      "icon": Icons.restaurant,
+    },
+    {
+      "label": "Groceries",
+      "amount": -150.0,
+      "color": Colors.amber,
+      "icon": Icons.shopping_bag,
+    },
+    {
+      "label": "Entertainment",
+      "amount": -150.0,
+      "color": Colors.orange,
+      "icon": Icons.movie,
+    },
+    {
+      "label": "Others",
+      "amount": -200.0,
+      "color": Colors.black87,
+      "icon": Icons.more_horiz,
+    },
   ];
 
   @override
@@ -33,7 +54,6 @@ class _SpendingAnalysisPageState extends State<SpendingAnalysis> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            
             // Toggle Tabs
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -93,10 +113,33 @@ class _SpendingAnalysisPageState extends State<SpendingAnalysis> {
             ),
 
             const SizedBox(height: 20),
-            const Align(
+            Align(
               alignment: Alignment.centerLeft,
-              child: Text("Top Spending",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              child: Row(
+                children: [
+                  Text(
+                    "Top Spendings",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  Spacer(),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const Transactions(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      "All Transactions",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 10),
 

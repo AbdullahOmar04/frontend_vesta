@@ -5,8 +5,8 @@ import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/pages/accounts.dart';
 import 'package:frontend_vesta/Screens/Budgeting/budgeting_screen.dart';
 import 'package:frontend_vesta/Screens/pages/household.dart';
-import 'package:frontend_vesta/Screens/pages/savings.dart';
-import 'package:frontend_vesta/Screens/pages/spending_analysis.dart';
+import 'package:frontend_vesta/Screens/Savings/savings.dart';
+import 'package:frontend_vesta/Screens/Spending&Transaction/spending_analysis.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -53,7 +53,6 @@ class _HomePageState extends State<HomePage> {
                 final totalBalance = (userData["totalBalance"] ?? 0).toDouble();
                 final currency = userData["currency"] ?? "JOD";
 
-                // later you can update these with real values
                 final totalIncome = userData["totalIncome"];
                 final totalExpense = userData["totalExpense"];
 

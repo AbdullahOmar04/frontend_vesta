@@ -1,18 +1,18 @@
 // ignore_for_file: avoid_print
 
 import 'dart:convert';
-import 'dart:io';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
+
+const String baseUrl = "http://192.168.1.208:8000";
 
 Future<void> syncAccounts() async {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) return;
 
   final uid = user.uid;
-  const customerId = "IND_CUST_002"; // you can make this dynamic later
-  const String baseUrl = "http://192.168.1.208:8000";
+  const customerId = "IND_CUST_017";
 
 
   final url = Uri.parse("$baseUrl/sync_accounts/$uid/$customerId");
@@ -31,16 +31,43 @@ Future<void> syncAccounts() async {
 }
 
 
+Future<void> getTransactions() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
 
-String getBaseUrl() {
-  if (Platform.isAndroid) {
-    // Emulator vs physical Android
-    return "http://10.0.2.2:8000"; // Android Emulator localhost
-  } else if (Platform.isIOS) {
-    // iOS simulator uses localhost directly
-    return "http://127.0.0.1:8000";
-  } else {
-    // Physical device on LAN → change to your laptop IP
-    return "http://192.168.1.133:8000"; 
+  final uid = user.uid;
+
+  try {
+    // Step 1: Get all accounts for the user from Firestore
+    final accountsSnap = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(uid)
+        .collection("accounts")
+        .get();
+
+    if (accountsSnap.docs.isEmpty) {
+      print("⚠️ No accounts found in Firestore for this user");
+      return;
+    }
+
+    // Step 2: Loop through each account and fetch transactions
+    for (var doc in accountsSnap.docs) {
+      final accountId = doc.id;
+      final url = Uri.parse("$baseUrl/get_transactions/$uid/$accountId");
+
+      try {
+        final response = await http.get(url);
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          print("✅ Synced transactions for account $accountId: $data");
+        } else {
+          print("❌ Failed for $accountId: ${response.body}");
+        }
+      } catch (e) {
+        print("⚠️ Error fetching transactions for $accountId: $e");
+      }
+    }
+  } catch (e) {
+    print("⚠️ Error getting accounts from Firestore: $e");
   }
 }

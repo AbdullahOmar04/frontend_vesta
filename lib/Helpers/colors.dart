@@ -4,6 +4,7 @@ final ThemeData lightTheme = ThemeData(
   colorScheme: ColorScheme.light(
     surface: Colors.white,
     primary: Color.fromARGB(255, 55, 54, 67),
-    secondary: Color.fromARGB(255, 218, 75, 92)
+    secondary: Color.fromARGB(255, 218, 75, 92),
+    onSurface: Colors.grey.shade800,
   ),
 );

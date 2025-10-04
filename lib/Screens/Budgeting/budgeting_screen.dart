@@ -16,6 +16,8 @@ class PersonalBudgetScreen extends StatefulWidget {
 class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
   Map<String, dynamic> _budgetData = {};
   bool _isLoading = true;
+  final _totalIncomeController = TextEditingController();
+
 
   @override
   void initState() {
@@ -35,6 +37,16 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
           .doc("plan")
           .get();
 
+        final doc2 = await FirebaseFirestore.instance
+          .collection("users")
+          .doc(uid)
+          .get();
+
+        if (doc2.exists) {
+        final data = doc2.data()!;
+        _totalIncomeController.text = (data["totalIncome"] ?? 0).toString();
+      }
+      
       setState(() {
         _budgetData = doc.data() ?? {};
         _isLoading = false;
@@ -101,18 +113,18 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
   }
 
   Widget _buildContent() {
-    final income = (_budgetData["income"] ?? 0).toDouble();
+    final totalIncome = double.tryParse(_totalIncomeController.text) ?? 0;
     final savingPercent = (_budgetData["saving"] ?? 0).toDouble();
     final spendingPercent = (_budgetData["spending"] ?? 0).toDouble();
     final luxuriesPercent = (_budgetData["luxuries"] ?? 0).toDouble();
 
     // Calculate amounts based on percentages
-    final savingAmount = (income * savingPercent / 100);
-    final spendingAmount = (income * spendingPercent / 100);
-    final luxuriesAmount = (income * luxuriesPercent / 100);
-    final remainingAmount = income - savingAmount - spendingAmount - luxuriesAmount;
+    final savingAmount = (totalIncome * savingPercent / 100);
+    final spendingAmount = (totalIncome * spendingPercent / 100);
+    final luxuriesAmount = (totalIncome * luxuriesPercent / 100);
+    final remainingAmount = totalIncome - savingAmount - spendingAmount - luxuriesAmount;
 
-    if (income == 0) {
+    if (_budgetData.isEmpty) {
       return _buildEmptyState();
     }
 
@@ -120,11 +132,11 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Budget Chart
-        _buildBudgetChart(income, savingAmount, spendingAmount, luxuriesAmount, remainingAmount),
+        _buildBudgetChart(totalIncome, savingAmount, spendingAmount, luxuriesAmount, remainingAmount),
         const SizedBox(height: 24),
 
         // Budget Summary Card
-        _buildBudgetSummaryCard(income),
+        _buildBudgetSummaryCard(totalIncome),
         const SizedBox(height: 24),
 
         // Budget Breakdown
@@ -295,7 +307,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Budget for ${monthNames[currentMonth]}",
+                "Income for ${monthNames[currentMonth]}",
                 style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 14,

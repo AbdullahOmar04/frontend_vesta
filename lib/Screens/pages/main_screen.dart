@@ -35,9 +35,9 @@ class _MainScreenState extends State<MainScreen> {
             label: '',
           ),
           NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_outlined, size: 30),
+            icon: Icon(Icons.payments_outlined, size: 30),
             selectedIcon: Icon(
-              Icons.account_balance_wallet_rounded,
+              Icons.payments,
               color: Colors.black,
               size: 30,
             ),

@@ -124,7 +124,7 @@ Widget squareButton(
   );
 }
 
-Future<void> inputIncome(BuildContext context, double currentIncome) async {
+Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
   final controller = TextEditingController(text: currentIncome.toString());
   final formKey = GlobalKey<FormState>();
   bool isLoading = false;
