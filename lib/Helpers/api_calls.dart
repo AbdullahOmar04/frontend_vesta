@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
-const String baseUrl = "http://192.168.1.208:8000";
+const String baseUrl = "https://backend-vesta.onrender.com";
 
 Future<void> syncAccounts() async {
   final user = FirebaseAuth.instance.currentUser;
@@ -69,5 +69,55 @@ Future<void> getTransactions() async {
     }
   } catch (e) {
     print("⚠️ Error getting accounts from Firestore: $e");
+  }
+}
+
+
+
+Future<void> checkMonthlyResetOnLogin() async {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) return;
+
+  final userDoc = await FirebaseFirestore.instance.collection("users").doc(uid).get();
+  final userData = userDoc.data();
+  if (userData == null) return;
+
+  final int dayOfMonth = userData["dayOfMonth"] ?? 28;
+  final now = DateTime.now();
+  final String monthId = "${now.year}-${now.month.toString().padLeft(2, '0')}";
+
+  // Step 1: Check if a budget doc for this month already exists
+  final monthDoc = await FirebaseFirestore.instance
+      .collection("users")
+      .doc(uid)
+      .collection("budget")
+      .doc(monthId)
+      .get();
+
+  if (!monthDoc.exists && now.day >= dayOfMonth) {
+    // ✅ Reset total income and expense
+    await FirebaseFirestore.instance.collection("users").doc(uid).update({
+      "totalIncome": 0.0,
+      "totalExpense": 0.0,
+    });
+
+    // ✅ Create a new budget doc for this month
+    await FirebaseFirestore.instance
+        .collection("users")
+        .doc(uid)
+        .collection("budget")
+        .doc(monthId)
+        .set({
+      "income": 0,
+      "spending": 0,
+      "luxuries": 0,
+      "saving": 0,
+      "totalExpense": 0,
+      "createdAt": Timestamp.now(),
+    });
+
+    print("📆 Budget reset for new month: $monthId");
+  } else {
+    print("✅ Budget already created for this month or reset day not reached yet.");
   }
 }

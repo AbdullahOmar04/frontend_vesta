@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Screens/pages/settings.dart' as app_settings;
 
 Widget largeButton(
   BuildContext context,
@@ -58,17 +59,29 @@ Widget splashSmallButton(
   );
 }
 
-Widget drawer(BuildContext context) {
+Widget drawer(BuildContext context, String username) {
   return Drawer(
     child: ListView(
       padding: EdgeInsets.zero,
       children: [
-        const DrawerHeader(
-          decoration: BoxDecoration(color: Colors.blue),
+        DrawerHeader(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary,
+          ),
           child: Text(
             'Menu',
             style: TextStyle(color: Colors.white, fontSize: 24),
           ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.settings),
+          title: const Text('Settings'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => app_settings.Settings()),
+            );
+          },
         ),
         ListTile(
           leading: const Icon(Icons.logout),
@@ -161,7 +174,12 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
                       gradient: LinearGradient(
                         colors: [
                           const Color.fromARGB(255, 55, 54, 67),
-                          const Color.fromARGB(255, 55, 54, 67).withOpacity(0.8),
+                          const Color.fromARGB(
+                            255,
+                            55,
+                            54,
+                            67,
+                          ).withOpacity(0.8),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -223,11 +241,13 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          
+
                           // Enhanced TextField
                           TextFormField(
                             controller: controller,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -236,9 +256,17 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
                             decoration: InputDecoration(
                               prefixIcon: Container(
                                 margin: const EdgeInsets.all(8),
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: const Color.fromARGB(255, 55, 54, 67).withOpacity(0.1),
+                                  color: const Color.fromARGB(
+                                    255,
+                                    55,
+                                    54,
+                                    67,
+                                  ).withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Text(
@@ -257,11 +285,15 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
+                                borderSide: BorderSide(
+                                  color: Colors.grey[300]!,
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
+                                borderSide: BorderSide(
+                                  color: Colors.grey[300]!,
+                                ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -310,7 +342,7 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
                           ),
 
                           const SizedBox(height: 8),
-                          
+
                           // Current vs New comparison
                           if (currentIncome > 0)
                             Container(
@@ -354,7 +386,9 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
                         // Cancel button
                         Expanded(
                           child: TextButton(
-                            onPressed: isLoading ? null : () => Navigator.pop(context),
+                            onPressed: isLoading
+                                ? null
+                                : () => Navigator.pop(context),
                             style: TextButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
@@ -381,16 +415,22 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
                             onPressed: isLoading
                                 ? null
                                 : () async {
-                                    if (!formKey.currentState!.validate()) return;
+                                    if (!formKey.currentState!.validate())
+                                      return;
 
                                     setState(() {
                                       isLoading = true;
                                     });
 
                                     try {
-                                      final newValue = double.tryParse(controller.text.trim());
+                                      final newValue = double.tryParse(
+                                        controller.text.trim(),
+                                      );
                                       if (newValue != null) {
-                                        final uid = FirebaseAuth.instance.currentUser!.uid;
+                                        final uid = FirebaseAuth
+                                            .instance
+                                            .currentUser!
+                                            .uid;
                                         await FirebaseFirestore.instance
                                             .collection("users")
                                             .doc(uid)
@@ -398,9 +438,11 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
 
                                         if (context.mounted) {
                                           Navigator.pop(context);
-                                          
+
                                           // Show success message
-                                          ScaffoldMessenger.of(context).showSnackBar(
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
                                             SnackBar(
                                               content: Row(
                                                 children: [
@@ -416,9 +458,11 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
                                                 ],
                                               ),
                                               backgroundColor: Colors.green,
-                                              behavior: SnackBarBehavior.floating,
+                                              behavior:
+                                                  SnackBarBehavior.floating,
                                               shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(10),
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
                                               ),
                                             ),
                                           );
@@ -428,9 +472,11 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
                                       setState(() {
                                         isLoading = false;
                                       });
-                                      
+
                                       if (context.mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
                                           SnackBar(
                                             content: Row(
                                               children: [
@@ -440,13 +486,22 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
                                                   size: 20,
                                                 ),
                                                 const SizedBox(width: 8),
-                                                const Text("Failed to update income. Try again."),
+                                                const Text(
+                                                  "Failed to update income. Try again.",
+                                                ),
                                               ],
                                             ),
-                                            backgroundColor: const Color.fromARGB(255, 218, 75, 92),
+                                            backgroundColor:
+                                                const Color.fromARGB(
+                                                  255,
+                                                  218,
+                                                  75,
+                                                  92,
+                                                ),
                                             behavior: SnackBarBehavior.floating,
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(10),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
                                             ),
                                           ),
                                         );
@@ -454,7 +509,12 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
                                     }
                                   },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color.fromARGB(255, 55, 54, 67),
+                              backgroundColor: const Color.fromARGB(
+                                255,
+                                55,
+                                54,
+                                67,
+                              ),
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
@@ -468,7 +528,9 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
                                     width: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
                                     ),
                                   )
                                 : const Text(
@@ -492,4 +554,3 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
     },
   );
 }
-

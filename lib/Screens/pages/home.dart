@@ -27,11 +27,19 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final userId = user?.uid;
 
     return Scaffold(
-      appBar: AppBar(centerTitle: true, title: Text('Welcome $uname')),
-      drawer: drawer(context),
+      backgroundColor: scheme.primary,
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text('Welcome $uname', style: TextStyle(color: scheme.surface)),
+        iconTheme: IconThemeData(color: scheme.surface),
+        backgroundColor: scheme.primary,
+        elevation: 0,
+      ),
+      drawer: drawer(context, uname!),
       body: userId == null
           ? const Center(child: Text("Not logged in"))
           : StreamBuilder<DocumentSnapshot>(
@@ -56,74 +64,123 @@ class _HomePageState extends State<HomePage> {
                 final totalIncome = userData["totalIncome"];
                 final totalExpense = userData["totalExpense"];
 
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        margin: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 255, 203, 209),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const AccountsPage(),
-                              ),
-                            );
-                          },
-                          child: Center(
-                            child: RichText(
-                              textAlign: TextAlign.center,
-                              text: TextSpan(
-                                children: [
-                                  const TextSpan(
-                                    text: 'Total Balance\n',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
+                return Container(
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    color: scheme.surface,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                  ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          margin: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(255, 255, 203, 209),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const AccountsPage(),
+                                ),
+                              );
+                            },
+                            child: Center(
+                              child: RichText(
+                                textAlign: TextAlign.center,
+                                text: TextSpan(
+                                  children: [
+                                    const TextSpan(
+                                      text: 'Total Balance\n',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                  TextSpan(
-                                    text:
-                                        '$currency ${totalBalance.toStringAsFixed(2)}',
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.bold,
+                                    TextSpan(
+                                      text:
+                                          '$currency ${totalBalance.toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 40),
-                      IntrinsicHeight(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            GestureDetector(
-                              child: RichText(
+                        const SizedBox(height: 40),
+                        IntrinsicHeight(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              GestureDetector(
+                                child: RichText(
+                                  textAlign: TextAlign.center,
+                                  text: TextSpan(
+                                    children: [
+                                      const WidgetSpan(
+                                        alignment: PlaceholderAlignment.middle,
+                                        child: Icon(
+                                          Icons.north_east_outlined,
+                                          color: Colors.green,
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const TextSpan(
+                                        text: ' Total Income\n',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text:
+                                            '$currency ${totalIncome.toStringAsFixed(2)}',
+                                        style: const TextStyle(
+                                          color: Colors.green,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                onTap: () {
+                                  inputIncome(context, totalIncome);
+                                },
+                              ),
+                              const VerticalDivider(
+                                color: Colors.grey,
+                                thickness: 1,
+                              ),
+                              RichText(
                                 textAlign: TextAlign.center,
                                 text: TextSpan(
                                   children: [
                                     const WidgetSpan(
                                       alignment: PlaceholderAlignment.middle,
                                       child: Icon(
-                                        Icons.north_east_outlined,
-                                        color: Colors.green,
+                                        Icons.south_east_outlined,
+                                        color: Colors.red,
                                         size: 20,
                                       ),
                                     ),
                                     const TextSpan(
-                                      text: ' Total Income\n',
+                                      text: ' Total Expense\n',
                                       style: TextStyle(
                                         color: Colors.black,
                                         fontSize: 15,
@@ -132,9 +189,9 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     TextSpan(
                                       text:
-                                          '$currency ${totalIncome.toStringAsFixed(2)}',
+                                          '$currency ${totalExpense.toStringAsFixed(2)}',
                                       style: const TextStyle(
-                                        color: Colors.green,
+                                        color: Colors.red,
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -142,125 +199,87 @@ class _HomePageState extends State<HomePage> {
                                   ],
                                 ),
                               ),
-                              onTap: () {
-                                inputIncome(context, totalIncome);
-                              },
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: squareButton(
+                                context,
+                                "Budgeting",
+                                Icons.money,
+                                Theme.of(context).colorScheme.primary,
+                                () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const PersonalBudgetScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
-                            const VerticalDivider(
-                              color: Colors.grey,
-                              thickness: 1,
-                            ),
-                            RichText(
-                              textAlign: TextAlign.center,
-                              text: TextSpan(
-                                children: [
-                                  const WidgetSpan(
-                                    alignment: PlaceholderAlignment.middle,
-                                    child: Icon(
-                                      Icons.south_east_outlined,
-                                      color: Colors.red,
-                                      size: 20,
+                            Expanded(
+                              child: squareButton(
+                                context,
+                                "Spendings",
+                                Icons.search,
+                                Theme.of(context).colorScheme.primary,
+                                () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const SpendingAnalysis(),
                                     ),
-                                  ),
-                                  const TextSpan(
-                                    text: ' Total Expense\n',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text:
-                                        '$currency ${totalExpense.toStringAsFixed(2)}',
-                                    style: const TextStyle(
-                                      color: Colors.red,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
+                                  );
+                                },
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 40),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: squareButton(
-                              context,
-                              "Budgeting",
-                              Icons.money,
-                              Theme.of(context).colorScheme.primary,
-                              () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const PersonalBudgetScreen(),
-                                  ),
-                                );
-                              },
+                        Row(
+                          children: [
+                            Expanded(
+                              child: squareButton(
+                                context,
+                                "Savings",
+                                Icons.savings,
+                                Theme.of(context).colorScheme.primary,
+                                () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const SavingsPage(),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
-                          ),
-                          Expanded(
-                            child: squareButton(
-                              context,
-                              "Spendings",
-                              Icons.search,
-                              Theme.of(context).colorScheme.primary,
-                              () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const SpendingAnalysis(),
-                                  ),
-                                );
-                              },
+                            Expanded(
+                              child: squareButton(
+                                context,
+                                "Household",
+                                Icons.family_restroom,
+                                Theme.of(context).colorScheme.primary,
+                                () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const HouseholdPage(),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: squareButton(
-                              context,
-                              "Savings",
-                              Icons.savings,
-                              Theme.of(context).colorScheme.primary,
-                              () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const SavingsPage(),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          Expanded(
-                            child: squareButton(
-                              context,
-                              "Household",
-                              Icons.family_restroom,
-                              Theme.of(context).colorScheme.primary,
-                              () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const HouseholdPage(),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

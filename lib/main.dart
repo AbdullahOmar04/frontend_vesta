@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
-import 'package:frontend_vesta/Screens/onboarding/splash.dart';
+import 'package:frontend_vesta/Screens/Onboarding/splash.dart';
 import 'package:frontend_vesta/firebase_options.dart';
 
 Future<void> main() async {

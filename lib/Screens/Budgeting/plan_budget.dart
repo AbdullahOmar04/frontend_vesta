@@ -30,6 +30,7 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
 
   Future<void> _loadExistingBudget() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
+    final String monthId = "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}";
 
     if (uid == null) return;
 
@@ -38,7 +39,7 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
           .collection("users")
           .doc(uid)
           .collection("budget")
-          .doc("plan")
+          .doc(monthId)
           .get();
 
       final doc2 = await FirebaseFirestore.instance
@@ -83,12 +84,13 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
     try {
       // Get the totalIncome value
       final totalIncome = double.tryParse(_totalIncomeController.text) ?? 0;
+      final String monthId = "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}";
 
       await FirebaseFirestore.instance
           .collection("users")
           .doc(uid)
           .collection("budget")
-          .doc("plan")
+          .doc(monthId)
           .set({
             "income":
                 totalIncome,

@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
-import 'package:frontend_vesta/Screens/onboarding/register.dart';
+import 'package:frontend_vesta/Screens/Onboarding/register.dart';
 import 'package:frontend_vesta/Screens/pages/main_screen.dart';
 
 class Login extends StatefulWidget {
@@ -61,7 +61,8 @@ class _LoginState extends State<Login> {
       );
 
       syncAccounts();
-
+      checkMonthlyResetOnLogin();
+      
       if (mounted) {
         Navigator.pushReplacement(
           context,

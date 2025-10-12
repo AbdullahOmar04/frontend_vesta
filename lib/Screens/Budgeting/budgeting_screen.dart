@@ -27,6 +27,8 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
 
   Future<void> _fetchBudget() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
+    final String monthId = "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}";
+
     if (uid == null) return;
 
     try {
@@ -34,7 +36,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
           .collection("users")
           .doc(uid)
           .collection("budget")
-          .doc("plan")
+          .doc(monthId)
           .get();
 
         final doc2 = await FirebaseFirestore.instance

@@ -19,36 +19,60 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _pages[_selectedIndex],
-      bottomNavigationBar: NavigationBar(
-        backgroundColor: Colors.grey[100],
-        indicatorColor: Colors.transparent,
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (int index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined, size: 30),
-            selectedIcon: Icon(Icons.home, color: Colors.black, size: 30),
-            label: '',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.payments_outlined, size: 30),
-            selectedIcon: Icon(
-              Icons.payments,
-              color: Colors.black,
-              size: 30,
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          indicatorColor: Colors.transparent,
+          labelTextStyle: WidgetStateProperty.all(
+            TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.primary,
             ),
-            label: '',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline, size: 30),
-            selectedIcon: Icon(Icons.person, color: Colors.black, size: 30),
-            label: '',
-          ),
-        ],
+        ),
+        child: NavigationBar(
+          height: 70,
+          elevation: 0,
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          destinations: [
+            NavigationDestination(
+              icon: Icon(
+                Icons.home_outlined,
+                size: 30,
+                color: _selectedIndex == 0
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.grey[500],
+              ),
+              label: 'Home',
+            ),
+            NavigationDestination(
+              icon: Icon(
+                Icons.payments_outlined,
+                size: 30,
+                color: _selectedIndex == 1
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.grey[500],
+              ),
+              label: 'Wallet',
+            ),
+            NavigationDestination(
+              icon: Icon(
+                Icons.person_outline,
+                size: 30,
+                color: _selectedIndex == 2
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.grey[500],
+              ),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
   }

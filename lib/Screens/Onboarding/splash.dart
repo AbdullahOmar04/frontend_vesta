@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
-import 'package:frontend_vesta/Screens/onboarding/login.dart';
-import 'package:frontend_vesta/Screens/onboarding/register.dart';
+import 'package:frontend_vesta/Screens/Onboarding/login.dart';
+import 'package:frontend_vesta/Screens/Onboarding/register.dart';
 
 class OnboardingSplash extends StatelessWidget {
   const OnboardingSplash({super.key});
