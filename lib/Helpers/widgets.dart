@@ -84,6 +84,13 @@ Widget drawer(BuildContext context, String username) {
           },
         ),
         ListTile(
+          leading: const Icon(Icons.calendar_month),
+          title: const Text('Change Day of Month'),
+          onTap: () {
+            inputDayOfMonth(context);
+          },
+        ),
+        ListTile(
           leading: const Icon(Icons.logout),
           title: const Text('Logout'),
           onTap: () async {
@@ -134,6 +141,390 @@ Widget squareButton(
         ),
       ),
     ),
+  );
+}
+
+Future<void> inputDayOfMonth(BuildContext context) async {
+  final formKey = GlobalKey<FormState>();
+  bool isLoading = false;
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) return;
+
+  final userDoc = await FirebaseFirestore.instance
+      .collection("users")
+      .doc(uid)
+      .get();
+  final userData = userDoc.data();
+  if (userData == null) return;
+
+  final int dayOfMonth = userData["dayOfMonth"] ?? 28;
+  final controller = TextEditingController(text: dayOfMonth.toString());
+
+  await showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 340),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color.fromARGB(255, 55, 54, 67),
+                          const Color.fromARGB(
+                            255,
+                            55,
+                            54,
+                            67,
+                          ).withOpacity(0.8),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.calendar_month,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          "Update Day of Month",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Enter the day of month for your cycle",
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.8),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Form(
+                      key: formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Day of Month",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: controller,
+                            keyboardType: TextInputType.number,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(Icons.calendar_today),
+                              hintText: "Enter day (1-31)",
+                              hintStyle: TextStyle(
+                                color: Colors.grey[400],
+                                fontWeight: FontWeight.normal,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.grey[300]!,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.grey[300]!,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: Color.fromARGB(255, 55, 54, 67),
+                                  width: 2,
+                                ),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: Color.fromARGB(255, 218, 75, 92),
+                                  width: 2,
+                                ),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: Color.fromARGB(255, 218, 75, 92),
+                                  width: 2,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[50],
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter a day';
+                              }
+                              final day = int.tryParse(value.trim());
+                              if (day == null) {
+                                return 'Please enter a valid number';
+                              }
+                              if (day < 1 || day > 31) {
+                                return 'Day must be between 1 and 31';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue[50],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.blue[100]!),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 16,
+                                  color: Colors.blue[600],
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    "Current: Day $dayOfMonth",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.blue[600],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: isLoading
+                                ? null
+                                : () => Navigator.pop(context),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                side: BorderSide(color: Colors.grey[300]!),
+                              ),
+                            ),
+                            child: Text(
+                              "Cancel",
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: isLoading
+                                ? null
+                                : () async {
+                                    if (!formKey.currentState!.validate())
+                                      return;
+
+                                    setState(() {
+                                      isLoading = true;
+                                    });
+
+                                    try {
+                                      final newDay = int.tryParse(
+                                        controller.text.trim(),
+                                      );
+                                      if (newDay != null) {
+                                        final uid = FirebaseAuth
+                                            .instance
+                                            .currentUser!
+                                            .uid;
+                                        await FirebaseFirestore.instance
+                                            .collection("users")
+                                            .doc(uid)
+                                            .update({"dayOfMonth": newDay});
+
+                                        if (context.mounted) {
+                                          Navigator.pop(context);
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.check_circle,
+                                                    color: Colors.white,
+                                                    size: 20,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Text(
+                                                    "Day of month updated to $newDay",
+                                                  ),
+                                                ],
+                                              ),
+                                              backgroundColor: Colors.green,
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    } catch (e) {
+                                      setState(() {
+                                        isLoading = false;
+                                      });
+
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.error_outline,
+                                                  color: Colors.white,
+                                                  size: 20,
+                                                ),
+                                                const SizedBox(width: 8),
+                                                const Text(
+                                                  "Failed to update day. Try again.",
+                                                ),
+                                              ],
+                                            ),
+                                            backgroundColor:
+                                                const Color.fromARGB(
+                                                  255,
+                                                  218,
+                                                  75,
+                                                  92,
+                                                ),
+                                            behavior: SnackBarBehavior.floating,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromARGB(
+                                255,
+                                55,
+                                54,
+                                67,
+                              ),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: isLoading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : const Text(
+                                    "Save Changes",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
   );
 }
 

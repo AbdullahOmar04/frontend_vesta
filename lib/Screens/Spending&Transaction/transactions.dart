@@ -1,12 +1,11 @@
 // lib/Screens/pages/transactions.dart
-// ignore_for_file: avoid_print, deprecated_member_use
+// ignore_for_file: avoid_print, deprecated_member_use, prefer_final_fields, unused_field
 
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/api_calls.dart';
-import 'package:http/http.dart' as http;
 
 class Transactions extends StatefulWidget {
   const Transactions({super.key});
@@ -27,7 +26,7 @@ class _TransactionsState extends State<Transactions> {
   Map<String, bool> _accountSyncStatus = {}; // Track per-account sync status
   int _syncedAccounts = 0;
   int _totalAccounts = 0;
-  
+
   // Filter state
   String? _selectedAccountId;
   List<Map<String, String>> _accounts = []; // {id, name}
@@ -59,7 +58,7 @@ class _TransactionsState extends State<Transactions> {
           .get();
 
       final accountIds = accountsSnap.docs.map((d) => d.id).toList();
-      
+
       // Store account info for filter dropdown
       _accounts = accountsSnap.docs.map((doc) {
         final data = doc.data();
@@ -68,7 +67,7 @@ class _TransactionsState extends State<Transactions> {
           'name': (data['accountName'] ?? doc.id).toString(),
         };
       }).toList();
-      
+
       if (accountIds.isEmpty) {
         setState(() {
           _txns = [];
@@ -76,11 +75,6 @@ class _TransactionsState extends State<Transactions> {
           _loading = false;
         });
         return;
-      }
-
-      // 2) Optionally sync from backend first
-      if (syncFirst) {
-        await _syncAllAccounts(uid, accountIds);
       }
 
       // 3) Read all transactions from Firestore (across all accounts)
@@ -110,6 +104,8 @@ class _TransactionsState extends State<Transactions> {
       });
     } catch (e) {
       print("⚠️ _loadTransactions error: $e");
+      if (!mounted) return;
+
       setState(() {
         _error = e.toString();
         _loading = false;
@@ -117,83 +113,7 @@ class _TransactionsState extends State<Transactions> {
     }
   }
 
-  /// Sync all accounts with the backend
-  Future<void> _syncAllAccounts(String uid, List<String> accountIds) async {
-    setState(() {
-      _syncing = true;
-      _syncedAccounts = 0;
-      _totalAccounts = accountIds.length;
-      _accountSyncStatus = {for (var id in accountIds) id: false};
-    });
-
-    // Show snackbar for sync progress
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Syncing $_totalAccounts account(s)...'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-
-    try {
-      // Sync all accounts in parallel
-      final results = await Future.wait(
-        accountIds.map((accId) => _syncSingleAccount(uid, accId)),
-        eagerError: false,
-      );
-
-      // Count successes
-      final successCount = results.where((r) => r).length;
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              successCount == accountIds.length
-                  ? '✅ All accounts synced successfully'
-                  : '⚠️ Synced $successCount/${accountIds.length} accounts',
-            ),
-            backgroundColor: successCount == accountIds.length
-                ? Colors.green
-                : Colors.orange,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      print("⚠️ _syncAllAccounts error: $e");
-    } finally {
-      setState(() {
-        _syncing = false;
-      });
-    }
-  }
-
   /// Sync a single account and return success status
-  Future<bool> _syncSingleAccount(String uid, String accountId) async {
-    try {
-      final url = Uri.parse("$baseUrl/get_transactions/$uid/$accountId");
-      final response = await http.get(url).timeout(
-        const Duration(seconds: 15),
-      );
-
-      if (response.statusCode == 200) {
-        print("✅ Synced transactions for account $accountId");
-        setState(() {
-          _accountSyncStatus[accountId] = true;
-          _syncedAccounts++;
-        });
-        return true;
-      } else {
-        print("❌ Failed for $accountId: ${response.body}");
-        return false;
-      }
-    } catch (e) {
-      print("⚠️ Error syncing $accountId: $e");
-      return false;
-    }
-  }
 
   Future<void> _onRefresh() async {
     final uid = _auth.currentUser?.uid;
@@ -207,7 +127,7 @@ class _TransactionsState extends State<Transactions> {
         .get();
 
     final accountIds = accountsSnap.docs.map((d) => d.id).toList();
-    
+
     if (accountIds.isEmpty) {
       setState(() {
         _txns = [];
@@ -216,7 +136,7 @@ class _TransactionsState extends State<Transactions> {
     }
 
     // Sync then reload
-    await _syncAllAccounts(uid, accountIds);
+    await getTransactions();
     await _loadTransactions(syncFirst: false); // Don't sync again
   }
 
@@ -259,6 +179,7 @@ class _TransactionsState extends State<Transactions> {
                 ),
               ),
             ),
+          IconButton(onPressed: () {}, icon: Icon(Icons.add)),
         ],
         bottom: _accounts.isNotEmpty
             ? PreferredSize(
@@ -277,74 +198,75 @@ class _TransactionsState extends State<Transactions> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? _ErrorView(
-                  message: _error!,
-                  onRetry: () => _loadTransactions(syncFirst: true),
-                )
-              : RefreshIndicator(
-                  onRefresh: _onRefresh,
-                  child: _filteredTxns.isEmpty
-                      ? ListView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          children: [
-                            const SizedBox(height: 120),
-                            _selectedAccountId != null
-                                ? _EmptyFilterState(
-                                    onClearFilter: () => _onFilterChanged(null),
-                                  )
-                                : _EmptyState(
-                                    onSync: () => _loadTransactions(syncFirst: true),
-                                  ),
-                          ],
-                        )
-                      : Column(
-                          children: [
-                            // Sync status banner
-                            if (_syncing)
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                color: Colors.blue.shade50,
-                                child: Row(
-                                  children: [
-                                    const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      'Syncing $_syncedAccounts/$_totalAccounts accounts...',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.blue.shade900,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+          ? _ErrorView(
+              message: _error!,
+              onRetry: () => _loadTransactions(syncFirst: true),
+            )
+          : RefreshIndicator(
+              onRefresh: _onRefresh,
+              child: _filteredTxns.isEmpty
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        const SizedBox(height: 120),
+                        _selectedAccountId != null
+                            ? _EmptyFilterState(
+                                onClearFilter: () => _onFilterChanged(null),
+                              )
+                            : _EmptyState(
+                                onSync: () =>
+                                    _loadTransactions(syncFirst: true),
                               ),
-                            // Transaction list
-                            Expanded(
-                              child: ListView.separated(
-                                padding: const EdgeInsets.all(12),
-                                itemCount: _filteredTxns.length,
-                                separatorBuilder: (_, __) =>
-                                    const SizedBox(height: 8),
-                                itemBuilder: (context, i) {
-                                  final t = _filteredTxns[i];
-                                  return _TxnCard(txn: t);
-                                },
-                              ),
+                      ],
+                    )
+                  : Column(
+                      children: [
+                        // Sync status banner
+                        if (_syncing)
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
                             ),
-                          ],
+                            color: Colors.blue.shade50,
+                            child: Row(
+                              children: [
+                                const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Syncing $_syncedAccounts/$_totalAccounts accounts...',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.blue.shade900,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        // Transaction list
+                        Expanded(
+                          child: ListView.separated(
+                            padding: const EdgeInsets.all(12),
+                            itemCount: _filteredTxns.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 8),
+                            itemBuilder: (context, i) {
+                              final t = _filteredTxns[i];
+                              return _TxnCard(txn: t);
+                            },
+                          ),
                         ),
-                ),
+                      ],
+                    ),
+            ),
     );
   }
 }
@@ -395,10 +317,11 @@ class _Txn {
     final status = (data["transactionStatus"] ?? "").toString();
 
     // channel
-    final channel = (data["transactionChannel"]?["name"] ??
-            data["transactionChannel"]?["code"] ??
-            "")
-        .toString();
+    final channel =
+        (data["transactionChannel"]?["name"] ??
+                data["transactionChannel"]?["code"] ??
+                "")
+            .toString();
 
     // note
     String? note;
@@ -410,10 +333,10 @@ class _Txn {
     }
 
     // names
-    final debtorName =
-        (data["debtor"]?["debtorPersonal"]?["name"] ?? "").toString();
-    final creditorName =
-        (data["creditor"]?["creditorPersonal"]?["name"] ?? "").toString();
+    final debtorName = (data["debtor"]?["debtorPersonal"]?["name"] ?? "")
+        .toString();
+    final creditorName = (data["creditor"]?["creditorPersonal"]?["name"] ?? "")
+        .toString();
 
     // date: prefer settlementDateTime, fallback to presentementDateTime
     DateTime parsed = DateTime.fromMillisecondsSinceEpoch(0);
@@ -676,8 +599,18 @@ class _TxnCard extends StatelessWidget {
   static String _fmtDate(DateTime dt) {
     if (dt.millisecondsSinceEpoch == 0) return "—";
     final months = const [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
     final m = months[dt.month - 1];
     final day = dt.day.toString().padLeft(2, '0');

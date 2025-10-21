@@ -38,10 +38,18 @@ class _CreateSavingsState extends State<CreateSavings> {
   }
 
   void _addNewGoal() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Add custom saving goal'),
-        duration: Duration(seconds: 1),
+    showDialog(
+      context: context,
+      builder: (context) => _CustomGoalDialog(
+        onGoalCreated: (title, emoji, color) {
+          setState(() {
+            _savingsGoals.add({
+              'title': title,
+              'emoji': emoji,
+              'color': color,
+            });
+          });
+        },
       ),
     );
   }
@@ -153,7 +161,7 @@ class _CreateSavingsState extends State<CreateSavings> {
             Icon(Icons.add, color: Colors.grey[700], size: 20),
             const SizedBox(width: 8),
             Text(
-              'Add New Saving goal',
+              'Add New Saving Goal',
               style: TextStyle(
                 fontSize: 15,
                 color: Colors.grey[700],
@@ -161,6 +169,287 @@ class _CreateSavingsState extends State<CreateSavings> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+////////////////////////////////
+
+class _CustomGoalDialog extends StatefulWidget {
+  final Function(String title, String emoji, Color color) onGoalCreated;
+
+  const _CustomGoalDialog({required this.onGoalCreated});
+
+  @override
+  State<_CustomGoalDialog> createState() => _CustomGoalDialogState();
+}
+
+class _CustomGoalDialogState extends State<_CustomGoalDialog> {
+  final _titleController = TextEditingController();
+  String _selectedEmoji = '💰';
+  Color _selectedColor = const Color(0xFFE3F2FD);
+
+  final List<String> _emojis = [
+    '💰',
+    '🎓',
+    '💍',
+    '🎮',
+    '📱',
+    '💻',
+    '🎸',
+    '⚽',
+    '🎨',
+    '📚',
+    '🏖️',
+    '✈️',
+    '🏥',
+    '👶',
+    '🐕',
+    '🎁'
+  ];
+
+  final List<Color> _colors = [
+    const Color(0xFFE3F2FD),
+    const Color(0xFFFFF3E0),
+    const Color(0xFFE8F5E9),
+    const Color(0xFFFCE4EC),
+    const Color(0xFFFFEBEE),
+    const Color(0xFFF3E5F5),
+    const Color(0xFFE0F2F1),
+    const Color(0xFFFFF9C4),
+  ];
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
+  }
+
+  void _createGoal() {
+    if (_titleController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a goal title'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    widget.onGoalCreated(
+      _titleController.text.trim(),
+      _selectedEmoji,
+      _selectedColor,
+    );
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Create Custom Goal',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Goal Title
+                const Text(
+                  'Goal Title',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _titleController,
+                  decoration: InputDecoration(
+                    hintText: 'e.g., Wedding, Gadget, etc.',
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Emoji Selection
+                const Text(
+                  'Choose Icon',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  height: 160,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(8),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 8,
+                      childAspectRatio: 1,
+                    ),
+                    itemCount: _emojis.length,
+                    itemBuilder: (context, index) {
+                      final emoji = _emojis[index];
+                      final isSelected = emoji == _selectedEmoji;
+                      return InkWell(
+                        onTap: () {
+                          setState(() {
+                            _selectedEmoji = emoji;
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Colors.blue.withOpacity(0.2)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isSelected ? Colors.blue : Colors.grey[300]!,
+                              width: 2,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              emoji,
+                              style: const TextStyle(fontSize: 24),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Color Selection
+                const Text(
+                  'Choose Color',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: _colors.map((color) {
+                    final isSelected = color == _selectedColor;
+                    return InkWell(
+                      onTap: () {
+                        setState(() {
+                          _selectedColor = color;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(25),
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isSelected ? Colors.blue : Colors.grey[300]!,
+                            width: isSelected ? 3 : 1,
+                          ),
+                        ),
+                        child: isSelected
+                            ? const Icon(
+                                Icons.check,
+                                color: Colors.blue,
+                                size: 24,
+                              )
+                            : null,
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 32),
+                
+                // Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          side: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _createGoal,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Create',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

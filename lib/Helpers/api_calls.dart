@@ -14,7 +14,6 @@ Future<void> syncAccounts() async {
   final uid = user.uid;
   const customerId = "IND_CUST_017";
 
-
   final url = Uri.parse("$baseUrl/sync_accounts/$uid/$customerId");
 
   try {
@@ -29,7 +28,6 @@ Future<void> syncAccounts() async {
     print("⚠️ Error calling sync_accounts: $e");
   }
 }
-
 
 Future<void> getTransactions() async {
   final user = FirebaseAuth.instance.currentUser;
@@ -72,13 +70,14 @@ Future<void> getTransactions() async {
   }
 }
 
-
-
 Future<void> checkMonthlyResetOnLogin() async {
   final uid = FirebaseAuth.instance.currentUser?.uid;
   if (uid == null) return;
 
-  final userDoc = await FirebaseFirestore.instance.collection("users").doc(uid).get();
+  final userDoc = await FirebaseFirestore.instance
+      .collection("users")
+      .doc(uid)
+      .get();
   final userData = userDoc.data();
   if (userData == null) return;
 
@@ -108,16 +107,58 @@ Future<void> checkMonthlyResetOnLogin() async {
         .collection("budget")
         .doc(monthId)
         .set({
-      "income": 0,
-      "spending": 0,
-      "luxuries": 0,
-      "saving": 0,
-      "totalExpense": 0,
-      "createdAt": Timestamp.now(),
-    });
+          "income": 0,
+          "spending": 0,
+          "luxuries": 0,
+          "saving": 0,
+          "totalExpense": 0,
+          "createdAt": Timestamp.now(),
+        });
 
     print("📆 Budget reset for new month: $monthId");
   } else {
-    print("✅ Budget already created for this month or reset day not reached yet.");
+    print(
+      "✅ Budget already created for this month or reset day not reached yet.",
+    );
+  }
+}
+
+Future<void> getSOSPs() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+
+  final uid = user.uid;
+
+  try {
+    // Step 1: Get all accounts for the user from Firestore
+    final accountsSnap = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(uid)
+        .collection("accounts")
+        .get();
+
+    if (accountsSnap.docs.isEmpty) {
+      print("⚠️ No accounts found in Firestore for this user");
+      return;
+    }
+
+    for (var doc in accountsSnap.docs) {
+      final accountId = doc.id;
+      final url = Uri.parse("$baseUrl/get_sosps/$uid/$accountId");
+
+      try {
+        final response = await http.get(url);
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          print("✅ Synced SOSPs for account $accountId: $data");
+        } else {
+          print("❌ Failed for $accountId: ${response.body}");
+        }
+      } catch (e) {
+        print("⚠️ Error fetching SOSPs for $accountId: $e");
+      }
+    }
+  } catch (e) {
+    print("⚠️ Error getting accounts from Firestore: $e");
   }
 }
