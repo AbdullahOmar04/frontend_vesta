@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:frontend_vesta/Screens/Spending&Transaction/transactions.dart';
+import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transactions.dart';
 
 class SpendingAnalysis extends StatefulWidget {
   const SpendingAnalysis({super.key});
@@ -127,7 +127,7 @@ class _SpendingAnalysisPageState extends State<SpendingAnalysis> {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const Transactions(),
+                          builder: (context) => Transactions(),
                         ),
                       );
                     },

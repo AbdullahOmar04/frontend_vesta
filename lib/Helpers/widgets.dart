@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
 import 'package:frontend_vesta/Screens/pages/settings.dart' as app_settings;
 
 Widget largeButton(
@@ -944,4 +945,497 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
       );
     },
   );
+}
+
+// ==================== Filter Dropdown ====================
+class AccountFilterDropdown extends StatelessWidget {
+  const AccountFilterDropdown({
+    super.key,
+    required this.accounts,
+    required this.selectedAccountId,
+    required this.onChanged,
+  });
+
+  final List<AccountInfo> accounts;
+  final String? selectedAccountId;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          isExpanded: true,
+          value: selectedAccountId,
+          hint: Row(
+            children: [
+              Icon(Icons.filter_list, size: 20, color: Colors.grey[600]),
+              const SizedBox(width: 8),
+              Text(
+                'Filter by account',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ],
+          ),
+          items: [
+            const DropdownMenuItem<String>(
+              value: null,
+              child: Row(
+                children: [
+                  Icon(Icons.clear_all, size: 20, color: Colors.grey),
+                  SizedBox(width: 8),
+                  Text('All Accounts'),
+                ],
+              ),
+            ),
+            ...accounts.map((acc) {
+              return DropdownMenuItem<String>(
+                value: acc.id,
+                child: Row(
+                  children: [
+                    const Icon(Icons.account_balance_wallet, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(acc.name, overflow: TextOverflow.ellipsis),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+}
+
+Widget circularCategory(Color color, IconData icon, String text) {
+  return Column(
+    children: [
+      Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        child: Icon(icon, color: Colors.white, size: 30),
+      ),
+      Text(text, style: TextStyle(fontSize: 12)),
+    ],
+  );
+}
+
+// ==================== Transaction Card ====================
+class TransactionCard extends StatelessWidget {
+  const TransactionCard({super.key, required this.transaction});
+
+  final TransactionModel transaction;
+
+  @override
+  Widget build(BuildContext context) {
+    final amountStyle = TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.w700,
+      color: transaction.isDebit ? Colors.red.shade600 : Colors.green.shade600,
+    );
+
+    final statusColor = _getStatusColor(transaction.status);
+    final statusBg = statusColor.withOpacity(0.12);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildAmountAndStatus(amountStyle, statusColor, statusBg),
+          const SizedBox(height: 8),
+          _buildTransactionParties(),
+          const SizedBox(height: 6),
+          _buildChannelAndAccount(),
+          if (transaction.note?.isNotEmpty ?? false) ...[
+            const SizedBox(height: 6),
+            _buildNote(),
+          ],
+          const SizedBox(height: 10),
+          _buildDate(),
+          _buildCategoryDropdown(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAmountAndStatus(
+    TextStyle amountStyle,
+    Color statusColor,
+    Color statusBg,
+  ) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Text(
+            "${transaction.isDebit ? "- " : "+ "}"
+            "${transaction.amount.toStringAsFixed(2)} "
+            "${transaction.currency}",
+            style: amountStyle,
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: statusBg,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            _getStatusText(transaction.status),
+            style: TextStyle(
+              color: statusColor,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTransactionParties() {
+    final fromName = transaction.fromName.isEmpty
+        ? 'Unknown'
+        : transaction.fromName;
+    final toName = transaction.toName.isEmpty ? 'Unknown' : transaction.toName;
+
+    return Row(
+      children: [
+        const Icon(Icons.swap_horiz, size: 16, color: Colors.grey),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            "$fromName → $toName",
+            style: const TextStyle(
+              fontSize: 13,
+              color: Colors.black87,
+              fontWeight: FontWeight.w500,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildChannelAndAccount() {
+    return Row(
+      children: [
+        const Icon(Icons.account_balance, size: 16, color: Colors.grey),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            transaction.channel.isEmpty ? "—" : transaction.channel,
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 12),
+        const Icon(Icons.credit_card, size: 16, color: Colors.grey),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            "Acc • ${transaction.accountId}",
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNote() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Icon(Icons.notes, size: 16, color: Colors.grey),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            transaction.note!,
+            style: const TextStyle(
+              fontSize: 12,
+              fontStyle: FontStyle.italic,
+              color: Colors.black87,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDate() {
+    return Align(
+      alignment: Alignment.bottomRight,
+      child: Text(
+        _formatDate(transaction.date),
+        style: const TextStyle(fontSize: 11, color: Colors.grey),
+      ),
+    );
+  }
+
+  static Color _getStatusColor(TransactionStatus status) {
+    switch (status) {
+      case TransactionStatus.accepted:
+        return Colors.green;
+      case TransactionStatus.rejected:
+        return Colors.red;
+      case TransactionStatus.pending:
+        return Colors.orange;
+    }
+  }
+
+  static String _getStatusText(TransactionStatus status) {
+    switch (status) {
+      case TransactionStatus.accepted:
+        return "Accepted";
+      case TransactionStatus.rejected:
+        return "Rejected";
+      case TransactionStatus.pending:
+        return "Pending";
+    }
+  }
+
+  static String _formatDate(DateTime dt) {
+    if (dt.millisecondsSinceEpoch == 0) return "—";
+
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    final month = months[dt.month - 1];
+    final day = dt.day.toString().padLeft(2, '0');
+    final year = dt.year;
+    final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+    final min = dt.minute.toString().padLeft(2, '0');
+    final ampm = dt.hour >= 12 ? "PM" : "AM";
+
+    return "$month $day, $year • $hour:$min $ampm";
+  }
+
+  Widget _buildCategoryDropdown(BuildContext context) {
+    const List<String> categories = [
+      "Food & Drinks",
+      "Groceries",
+      "Entertainment",
+      "Other",
+    ];
+
+    return DropdownButtonFormField<String>(
+      value: transaction.category,
+      hint: const Text("Assign category"),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.grey[100],
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
+        ),
+      ),
+      items: categories.map((String category) {
+        return DropdownMenuItem<String>(value: category, child: Text(category));
+      }).toList(),
+      onChanged: (value) async {
+        // Update the category in Firestore
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .collection('accounts')
+            .doc(transaction.accountId)
+            .collection('transactions')
+            .doc(transaction.id)
+            .update({'category': value});
+
+        transaction.category = value; // update local object (if mutable)
+      },
+    );
+  }
+}
+
+// ==================== Sync Status Banner ====================
+class SyncStatusBanner extends StatelessWidget {
+  const SyncStatusBanner({
+    super.key,
+    required this.syncedAccounts,
+    required this.totalAccounts,
+  });
+
+  final int syncedAccounts;
+  final int totalAccounts;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      color: Colors.blue.shade50,
+      child: Row(
+        children: [
+          const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            'Syncing $syncedAccounts/$totalAccounts accounts...',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.blue.shade900,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ==================== Error View ====================
+class ErrorView extends StatelessWidget {
+  const ErrorView({super.key, required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const SizedBox(height: 12),
+            Text(
+              "Failed to load transactions",
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.black54),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh),
+              label: const Text("Retry"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== Empty States ====================
+class EmptyTransactionsState extends StatelessWidget {
+  const EmptyTransactionsState({super.key, required this.onSync});
+
+  final VoidCallback onSync;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(Icons.receipt_long, size: 80, color: Colors.grey[400]),
+        const SizedBox(height: 12),
+        Text(
+          "No transactions yet",
+          style: TextStyle(
+            fontSize: 18,
+            color: Colors.grey[700],
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "Pull down to refresh or sync with your bank.",
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey[600]),
+        ),
+        const SizedBox(height: 16),
+        OutlinedButton.icon(
+          onPressed: onSync,
+          icon: const Icon(Icons.sync),
+          label: const Text("Sync Now"),
+        ),
+      ],
+    );
+  }
+}
+
+class EmptyFilterState extends StatelessWidget {
+  const EmptyFilterState({super.key, required this.onClearFilter});
+
+  final VoidCallback onClearFilter;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(Icons.filter_list_off, size: 80, color: Colors.grey[400]),
+        const SizedBox(height: 12),
+        Text(
+          "No transactions found",
+          style: TextStyle(
+            fontSize: 18,
+            color: Colors.grey[700],
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "Try selecting a different account or clear the filter.",
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey[600]),
+        ),
+        const SizedBox(height: 16),
+        OutlinedButton.icon(
+          onPressed: onClearFilter,
+          icon: const Icon(Icons.clear),
+          label: const Text("Clear Filter"),
+        ),
+      ],
+    );
+  }
 }

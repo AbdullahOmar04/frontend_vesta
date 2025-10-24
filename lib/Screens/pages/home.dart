@@ -6,7 +6,7 @@ import 'package:frontend_vesta/Screens/pages/accounts.dart';
 import 'package:frontend_vesta/Screens/Budgeting/budgeting_screen.dart';
 import 'package:frontend_vesta/Screens/pages/household.dart';
 import 'package:frontend_vesta/Screens/Savings/savings.dart';
-import 'package:frontend_vesta/Screens/Spending&Transaction/spending_analysis.dart';
+import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/spending_analysis.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -233,7 +233,7 @@ class _HomePageState extends State<HomePage> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          const SpendingAnalysis(),
+                                           SpendingAnalysis(),
                                     ),
                                   );
                                 },
