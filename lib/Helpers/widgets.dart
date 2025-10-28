@@ -6,6 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
 import 'package:frontend_vesta/Screens/pages/settings.dart' as app_settings;
 
+const List<String> categoryLabels = [
+  'Food And Drinks',
+  'Groceries',
+  'Entertainment',
+  'Others',
+];
+
 Widget largeButton(
   BuildContext context,
   String text,
@@ -963,34 +970,43 @@ class AccountFilterDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 48,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           isExpanded: true,
           value: selectedAccountId,
           hint: Row(
             children: [
-              Icon(Icons.filter_list, size: 20, color: Colors.grey[600]),
-              const SizedBox(width: 8),
+              Icon(Icons.filter_list, size: 18, color: Colors.grey[600]),
+              const SizedBox(width: 6),
               Text(
-                'Filter by account',
-                style: TextStyle(color: Colors.grey[600]),
+                'All Accounts',
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
               ),
             ],
           ),
+          icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
           items: [
             const DropdownMenuItem<String>(
               value: null,
               child: Row(
                 children: [
-                  Icon(Icons.clear_all, size: 20, color: Colors.grey),
-                  SizedBox(width: 8),
-                  Text('All Accounts'),
+                  Icon(Icons.clear_all, size: 18, color: Colors.grey),
+                  SizedBox(width: 6),
+                  Text('All Accounts', style: TextStyle(fontSize: 14)),
                 ],
               ),
             ),
@@ -999,15 +1015,100 @@ class AccountFilterDropdown extends StatelessWidget {
                 value: acc.id,
                 child: Row(
                   children: [
-                    const Icon(Icons.account_balance_wallet, size: 20),
-                    const SizedBox(width: 8),
+                    const Icon(Icons.account_balance_wallet, size: 18),
+                    const SizedBox(width: 6),
                     Expanded(
-                      child: Text(acc.name, overflow: TextOverflow.ellipsis),
+                      child: Text(
+                        acc.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 14),
+                      ),
                     ),
                   ],
                 ),
               );
             }),
+          ],
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+}
+
+class CategoryFilterDropdown extends StatelessWidget {
+  final List<String> categories;
+  final String? selectedCategory;
+  final ValueChanged<String?> onChanged;
+
+  const CategoryFilterDropdown({
+    super.key,
+    required this.categories,
+    required this.selectedCategory,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          isExpanded: true,
+          value: selectedCategory,
+          hint: Row(
+            children: [
+              Icon(Icons.filter_alt, size: 18, color: Colors.grey[600]),
+              const SizedBox(width: 6),
+              Text(
+                'All Categories',
+                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              ),
+            ],
+          ),
+          icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+          items: [
+            const DropdownMenuItem<String>(
+              value: null,
+              child: Row(
+                children: [
+                  Icon(Icons.clear_all, size: 18, color: Colors.grey),
+                  SizedBox(width: 6),
+                  Text('All Categories', style: TextStyle(fontSize: 14)),
+                ],
+              ),
+            ),
+            ...categories.map(
+              (cat) => DropdownMenuItem<String>(
+                value: cat,
+                child: Row(
+                  children: [
+                    const Icon(Icons.label, size: 18),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        cat,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
           onChanged: onChanged,
         ),
@@ -1031,20 +1132,36 @@ Widget circularCategory(Color color, IconData icon, String text) {
 }
 
 // ==================== Transaction Card ====================
-class TransactionCard extends StatelessWidget {
-  const TransactionCard({super.key, required this.transaction});
+// Define your categories
+
+class TransactionCard extends StatefulWidget {
+  const TransactionCard({
+    super.key,
+    required this.transaction,
+    this.onCategoryChanged,
+  });
 
   final TransactionModel transaction;
+  final VoidCallback? onCategoryChanged;
+
+  @override
+  State<TransactionCard> createState() => _TransactionCardState();
+}
+
+class _TransactionCardState extends State<TransactionCard> {
+  bool _isUpdating = false;
 
   @override
   Widget build(BuildContext context) {
     final amountStyle = TextStyle(
       fontSize: 18,
       fontWeight: FontWeight.w700,
-      color: transaction.isDebit ? Colors.red.shade600 : Colors.green.shade600,
+      color: widget.transaction.isDebit
+          ? Colors.red.shade600
+          : Colors.green.shade600,
     );
 
-    final statusColor = _getStatusColor(transaction.status);
+    final statusColor = _getStatusColor(widget.transaction.status);
     final statusBg = statusColor.withOpacity(0.12);
 
     return Container(
@@ -1068,12 +1185,13 @@ class TransactionCard extends StatelessWidget {
           _buildTransactionParties(),
           const SizedBox(height: 6),
           _buildChannelAndAccount(),
-          if (transaction.note?.isNotEmpty ?? false) ...[
+          if (widget.transaction.note?.isNotEmpty ?? false) ...[
             const SizedBox(height: 6),
             _buildNote(),
           ],
           const SizedBox(height: 10),
           _buildDate(),
+          const SizedBox(height: 10),
           _buildCategoryDropdown(context),
         ],
       ),
@@ -1090,9 +1208,9 @@ class TransactionCard extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            "${transaction.isDebit ? "- " : "+ "}"
-            "${transaction.amount.toStringAsFixed(2)} "
-            "${transaction.currency}",
+            "${widget.transaction.isDebit ? "- " : "+ "}"
+            "${widget.transaction.amount.toStringAsFixed(2)} "
+            "${widget.transaction.currency}",
             style: amountStyle,
           ),
         ),
@@ -1103,7 +1221,7 @@ class TransactionCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            _getStatusText(transaction.status),
+            _getStatusText(widget.transaction.status),
             style: TextStyle(
               color: statusColor,
               fontWeight: FontWeight.w600,
@@ -1116,10 +1234,12 @@ class TransactionCard extends StatelessWidget {
   }
 
   Widget _buildTransactionParties() {
-    final fromName = transaction.fromName.isEmpty
+    final fromName = widget.transaction.fromName.isEmpty
         ? 'Unknown'
-        : transaction.fromName;
-    final toName = transaction.toName.isEmpty ? 'Unknown' : transaction.toName;
+        : widget.transaction.fromName;
+    final toName = widget.transaction.toName.isEmpty
+        ? 'Unknown'
+        : widget.transaction.toName;
 
     return Row(
       children: [
@@ -1147,7 +1267,9 @@ class TransactionCard extends StatelessWidget {
         const SizedBox(width: 6),
         Flexible(
           child: Text(
-            transaction.channel.isEmpty ? "—" : transaction.channel,
+            widget.transaction.channel.isEmpty
+                ? "—"
+                : widget.transaction.channel,
             style: const TextStyle(fontSize: 12, color: Colors.black54),
             overflow: TextOverflow.ellipsis,
           ),
@@ -1157,7 +1279,7 @@ class TransactionCard extends StatelessWidget {
         const SizedBox(width: 6),
         Flexible(
           child: Text(
-            "Acc • ${transaction.accountId}",
+            "Acc • ${widget.transaction.accountId}",
             style: const TextStyle(fontSize: 12, color: Colors.black54),
             overflow: TextOverflow.ellipsis,
           ),
@@ -1174,7 +1296,7 @@ class TransactionCard extends StatelessWidget {
         const SizedBox(width: 6),
         Expanded(
           child: Text(
-            transaction.note!,
+            widget.transaction.note!,
             style: const TextStyle(
               fontSize: 12,
               fontStyle: FontStyle.italic,
@@ -1192,10 +1314,185 @@ class TransactionCard extends StatelessWidget {
     return Align(
       alignment: Alignment.bottomRight,
       child: Text(
-        _formatDate(transaction.date),
+        _formatDate(widget.transaction.date),
         style: const TextStyle(fontSize: 11, color: Colors.grey),
       ),
     );
+  }
+
+  Widget _buildCategoryDropdown(BuildContext context) {
+    return Stack(
+      children: [
+        DropdownButtonFormField<String>(
+          value: widget.transaction.category?.isNotEmpty == true
+              ? widget.transaction.category
+              : null,
+          hint: const Text("Assign category"),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey[100],
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 8,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide.none,
+            ),
+            prefixIcon: widget.transaction.category?.isNotEmpty == true
+                ? Icon(
+                    _getIconForCategory(widget.transaction.category!),
+                    size: 20,
+                    color: _getColorForCategory(widget.transaction.category!),
+                  )
+                : const Icon(
+                    Icons.category_outlined,
+                    size: 20,
+                    color: Colors.grey,
+                  ),
+          ),
+          items: categoryLabels
+              .map(
+                (label) => DropdownMenuItem<String>(
+                  value: label,
+                  child: Row(
+                    children: [
+                      Icon(
+                        _getIconForCategory(label),
+                        size: 18,
+                        color: _getColorForCategory(label),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(label),
+                    ],
+                  ),
+                ),
+              )
+              .toList(),
+          onChanged: _isUpdating ? null : (value) => _onCategoryChanged(value),
+        ),
+        if (_isUpdating)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _onCategoryChanged(String? value) async {
+    if (value == null) return;
+
+    // Check if already assigned to this category
+    if (widget.transaction.category == value) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Already assigned to $value'),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isUpdating = true);
+
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) throw Exception("No user logged in");
+
+      final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
+      final txnAmount = widget.transaction.amount;
+      final txnId = widget.transaction.id;
+      final oldCategory = widget.transaction.category;
+      final newCategory = value;
+
+      final batch = FirebaseFirestore.instance.batch();
+
+      // 1. Update the transaction document with new category
+      final txnRef = userRef
+          .collection('accounts')
+          .doc(widget.transaction.accountId)
+          .collection('transactions')
+          .doc(txnId);
+
+      batch.update(txnRef, {'category': newCategory});
+
+      // 2. Remove amount from old category (if exists)
+      if (oldCategory != null && oldCategory.isNotEmpty) {
+        final oldCategoryRef = userRef
+            .collection('categories')
+            .doc(oldCategory);
+        final oldCategorySnap = await oldCategoryRef.get();
+
+        if (oldCategorySnap.exists) {
+          final currentTotal = (oldCategorySnap.data()?['total'] ?? 0)
+              .toDouble();
+          final newTotal = (currentTotal - txnAmount).clamp(
+            0.0,
+            double.infinity,
+          );
+          batch.update(oldCategoryRef, {'total': newTotal});
+        }
+      }
+
+      // 3. Add amount to new category
+      final newCategoryRef = userRef.collection('categories').doc(newCategory);
+      final newCategorySnap = await newCategoryRef.get();
+
+      if (newCategorySnap.exists) {
+        final currentTotal = (newCategorySnap.data()?['total'] ?? 0).toDouble();
+        batch.update(newCategoryRef, {'total': currentTotal + txnAmount});
+      } else {
+        // Create the category if it doesn't exist
+        batch.set(newCategoryRef, {
+          'total': txnAmount,
+          'type': widget.transaction.isDebit ? 'expense' : 'income',
+        });
+      }
+
+      await batch.commit();
+
+      // Update local state
+      widget.transaction.category = newCategory;
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Assigned to $newCategory'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // Notify parent to refresh if needed
+      widget.onCategoryChanged?.call();
+    } catch (e) {
+      debugPrint("⚠️ Error assigning category: $e");
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isUpdating = false);
+      }
+    }
   }
 
   static Color _getStatusColor(TransactionStatus status) {
@@ -1248,43 +1545,31 @@ class TransactionCard extends StatelessWidget {
     return "$month $day, $year • $hour:$min $ampm";
   }
 
-  Widget _buildCategoryDropdown(BuildContext context) {
-    const List<String> categories = [
-      "Food & Drinks",
-      "Groceries",
-      "Entertainment",
-      "Other",
-    ];
+  static IconData _getIconForCategory(String category) {
+    switch (category.toLowerCase()) {
+      case "food and drinks":
+        return Icons.restaurant;
+      case "groceries":
+        return Icons.shopping_bag;
+      case "entertainment":
+        return Icons.movie;
 
-    return DropdownButtonFormField<String>(
-      value: transaction.category,
-      hint: const Text("Assign category"),
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.grey[100],
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
-        ),
-      ),
-      items: categories.map((String category) {
-        return DropdownMenuItem<String>(value: category, child: Text(category));
-      }).toList(),
-      onChanged: (value) async {
-        // Update the category in Firestore
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(FirebaseAuth.instance.currentUser!.uid)
-            .collection('accounts')
-            .doc(transaction.accountId)
-            .collection('transactions')
-            .doc(transaction.id)
-            .update({'category': value});
+      default:
+        return Icons.category;
+    }
+  }
 
-        transaction.category = value; // update local object (if mutable)
-      },
-    );
+  static Color _getColorForCategory(String category) {
+    switch (category.toLowerCase()) {
+      case "food and drinks":
+        return Colors.blue;
+      case "groceries":
+        return Colors.amber;
+      case "entertainment":
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
   }
 }
 

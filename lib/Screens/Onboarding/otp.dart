@@ -32,6 +32,26 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
     super.dispose();
   }
 
+  Future<void> initializeDefaultCategories(String uid) async {
+    final categories = [
+      {"label": "Food And Drinks", "total": 0.0, "type": "expense"},
+      {"label": "Groceries", "total": 0.0, "type": "expense"},
+      {"label": "Entertainment", "total": 0.0, "type": "expense"},
+      {"label": "Others", "total": 0.0, "type": "expense"},
+    ];
+
+    final batch = FirebaseFirestore.instance.batch();
+    final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
+
+    for (final cat in categories) {
+      final label = cat['label'] as String;
+      final catRef = userRef.collection('categories').doc(label);
+      batch.set(catRef, {"total": cat['total'], "type": cat['type']});
+    }
+
+    await batch.commit();
+  }
+
   Future<void> _finishSignup() async {
     final otp = _otpController.text.trim();
 
@@ -81,8 +101,10 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
             "totalBalance": 0.0,
             "totalIncome": 0.0,
             "totalExpense": 0.0,
-            "dayOfMonth": 28
+            "dayOfMonth": 28,
           });
+
+      initializeDefaultCategories(cred.user!.uid);
 
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
@@ -189,9 +211,13 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
                               onTap: _loading
                                   ? null
                                   : () {
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         const SnackBar(
-                                          content: Text("OTP resent (demo mode: always 111111)"),
+                                          content: Text(
+                                            "OTP resent (demo mode: always 111111)",
+                                          ),
                                           backgroundColor: Colors.green,
                                         ),
                                       );

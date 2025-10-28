@@ -40,6 +40,7 @@ class TransactionModel {
     final amtString = (data["transactionAmount"]?["amount"] ?? 0).toString();
     final amount = double.tryParse(amtString) ?? 0.0;
     final currency = data["transactionAmount"]?["currency"] ?? "JOD";
+    final category = data['category'] as String?;
 
     // Parse type and status
     final typeString = (data["transactionType"] ?? "").toString().toLowerCase();
@@ -98,6 +99,7 @@ class TransactionModel {
       fromName: debtorName,
       toName: creditorName,
       date: parsed,
+      category: category,
     );
   }
 

@@ -14,7 +14,7 @@ class _RegisterState extends State<Register> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _repeatPassword = TextEditingController();
-  bool _loading = false;
+  final bool _loading = false;
 
   @override
   void dispose() {
@@ -33,13 +33,19 @@ class _RegisterState extends State<Register> {
 
     if (username.isEmpty || email.isEmpty || pass.isEmpty || pass2.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all fields"), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text("Please fill all fields"),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
     if (pass != pass2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Passwords do not match"), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text("Passwords do not match"),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
@@ -47,11 +53,8 @@ class _RegisterState extends State<Register> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => PhoneNumberPage(
-          username: username,
-          email: email,
-          password: pass,
-        ),
+        builder: (_) =>
+            PhoneNumberPage(username: username, email: email, password: pass),
       ),
     );
   }
@@ -76,7 +79,8 @@ class _RegisterState extends State<Register> {
               decoration: BoxDecoration(
                 color: scheme.surface,
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(30), topRight: Radius.circular(30),
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
                 ),
               ),
               child: SingleChildScrollView(
@@ -88,7 +92,8 @@ class _RegisterState extends State<Register> {
                       'Welcome To Vesta',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 35, fontWeight: FontWeight.bold,
+                        fontSize: 35,
+                        fontWeight: FontWeight.bold,
                         color: scheme.secondary,
                       ),
                     ),
@@ -98,14 +103,20 @@ class _RegisterState extends State<Register> {
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 20, color: scheme.primary),
                     ),
-                    Image.asset('assets/images/vesta_logo.png', width: 150, height: 150),
+                    Image.asset(
+                      'assets/images/vesta_logo.png',
+                      width: 150,
+                      height: 150,
+                    ),
                     const SizedBox(height: 16),
 
                     TextField(
                       controller: _username,
                       decoration: InputDecoration(
                         labelText: 'Username',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -114,7 +125,9 @@ class _RegisterState extends State<Register> {
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         labelText: 'Email',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -123,7 +136,9 @@ class _RegisterState extends State<Register> {
                       obscureText: true,
                       decoration: InputDecoration(
                         labelText: 'Password',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -132,7 +147,9 @@ class _RegisterState extends State<Register> {
                       obscureText: true,
                       decoration: InputDecoration(
                         labelText: 'Repeat Password',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),

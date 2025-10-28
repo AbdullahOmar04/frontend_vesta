@@ -1,12 +1,10 @@
 // lib/Screens/pages/transactions.dart
-// ignore_for_file: prefer_final_fields
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
-import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_assignement.dart';
+import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/spending_analysis.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
 
 class Transactions extends StatefulWidget {
@@ -23,86 +21,99 @@ class _TransactionsState extends State<Transactions> {
   bool _loading = true;
   bool _syncing = false;
   String? _error;
-  List<TransactionModel> _txns = [];
-  List<TransactionModel> _filteredTxns = [];
-  int _syncedAccounts = 0;
-  int _totalAccounts = 0;
 
-  // Filter state
-  String? _selectedAccountId;
+  List<TransactionModel> _allTransactions = [];
+  List<TransactionModel> _filteredTransactions = [];
+
   List<AccountInfo> _accounts = [];
+  List<String> _categories = [];
+
+  String? _selectedAccountId;
+  String? _selectedCategory;
 
   @override
   void initState() {
     super.initState();
-    _loadTransactions(syncFirst: true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForCategoryFilter();
+      _loadTransactions();
+    });
   }
 
-  Future<void> _loadTransactions({bool syncFirst = false}) async {
-    if (context.mounted) {
+  void _checkForCategoryFilter() {
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (args != null && args['selectedCategory'] != null) {
       setState(() {
-        _loading = true;
-        _error = null;
+        _selectedCategory = args['selectedCategory'] as String;
       });
     }
+  }
+
+  Future<void> _loadTransactions() async {
+    if (!mounted) return;
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
 
     try {
       final uid = _auth.currentUser?.uid;
-      if (uid == null) {
-        throw Exception("No logged-in user.");
-      }
+      if (uid == null) throw Exception("No logged-in user.");
 
-      // Get all accounts
+      // Load accounts
       final accountsSnap = await _fire
           .collection("users")
           .doc(uid)
           .collection("accounts")
           .get();
 
-      final accountIds = accountsSnap.docs.map((d) => d.id).toList();
-
-      // Store account info for filter dropdown
       _accounts = accountsSnap.docs.map((doc) {
         final data = doc.data();
         return AccountInfo(id: doc.id, name: data['accountName'] ?? doc.id);
       }).toList();
 
-      if (accountIds.isEmpty) {
+      if (accountsSnap.docs.isEmpty) {
         setState(() {
-          _txns = [];
-          _filteredTxns = [];
+          _allTransactions = [];
+          _filteredTransactions = [];
           _loading = false;
         });
         return;
       }
 
-      // Read all transactions from Firestore
-      final all = <TransactionModel>[];
-      for (final accId in accountIds) {
-        final txSnap = await _fire
-            .collection("users")
-            .doc(uid)
-            .collection("accounts")
-            .doc(accId)
-            .collection("transactions")
-            .get();
+      // Load categories
+      final categoriesSnap = await _fire
+          .collection("users")
+          .doc(uid)
+          .collection("categories")
+          .get();
 
-        for (final doc in txSnap.docs) {
-          final data = doc.data();
-          all.add(TransactionModel.fromFirestore(accId, doc.id, data));
+      _categories = categoriesSnap.docs.map((d) => d.id).toList();
+
+      // Load all transactions
+      final transactions = <TransactionModel>[];
+      for (final accDoc in accountsSnap.docs) {
+        final txSnap = await accDoc.reference.collection("transactions").get();
+
+        for (final txDoc in txSnap.docs) {
+          transactions.add(
+            TransactionModel.fromFirestore(accDoc.id, txDoc.id, txDoc.data()),
+          );
         }
       }
 
-      // Sort newest → oldest by date
-      all.sort((a, b) => b.date.compareTo(a.date));
+      // Sort by date (newest first)
+      transactions.sort((a, b) => b.date.compareTo(a.date));
 
       setState(() {
-        _txns = all;
-        _filteredTxns = _applyFilter(all);
+        _allTransactions = transactions;
+        _filteredTransactions = _applyFilters(transactions);
         _loading = false;
       });
     } catch (e) {
-      debugPrint("⚠️ _loadTransactions error: $e");
+      debugPrint("⚠️ Error loading transactions: $e");
       if (!mounted) return;
 
       setState(() {
@@ -116,89 +127,136 @@ class _TransactionsState extends State<Transactions> {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
 
-    final accountsSnap = await _fire
-        .collection("users")
-        .doc(uid)
-        .collection("accounts")
-        .get();
+    try {
+      setState(() => _syncing = true);
 
-    final accountIds = accountsSnap.docs.map((d) => d.id).toList();
+      await getTransactions();
+      await _loadTransactions();
 
-    if (accountIds.isEmpty) {
-      setState(() {
-        _txns = [];
-      });
-      return;
+      if (mounted) {
+        setState(() => _syncing = false);
+      }
+    } catch (e) {
+      debugPrint("⚠️ Error refreshing: $e");
+      if (mounted) {
+        setState(() => _syncing = false);
+      }
     }
-
-    await getTransactions();
-    await _loadTransactions(syncFirst: false);
   }
 
-  List<TransactionModel> _applyFilter(List<TransactionModel> txns) {
-    if (_selectedAccountId == null) {
-      return txns;
+  List<TransactionModel> _applyFilters(List<TransactionModel> transactions) {
+    var filtered = transactions;
+
+    // Filter by account
+    if (_selectedAccountId != null) {
+      filtered = filtered
+          .where((t) => t.accountId == _selectedAccountId)
+          .toList();
     }
-    return txns.where((t) => t.accountId == _selectedAccountId).toList();
+
+    // Filter by category
+    if (_selectedCategory != null) {
+      filtered = filtered
+          .where((t) => t.category == _selectedCategory)
+          .toList();
+    }
+
+    return filtered;
   }
 
-  void _onFilterChanged(String? accountId) {
+  void _onAccountFilterChanged(String? accountId) {
     setState(() {
       _selectedAccountId = accountId;
-      _filteredTxns = _applyFilter(_txns);
+      _filteredTransactions = _applyFilters(_allTransactions);
+    });
+  }
+
+  void _onCategoryFilterChanged(String? category) {
+    setState(() {
+      _selectedCategory = category;
+      _filteredTransactions = _applyFilters(_allTransactions);
+    });
+  }
+
+  void _clearFilters() {
+    setState(() {
+      _selectedAccountId = null;
+      _selectedCategory = null;
+      _filteredTransactions = _applyFilters(_allTransactions);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Transactions'),
-        centerTitle: true,
-        actions: [
-          if (_syncing)
-            Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: Center(
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Theme.of(context).colorScheme.onPrimary,
-                    ),
-                  ),
+      appBar: _buildAppBar(),
+      body: Column(
+        children: [
+          if (_accounts.isNotEmpty || _categories.isNotEmpty)
+            _buildFilterSection(),
+          Expanded(child: _buildBody()),
+        ],
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      title: const Text('Transactions'),
+      centerTitle: true,
+      actions: [
+        if (_syncing)
+          const Padding(
+            padding: EdgeInsets.only(right: 16),
+            child: Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
               ),
             ),
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => TransactionAssignement(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.add),
           ),
+        IconButton(
+          icon: const Icon(Icons.pie_chart),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SpendingAnalysis()),
+            ).then((_) => _loadTransactions());
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilterSection() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Row(
+        children: [
+          if (_accounts.isNotEmpty)
+            Expanded(
+              child: AccountFilterDropdown(
+                accounts: _accounts,
+                selectedAccountId: _selectedAccountId,
+                onChanged: _onAccountFilterChanged,
+              ),
+            ),
+          if (_accounts.isNotEmpty && _categories.isNotEmpty)
+            const SizedBox(width: 12),
+          if (_categories.isNotEmpty)
+            Expanded(
+              child: CategoryFilterDropdown(
+                categories: _categories,
+                selectedCategory: _selectedCategory,
+                onChanged: _onCategoryFilterChanged,
+              ),
+            ),
         ],
-        bottom: _accounts.isNotEmpty
-            ? PreferredSize(
-                preferredSize: const Size.fromHeight(60),
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                  child: AccountFilterDropdown(
-                    accounts: _accounts,
-                    selectedAccountId: _selectedAccountId,
-                    onChanged: _onFilterChanged,
-                  ),
-                ),
-              )
-            : null,
       ),
-      body: _buildBody(),
     );
   }
 
@@ -208,53 +266,39 @@ class _TransactionsState extends State<Transactions> {
     }
 
     if (_error != null) {
-      return ErrorView(
-        message: _error!,
-        onRetry: () => _loadTransactions(syncFirst: true),
-      );
+      return ErrorView(message: _error!, onRetry: _loadTransactions);
     }
 
     return RefreshIndicator(
       onRefresh: _onRefresh,
-      child: _filteredTxns.isEmpty
+      child: _filteredTransactions.isEmpty
           ? _buildEmptyState()
           : _buildTransactionList(),
     );
   }
 
   Widget _buildEmptyState() {
+    final hasFilters = _selectedAccountId != null || _selectedCategory != null;
+
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
         const SizedBox(height: 120),
-        _selectedAccountId != null
-            ? EmptyFilterState(onClearFilter: () => _onFilterChanged(null))
-            : EmptyTransactionsState(
-                onSync: () => _loadTransactions(syncFirst: true),
-              ),
+        hasFilters
+            ? EmptyFilterState(onClearFilter: _clearFilters)
+            : EmptyTransactionsState(onSync: _loadTransactions),
       ],
     );
   }
 
   Widget _buildTransactionList() {
-    return Column(
-      children: [
-        if (_syncing)
-          SyncStatusBanner(
-            syncedAccounts: _syncedAccounts,
-            totalAccounts: _totalAccounts,
-          ),
-        Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.all(12),
-            itemCount: _filteredTxns.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 8),
-            itemBuilder: (context, i) {
-              return TransactionCard(transaction: _filteredTxns[i]);
-            },
-          ),
-        ),
-      ],
+    return ListView.separated(
+      padding: const EdgeInsets.all(12),
+      itemCount: _filteredTransactions.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (context, i) {
+        return TransactionCard(transaction: _filteredTransactions[i]);
+      },
     );
   }
 }
