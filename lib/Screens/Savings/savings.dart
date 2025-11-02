@@ -60,43 +60,47 @@ class _SavingsPageState extends State<SavingsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Allocate to $goalTitle'),
+        title: Text('Allocate to $goalTitle', textAlign: TextAlign.center),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Available: JOD ${available.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 255, 203, 209),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Available: JOD ${available.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Current in goal: JOD ${currentAmount.toStringAsFixed(2)}',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                  ),
-                  Text(
-                    'Remaining: JOD ${remaining.toStringAsFixed(2)}',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      'Current in goal: JOD ${currentAmount.toStringAsFixed(2)}',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                    ),
+                    Text(
+                      'Remaining: JOD ${remaining.toStringAsFixed(2)}',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             TextField(
               controller: amountController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: InputDecoration(
                 labelText: 'Amount to Allocate',
                 prefixText: 'JOD ',
@@ -193,7 +197,9 @@ class _SavingsPageState extends State<SavingsPage> {
             const SizedBox(height: 16),
             TextField(
               controller: amountController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: InputDecoration(
                 labelText: 'Amount to Remove',
                 prefixText: 'JOD ',
@@ -241,9 +247,7 @@ class _SavingsPageState extends State<SavingsPage> {
                 );
               }
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Remove'),
           ),
         ],
@@ -272,9 +276,9 @@ class _SavingsPageState extends State<SavingsPage> {
           .collection('savings')
           .doc(goalId)
           .update({
-        'currentAmount': newCurrentAmount,
-        'isCompleted': isCompleted,
-      });
+            'currentAmount': newCurrentAmount,
+            'isCompleted': isCompleted,
+          });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -289,10 +293,7 @@ class _SavingsPageState extends State<SavingsPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -319,9 +320,9 @@ class _SavingsPageState extends State<SavingsPage> {
           .collection('savings')
           .doc(goalId)
           .update({
-        'currentAmount': newCurrentAmount,
-        'isCompleted': isCompleted,
-      });
+            'currentAmount': newCurrentAmount,
+            'isCompleted': isCompleted,
+          });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -336,10 +337,7 @@ class _SavingsPageState extends State<SavingsPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -387,7 +385,7 @@ class _SavingsPageState extends State<SavingsPage> {
     }
     final years = totalMonths ~/ 12;
     final months = totalMonths % 12;
-    
+
     if (months == 0) {
       return '$years ${years == 1 ? 'year' : 'years'}';
     }
@@ -397,12 +395,9 @@ class _SavingsPageState extends State<SavingsPage> {
   @override
   Widget build(BuildContext context) {
     final userId = user?.uid;
-    
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Savings Goals'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Savings Goals'), centerTitle: true),
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToCreateSavings,
         child: const Icon(Icons.add),
@@ -434,14 +429,15 @@ class _SavingsPageState extends State<SavingsPage> {
                           .snapshots(),
                       builder: (context, savingsSnapshot) {
                         double totalAllocated = 0.0;
-                        
+
                         if (savingsSnapshot.hasData) {
                           for (var doc in savingsSnapshot.data!.docs) {
                             final data = doc.data() as Map<String, dynamic>;
-                            totalAllocated += (data['currentAmount'] ?? 0).toDouble();
+                            totalAllocated += (data['currentAmount'] ?? 0)
+                                .toDouble();
                           }
                         }
-                        
+
                         final unallocated = totalSavings - totalAllocated;
 
                         return Container(
@@ -466,7 +462,8 @@ class _SavingsPageState extends State<SavingsPage> {
                                       ),
                                     ),
                                     TextSpan(
-                                      text: 'JOD ${totalSavings.toStringAsFixed(2)}',
+                                      text:
+                                          'JOD ${totalSavings.toStringAsFixed(2)}',
                                       style: const TextStyle(
                                         color: Colors.black,
                                         fontSize: 30,
@@ -501,7 +498,9 @@ class _SavingsPageState extends State<SavingsPage> {
                                       'JOD ${unallocated.toStringAsFixed(2)}',
                                       style: TextStyle(
                                         fontSize: 16,
-                                        color: unallocated > 0 ? Colors.green[700] : Colors.red[700],
+                                        color: unallocated > 0
+                                            ? Colors.green[700]
+                                            : Colors.red[700],
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -542,8 +541,9 @@ class _SavingsPageState extends State<SavingsPage> {
                             padding: const EdgeInsets.all(16),
                             itemCount: savingsGoals.length,
                             itemBuilder: (context, index) {
-                              final goal = savingsGoals[index].data()
-                                  as Map<String, dynamic>;
+                              final goal =
+                                  savingsGoals[index].data()
+                                      as Map<String, dynamic>;
                               final goalId = savingsGoals[index].id;
 
                               return _buildSavingsGoalCard(goal, goalId);
@@ -602,10 +602,7 @@ class _SavingsPageState extends State<SavingsPage> {
                       shape: BoxShape.circle,
                     ),
                     child: Center(
-                      child: Text(
-                        emoji,
-                        style: const TextStyle(fontSize: 24),
-                      ),
+                      child: Text(emoji, style: const TextStyle(fontSize: 24)),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -632,8 +629,10 @@ class _SavingsPageState extends State<SavingsPage> {
                   ),
                   if (isCompleted)
                     Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.green,
                         borderRadius: BorderRadius.circular(12),
@@ -669,10 +668,7 @@ class _SavingsPageState extends State<SavingsPage> {
                       ),
                       Text(
                         'JOD ${targetAmount.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -691,10 +687,7 @@ class _SavingsPageState extends State<SavingsPage> {
                   const SizedBox(height: 4),
                   Text(
                     '$progressPercentage% achieved',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                 ],
               ),
@@ -711,11 +704,7 @@ class _SavingsPageState extends State<SavingsPage> {
                       'JOD ${monthlyAmount.toStringAsFixed(2)}',
                     ),
                   ),
-                  Container(
-                    width: 1,
-                    height: 30,
-                    color: Colors.grey[300],
-                  ),
+                  Container(width: 1, height: 30, color: Colors.grey[300]),
                   Expanded(
                     child: _buildInfoColumn(
                       'Remaining',
@@ -734,20 +723,11 @@ class _SavingsPageState extends State<SavingsPage> {
   Widget _buildInfoColumn(String label, String value) {
     return Column(
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
       ],
     );

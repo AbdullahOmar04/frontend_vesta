@@ -44,6 +44,7 @@ class _SpendingAnalysisState extends State<SpendingAnalysis> {
   }
 
   Future<void> _loadData() async {
+    if (!mounted) return;
     setState(() => _loading = true);
 
     try {

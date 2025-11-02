@@ -1351,26 +1351,42 @@ class _TransactionCardState extends State<TransactionCard> {
                     color: Colors.grey,
                   ),
           ),
-          items: categoryLabels
-              .map(
-                (label) => DropdownMenuItem<String>(
-                  value: label,
-                  child: Row(
-                    children: [
-                      Icon(
-                        _getIconForCategory(label),
-                        size: 18,
-                        color: _getColorForCategory(label),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(label),
-                    ],
+          items: [
+            const DropdownMenuItem<String>(
+              value: "Unassign",
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.remove_circle_outline,
+                    size: 18,
+                    color: Colors.redAccent,
                   ),
+                  SizedBox(width: 8),
+                  Text("Unassign"),
+                ],
+              ),
+            ),
+            ...categoryLabels.map(
+              (label) => DropdownMenuItem<String>(
+                value: label,
+                child: Row(
+                  children: [
+                    Icon(
+                      _getIconForCategory(label),
+                      size: 18,
+                      color: _getColorForCategory(label),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(label),
+                  ],
                 ),
-              )
-              .toList(),
+              ),
+            ),
+          ],
           onChanged: _isUpdating ? null : (value) => _onCategoryChanged(value),
         ),
+
+        // 🔄 Overlay when updating
         if (_isUpdating)
           Positioned.fill(
             child: Container(
@@ -1394,17 +1410,6 @@ class _TransactionCardState extends State<TransactionCard> {
   Future<void> _onCategoryChanged(String? value) async {
     if (value == null) return;
 
-    // Check if already assigned to this category
-    if (widget.transaction.category == value) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Already assigned to $value'),
-          duration: const Duration(seconds: 1),
-        ),
-      );
-      return;
-    }
-
     setState(() => _isUpdating = true);
 
     try {
@@ -1415,47 +1420,82 @@ class _TransactionCardState extends State<TransactionCard> {
       final txnAmount = widget.transaction.amount;
       final txnId = widget.transaction.id;
       final oldCategory = widget.transaction.category;
-      final newCategory = value;
 
       final batch = FirebaseFirestore.instance.batch();
 
-      // 1. Update the transaction document with new category
       final txnRef = userRef
           .collection('accounts')
           .doc(widget.transaction.accountId)
           .collection('transactions')
           .doc(txnId);
 
-      batch.update(txnRef, {'category': newCategory});
+      // 🟣 UNASSIGN LOGIC
+      if (value == "Unassign") {
+        // Remove from old category totals if exists
+        if (oldCategory != null && oldCategory.isNotEmpty) {
+          final oldCategoryRef = userRef
+              .collection('categories')
+              .doc(oldCategory);
+          final oldSnap = await oldCategoryRef.get();
 
-      // 2. Remove amount from old category (if exists)
+          if (oldSnap.exists) {
+            final currentTotal = (oldSnap.data()?['total'] ?? 0).toDouble();
+            final newTotal = (currentTotal - txnAmount).clamp(
+              0.0,
+              double.infinity,
+            );
+            batch.update(oldCategoryRef, {'total': newTotal});
+          }
+        }
+
+        // Clear from the transaction itself
+        batch.update(txnRef, {'category': FieldValue.delete()});
+
+        await batch.commit();
+
+        setState(() => widget.transaction.category = null);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Transaction unassigned successfully"),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        widget.onCategoryChanged?.call();
+        return;
+      }
+
+      // 🟢 NORMAL CATEGORY ASSIGNMENT
+
+      // 1. Update transaction
+      batch.update(txnRef, {'category': value});
+
+      // 2. Deduct from old category total
       if (oldCategory != null && oldCategory.isNotEmpty) {
-        final oldCategoryRef = userRef
-            .collection('categories')
-            .doc(oldCategory);
-        final oldCategorySnap = await oldCategoryRef.get();
+        final oldRef = userRef.collection('categories').doc(oldCategory);
+        final oldSnap = await oldRef.get();
 
-        if (oldCategorySnap.exists) {
-          final currentTotal = (oldCategorySnap.data()?['total'] ?? 0)
-              .toDouble();
+        if (oldSnap.exists) {
+          final currentTotal = (oldSnap.data()?['total'] ?? 0).toDouble();
           final newTotal = (currentTotal - txnAmount).clamp(
             0.0,
             double.infinity,
           );
-          batch.update(oldCategoryRef, {'total': newTotal});
+          batch.update(oldRef, {'total': newTotal});
         }
       }
 
-      // 3. Add amount to new category
-      final newCategoryRef = userRef.collection('categories').doc(newCategory);
-      final newCategorySnap = await newCategoryRef.get();
+      // 3. Add to new category total
+      final newRef = userRef.collection('categories').doc(value);
+      final newSnap = await newRef.get();
 
-      if (newCategorySnap.exists) {
-        final currentTotal = (newCategorySnap.data()?['total'] ?? 0).toDouble();
-        batch.update(newCategoryRef, {'total': currentTotal + txnAmount});
+      if (newSnap.exists) {
+        final currentTotal = (newSnap.data()?['total'] ?? 0).toDouble();
+        batch.update(newRef, {'total': currentTotal + txnAmount});
       } else {
-        // Create the category if it doesn't exist
-        batch.set(newCategoryRef, {
+        batch.set(newRef, {
           'total': txnAmount,
           'type': widget.transaction.isDebit ? 'expense' : 'income',
         });
@@ -1463,35 +1503,24 @@ class _TransactionCardState extends State<TransactionCard> {
 
       await batch.commit();
 
-      // Update local state
-      widget.transaction.category = newCategory;
-
-      if (!mounted) return;
+      setState(() => widget.transaction.category = value);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Assigned to $newCategory'),
+          content: Text("Assigned to $value"),
           backgroundColor: Colors.green,
           duration: const Duration(seconds: 2),
         ),
       );
 
-      // Notify parent to refresh if needed
       widget.onCategoryChanged?.call();
     } catch (e) {
-      debugPrint("⚠️ Error assigning category: $e");
-      if (!mounted) return;
-
+      debugPrint("⚠️ Category update error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
       );
     } finally {
-      if (mounted) {
-        setState(() => _isUpdating = false);
-      }
+      if (mounted) setState(() => _isUpdating = false);
     }
   }
 

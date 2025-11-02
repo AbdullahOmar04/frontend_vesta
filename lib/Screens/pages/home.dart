@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/pages/accounts.dart';
 import 'package:frontend_vesta/Screens/Budgeting/budgeting_screen.dart';
-import 'package:frontend_vesta/Screens/pages/household.dart';
+import 'package:frontend_vesta/Screens/Household/household.dart';
 import 'package:frontend_vesta/Screens/Savings/savings.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/spending_analysis.dart';
 
