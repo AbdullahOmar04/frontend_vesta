@@ -3,11 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transactions.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
 
-// Same categories as transaction card
 const List<String> categoryLabels = [
   'Food And Drinks',
   'Groceries',
@@ -39,7 +37,6 @@ class _SpendingAnalysisState extends State<SpendingAnalysis> {
   }
 
   Future<void> _initialize() async {
-    await getTransactions();
     await _loadData();
   }
 

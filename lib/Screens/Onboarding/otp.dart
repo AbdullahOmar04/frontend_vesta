@@ -8,7 +8,7 @@ class OTPVerificationPage extends StatefulWidget {
   final String username;
   final String email;
   final String password;
-  final String phoneNumber; // already includes +962
+  final String phoneNumber;
 
   const OTPVerificationPage({
     super.key,
@@ -102,6 +102,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
             "totalIncome": 0.0,
             "totalExpense": 0.0,
             "dayOfMonth": 28,
+            "householdIds": [],
           });
 
       initializeDefaultCategories(cred.user!.uid);

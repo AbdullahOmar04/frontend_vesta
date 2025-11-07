@@ -62,7 +62,7 @@ class _LoginState extends State<Login> {
 
       syncAccounts();
       checkMonthlyResetOnLogin();
-      
+
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -126,13 +126,21 @@ class _LoginState extends State<Login> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 20,
-                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
-                    Image.asset(
-                      'assets/images/vesta_logo.png',
-                      width: 150,
-                      height: 150,
+                    SizedBox(
+                      height: 160, // reserve a smaller amount of layout space
+                      child: OverflowBox(
+                        maxWidth: double.infinity,
+                        maxHeight:
+                            400, // allow the image to grow beyond the reserved space
+                        alignment: Alignment.center,
+                        child: Image.asset(
+                          'assets/images/Dark.png',
+                          width: 400,
+                          height: 400,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextField(

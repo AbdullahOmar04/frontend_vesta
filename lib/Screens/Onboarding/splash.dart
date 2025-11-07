@@ -17,10 +17,18 @@ class OnboardingSplash extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset(
-                  'assets/images/vesta_logo.png',
-                  width: 260,
-                  height: 260,
+                SizedBox(
+                  height: 160, // reserve a smaller amount of layout space
+                  child: OverflowBox(
+                  maxWidth: double.infinity,
+                  maxHeight: 400, // allow the image to grow beyond the reserved space
+                  alignment: Alignment.center,
+                  child: Image.asset(
+                    'assets/images/Dark.png',
+                    width: 400,
+                    height: 400,
+                  ),
+                  ),
                 ),
                 Text(
                   'Welcome to \nVesta',

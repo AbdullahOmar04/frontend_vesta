@@ -2,9 +2,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
-import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/spending_analysis.dart';
+import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/new_spending.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
 
 class Transactions extends StatefulWidget {
@@ -130,7 +129,6 @@ class _TransactionsState extends State<Transactions> {
     try {
       setState(() => _syncing = true);
 
-      await getTransactions();
       await _loadTransactions();
 
       if (mounted) {
@@ -189,21 +187,37 @@ class _TransactionsState extends State<Transactions> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.primary,
       appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          if (_accounts.isNotEmpty || _categories.isNotEmpty)
-            _buildFilterSection(),
-          Expanded(child: _buildBody()),
-        ],
+      body: Container(
+        height: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                  ),
+        child: Column(
+          children: [
+            if (_accounts.isNotEmpty || _categories.isNotEmpty)
+              _buildFilterSection(),
+            Expanded(child: _buildBody()),
+          ],
+        ),
       ),
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: const Text('Transactions'),
+      title: Text(
+        'Transactions',
+        style: TextStyle(color: Theme.of(context).colorScheme.surface),
+      ),
+      iconTheme: IconThemeData(color: Theme.of(context).colorScheme.surface),
       centerTitle: true,
+      backgroundColor: Theme.of(context).colorScheme.primary,
       actions: [
         if (_syncing)
           const Padding(
@@ -224,7 +238,9 @@ class _TransactionsState extends State<Transactions> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const SpendingAnalysis()),
+              MaterialPageRoute(
+                builder: (context) => const NewSpendingAnalysis(),
+              ),
             ).then((_) => _loadTransactions());
           },
         ),

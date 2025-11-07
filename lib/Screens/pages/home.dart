@@ -2,12 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
+import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/new_spending.dart';
 import 'package:frontend_vesta/Screens/pages/accounts.dart';
 import 'package:frontend_vesta/Screens/Budgeting/budgeting_screen.dart';
 import 'package:frontend_vesta/Screens/Household/household.dart';
 import 'package:frontend_vesta/Screens/Savings/savings.dart';
-import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/spending_analysis.dart';
-
+import 'package:frontend_vesta/deep_link_service.dart';
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -22,6 +22,9 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    deepLinkService.init(context);
+
+    deepLinkService.checkPendingLink(context);
     uname = user?.displayName ?? user?.email ?? "User";
   }
 
@@ -81,7 +84,7 @@ class _HomePageState extends State<HomePage> {
                           padding: const EdgeInsets.all(24),
                           margin: const EdgeInsets.symmetric(horizontal: 12),
                           decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 255, 203, 209),
+                            color: const Color.fromARGB(32, 162, 0, 255), //onPrimary
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: GestureDetector(
@@ -232,8 +235,7 @@ class _HomePageState extends State<HomePage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                           SpendingAnalysis(),
+                                      builder: (context) => NewSpendingAnalysis(),
                                     ),
                                   );
                                 },

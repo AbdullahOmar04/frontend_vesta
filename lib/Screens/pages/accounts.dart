@@ -23,7 +23,23 @@ class AccountsPage extends StatelessWidget {
     syncAccounts();
 
     return Scaffold(
-      appBar: AppBar(title: const Text("My Accounts"), centerTitle: true),
+      backgroundColor: Theme.of(context).colorScheme.primary,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: Text(
+          "My Accounts",
+          style: TextStyle(color: Theme.of(context).colorScheme.surface),
+        ),
+        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.surface),
+        centerTitle: true,
+      ),
+      // Floating action button (UI only, no action)
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {}, // void: UI only
+        tooltip: 'Add Account',
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        child: Icon(Icons.add, color: Theme.of(context).colorScheme.surface),
+      ),
       body: uid == null
           ? const Center(child: Text("Not logged in"))
           : StreamBuilder<QuerySnapshot>(
@@ -47,88 +63,100 @@ class AccountsPage extends StatelessWidget {
 
                 final accounts = snapshot.data!.docs;
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: accounts.length,
-                  itemBuilder: (context, index) {
-                    final acc = accounts[index].data() as Map<String, dynamic>;
+                return Container(
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                  ),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: accounts.length,
+                    itemBuilder: (context, index) {
+                      final acc =
+                          accounts[index].data() as Map<String, dynamic>;
 
-                    final bankName =
-                        acc["institutionBasicInfo"]?["name"]?["enName"] ??
-                        "Unknown Bank";
-                    final accountType =
-                        acc["accountType"]?["name"] ?? "Unknown Type";
-                    final balance =
-                        acc["availableBalance"]?["balanceAmount"] ?? 0;
-                    final currency =
-                        acc["accountCurrency"]?.toString() ?? "JOD";
-                    final iban =
-                        acc["mainRoute"]?["address"] ?? "No IBAN available";
+                      final bankName =
+                          acc["institutionBasicInfo"]?["name"]?["enName"] ??
+                          "Unknown Bank";
+                      final accountType =
+                          acc["accountType"]?["name"] ?? "Unknown Type";
+                      final balance =
+                          acc["availableBalance"]?["balanceAmount"] ?? 0;
+                      final currency =
+                          acc["accountCurrency"]?.toString() ?? "JOD";
+                      final iban =
+                          acc["mainRoute"]?["address"] ?? "No IBAN available";
 
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 5,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 24,
-                                  backgroundColor: Theme.of(
-                                    context,
-                                  ).colorScheme.primary,
-                                  child: const Icon(
-                                    Icons.account_balance,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    bankName,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                      return Card(
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 5,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 24,
+                                    backgroundColor: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                    child: const Icon(
+                                      Icons.account_balance,
+                                      color: Colors.white,
                                     ),
                                   ),
-                                ),
-                                Text(
-                                  _formatCurrency(balance, currency),
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green,
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      bankName,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ),
+                                  Text(
+                                    _formatCurrency(balance, currency),
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                accountType,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              accountType,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              "IBAN: $iban",
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.black54,
+                              const SizedBox(height: 8),
+                              Text(
+                                "IBAN: $iban",
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black54,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 );
               },
             ),

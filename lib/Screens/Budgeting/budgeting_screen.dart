@@ -24,6 +24,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
   List<FlSpot> _savingsData = [];
   double _currentCycleBudget = 0.01;
   double _currentCycleSpending = 0.0;
+
   // ------------------------------------------
 
   int _budgetResetDay = 28;
@@ -80,7 +81,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
       if (doc2.exists) {
         final data = doc2.data()!;
         _totalIncomeController.text = (data["totalIncome"] ?? 0).toString();
-        
+
         if (mounted) {
           setState(() {
             _budgetResetDay = (data["dayOfMonth"] ?? 28) as int;
@@ -105,15 +106,16 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           "Personal Budget",
-          style: TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(color: scheme.surface, fontWeight: FontWeight.w600),
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        iconTheme: IconThemeData(color: scheme.surface),
+        backgroundColor: scheme.primary,
         elevation: 0,
         actions: [
           TextButton.icon(
@@ -129,7 +131,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
             icon: const Icon(Icons.edit, size: 18),
             label: const Text("Manage"),
             style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).primaryColor,
+              foregroundColor: scheme.surface,
             ),
           ),
         ],
@@ -170,8 +172,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildBudgetLineChart(totalBudgetAmount),
-        const SizedBox(height: 24),
-        _buildBudgetTrackerBar(),
         const SizedBox(height: 24),
 
         _buildBudgetBreakdown(
@@ -237,7 +237,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
   }
 
   Widget _buildBudgetLineChart(double totalBudgetAmount) {
-    // We'll create a static "budget" line based on the user's plan
     final List<FlSpot> budgetLineData = [
       FlSpot(0, totalBudgetAmount),
       FlSpot(5, totalBudgetAmount),
@@ -249,7 +248,18 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     for (int i = 5; i >= 0; i--) {
       final month = DateTime(now.year, now.month - i);
       final monthNames = [
-        'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
       ];
       monthLabels.add(monthNames[month.month - 1]);
     }
@@ -319,12 +329,12 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
                     isStrokeCapRound: true,
                     dotData: const FlDotData(show: false),
                     belowBarData: BarAreaData(show: false),
-                    dashArray: [5, 5], // Make it a dashed line
+                    dashArray: [5, 5],
                   ),
                   // Line 2: Actual Expenses
                   if (_expenseData.isNotEmpty)
                     LineChartBarData(
-                      spots: _expenseData, // Using LIVE data
+                      spots: _expenseData,
                       isCurved: true,
                       color: Colors.blue,
                       barWidth: 4,
@@ -338,7 +348,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
                   // Line 3: Actual Savings
                   if (_savingsData.isNotEmpty)
                     LineChartBarData(
-                      spots: _savingsData, // Using LIVE data
+                      spots: _savingsData,
                       isCurved: true,
                       color: Colors.green,
                       barWidth: 4,
@@ -355,109 +365,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     );
   }
 
-  Widget _buildBudgetTrackerBar() {
-    final percent = (_currentCycleSpending / _currentCycleBudget).clamp(
-      0.0,
-      1.0,
-    );
-
-    final now = DateTime.now();
-    final monthNames = [
-      '','January','February','March','April','May','June','July','August','September','October','November','December'
-    ];
-    String cycleMonthName = monthNames[now.month];
-    int cycleYear = now.year;
-
-    if (now.day < _budgetResetDay) {
-      // We're in the previous month's cycle
-      final prevMonth = DateTime(now.year, now.month - 1);
-      cycleMonthName = monthNames[prevMonth.month];
-      cycleYear = prevMonth.year;
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[800],
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Budget for $cycleMonthName $cycleYear",
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const Icon(
-                Icons.arrow_forward_ios,
-                color: Colors.white30,
-                size: 16,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // The progress bar
-          Container(
-            height: 10,
-            decoration: BoxDecoration(
-              color: Colors.grey[700],
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: FractionallySizedBox(
-                widthFactor: percent.isNaN ? 0.0 : percent, // Avoid NaN errors
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Labels
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "JOD ${_currentCycleSpending.toStringAsFixed(0)}",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                "JOD ${_currentCycleBudget.toStringAsFixed(0)}",
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildBudgetBreakdown(
     double saving,
     double spending,
@@ -467,7 +374,19 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
   ) {
     final currentMonth = DateTime.now().month;
     final monthNames = [
-      '','January','February','March','April','May','June','July','August','September','October','November','December'
+      '',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
 
     return Container(
@@ -651,7 +570,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
           const SizedBox(height: 16),
           // _isLoading is now the master loading state
           if (_isLoading) const Center(child: CircularProgressIndicator()),
-          
+
           if (!_isLoading && _sosps.isEmpty)
             const Text(
               "No upcoming payments",
@@ -686,7 +605,18 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
                 final parsedDate = DateTime.tryParse(nextPaymentDateStr);
                 if (parsedDate != null) {
                   final monthNames = [
-                    'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'
+                    'Jan',
+                    'Feb',
+                    'Mar',
+                    'Apr',
+                    'May',
+                    'Jun',
+                    'Jul',
+                    'Aug',
+                    'Sep',
+                    'Oct',
+                    'Nov',
+                    'Dec',
                   ];
                   formattedDate =
                       "Next: ${parsedDate.day} ${monthNames[parsedDate.month - 1]} ${parsedDate.year}";
@@ -825,7 +755,8 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
           data['currencyExchange'] != null &&
           data['currencyExchange']['targetAmount'] != null) {
         return double.tryParse(
-                data['currencyExchange']['targetAmount'].toString()) ??
+              data['currencyExchange']['targetAmount'].toString(),
+            ) ??
             0.0;
       }
       // If no conversion, get the primary amount
@@ -833,7 +764,8 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
           data['transactionAmount'] != null &&
           data['transactionAmount']['amount'] != null) {
         return double.tryParse(
-                data['transactionAmount']['amount'].toString()) ??
+              data['transactionAmount']['amount'].toString(),
+            ) ??
             0.0;
       }
       return 0.0; // No amount found
@@ -861,7 +793,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
   Future<void> _fetchCurrentCycleData() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
-    if (_budgetData.isEmpty) return; 
+    if (_budgetData.isEmpty) return;
 
     // 1. Determine the current budget cycle dates
     final now = DateTime.now();
@@ -949,15 +881,26 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
 
       if (now.day >= _budgetResetDay) {
         cycleStartDate = DateTime(now.year, now.month - i, _budgetResetDay);
-        final nextMonth = DateTime(now.year, now.month - i + 1, _budgetResetDay);
+        final nextMonth = DateTime(
+          now.year,
+          now.month - i + 1,
+          _budgetResetDay,
+        );
         cycleEndDate = nextMonth.subtract(const Duration(days: 1));
       } else {
         cycleStartDate = DateTime(now.year, now.month - i - 1, _budgetResetDay);
         final thisMonth = DateTime(now.year, now.month - i, _budgetResetDay);
         cycleEndDate = thisMonth.subtract(const Duration(days: 1));
       }
-      
-      cycleEndDate = DateTime(cycleEndDate.year, cycleEndDate.month, cycleEndDate.day, 23, 59, 59);
+
+      cycleEndDate = DateTime(
+        cycleEndDate.year,
+        cycleEndDate.month,
+        cycleEndDate.day,
+        23,
+        59,
+        59,
+      );
 
       // 4. Query logic
       double totalSpending = 0;
@@ -983,9 +926,12 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
             if (!transactionDate.isBefore(cycleStartDate) &&
                 !transactionDate.isAfter(cycleEndDate)) {
               final amount = _getAmountFromData(data);
-              if (category == 'spending' || category == 'luxuries' || category == 'Groceries') {
+              if (category == 'Groceries' ||
+                  category == 'Entertainment' ||
+                  category == 'Food And Drinks' ||
+                  category == 'Others') {
                 totalSpending += amount;
-              } else if (category == 'savings') {
+              } else if (category == 'Savings') {
                 totalSavings += amount;
               }
             }

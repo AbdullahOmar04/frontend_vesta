@@ -89,24 +89,30 @@ class _RegisterState extends State<Register> {
                   children: [
                     const SizedBox(height: 32),
                     Text(
-                      'Welcome To Vesta',
+                      'Welcome To',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 35,
                         fontWeight: FontWeight.bold,
                         color: scheme.secondary,
+                        fontFamily: 'Poppins',
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      'Start your journey with us!',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 20, color: scheme.primary),
-                    ),
-                    Image.asset(
-                      'assets/images/vesta_logo.png',
-                      width: 150,
-                      height: 150,
+
+                    SizedBox(
+                      height: 160, // reserve a smaller amount of layout space
+                      child: OverflowBox(
+                        maxWidth: double.infinity,
+                        maxHeight:
+                            400, // allow the image to grow beyond the reserved space
+                        alignment: Alignment.center,
+                        child: Image.asset(
+                          'assets/images/Dark.png',
+                          width: 400,
+                          height: 400,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 16),
 

@@ -77,8 +77,7 @@ class TransactionModel {
 
     // Parse date
     DateTime parsed = DateTime.fromMillisecondsSinceEpoch(0);
-    final dateString =
-        data["settlementDateTime"] ?? data["presentementDateTime"];
+    final dateString = data["settlementDateTime"];
     if (dateString is String && dateString.isNotEmpty) {
       try {
         parsed = DateTime.parse(dateString).toLocal();

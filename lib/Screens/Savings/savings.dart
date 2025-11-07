@@ -395,12 +395,19 @@ class _SavingsPageState extends State<SavingsPage> {
   @override
   Widget build(BuildContext context) {
     final userId = user?.uid;
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Savings Goals'), centerTitle: true),
+      backgroundColor: scheme.primary,
+      appBar: AppBar(
+        title: Text('Savings Goals', style: TextStyle(color: scheme.surface)),
+        centerTitle: true,
+        iconTheme: IconThemeData(color: scheme.surface),
+        backgroundColor: scheme.primary,
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToCreateSavings,
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: userId == null
           ? const Center(child: Text("Not logged in"))
@@ -418,141 +425,151 @@ class _SavingsPageState extends State<SavingsPage> {
                     userSnapshot.data?.data() as Map<String, dynamic>? ?? {};
                 final totalSavings = (userData["totalSavings"] ?? 0).toDouble();
 
-                return Column(
-                  children: [
-                    // Total Savings Header with StreamBuilder for allocated amount
-                    StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection("users")
-                          .doc(userId)
-                          .collection("savings")
-                          .snapshots(),
-                      builder: (context, savingsSnapshot) {
-                        double totalAllocated = 0.0;
-
-                        if (savingsSnapshot.hasData) {
-                          for (var doc in savingsSnapshot.data!.docs) {
-                            final data = doc.data() as Map<String, dynamic>;
-                            totalAllocated += (data['currentAmount'] ?? 0)
-                                .toDouble();
-                          }
-                        }
-
-                        final unallocated = totalSavings - totalAllocated;
-
-                        return Container(
-                          padding: const EdgeInsets.all(24),
-                          margin: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 255, 203, 209),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Column(
-                            children: [
-                              RichText(
-                                textAlign: TextAlign.center,
-                                text: TextSpan(
-                                  children: [
-                                    const TextSpan(
-                                      text: 'Total Savings\n',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    TextSpan(
-                                      text:
-                                          'JOD ${totalSavings.toStringAsFixed(2)}',
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 30,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.9),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'Available to Allocate: ',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[800],
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    Text(
-                                      'JOD ${unallocated.toStringAsFixed(2)}',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: unallocated > 0
-                                            ? Colors.green[700]
-                                            : Colors.red[700],
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+                return Container(
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    color: scheme.surface,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
                     ),
-
-                    // Savings Goals List
-                    Expanded(
-                      child: StreamBuilder<QuerySnapshot>(
+                  ),
+                  child: Column(
+                    children: [
+                      // Total Savings Header with StreamBuilder for allocated amount
+                      StreamBuilder<QuerySnapshot>(
                         stream: FirebaseFirestore.instance
                             .collection("users")
                             .doc(userId)
                             .collection("savings")
-                            .orderBy("createdAt", descending: true)
                             .snapshots(),
                         builder: (context, savingsSnapshot) {
-                          if (savingsSnapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
+                          double totalAllocated = 0.0;
+                  
+                          if (savingsSnapshot.hasData) {
+                            for (var doc in savingsSnapshot.data!.docs) {
+                              final data = doc.data() as Map<String, dynamic>;
+                              totalAllocated += (data['currentAmount'] ?? 0)
+                                  .toDouble();
+                            }
                           }
-
-                          if (!savingsSnapshot.hasData ||
-                              savingsSnapshot.data!.docs.isEmpty) {
-                            return _buildEmptyState();
-                          }
-
-                          final savingsGoals = savingsSnapshot.data!.docs;
-
-                          return ListView.builder(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: savingsGoals.length,
-                            itemBuilder: (context, index) {
-                              final goal =
-                                  savingsGoals[index].data()
-                                      as Map<String, dynamic>;
-                              final goalId = savingsGoals[index].id;
-
-                              return _buildSavingsGoalCard(goal, goalId);
-                            },
+                  
+                          final unallocated = totalSavings - totalAllocated;
+                  
+                          return Container(
+                            padding: const EdgeInsets.all(24),
+                            margin: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: scheme.onPrimary, //onPrimary
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              children: [
+                                RichText(
+                                  textAlign: TextAlign.center,
+                                  text: TextSpan(
+                                    children: [
+                                      const TextSpan(
+                                        text: 'Total Savings\n',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text:
+                                            'JOD ${totalSavings.toStringAsFixed(2)}',
+                                        style: const TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 30,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.9),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Available to Allocate: ',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey[800],
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      Text(
+                                        'JOD ${unallocated.toStringAsFixed(2)}',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: unallocated > 0
+                                              ? Colors.green[700]
+                                              : Colors.red[700],
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           );
                         },
                       ),
-                    ),
-                  ],
+                  
+                      // Savings Goals List
+                      Expanded(
+                        child: StreamBuilder<QuerySnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection("users")
+                              .doc(userId)
+                              .collection("savings")
+                              .orderBy("createdAt", descending: true)
+                              .snapshots(),
+                          builder: (context, savingsSnapshot) {
+                            if (savingsSnapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+                  
+                            if (!savingsSnapshot.hasData ||
+                                savingsSnapshot.data!.docs.isEmpty) {
+                              return _buildEmptyState();
+                            }
+                  
+                            final savingsGoals = savingsSnapshot.data!.docs;
+                  
+                            return ListView.builder(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: savingsGoals.length,
+                              itemBuilder: (context, index) {
+                                final goal =
+                                    savingsGoals[index].data()
+                                        as Map<String, dynamic>;
+                                final goalId = savingsGoals[index].id;
+                  
+                                return _buildSavingsGoalCard(goal, goalId);
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               },
             ),

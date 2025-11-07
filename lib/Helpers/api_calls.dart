@@ -94,13 +94,11 @@ Future<void> checkMonthlyResetOnLogin() async {
       .get();
 
   if (!monthDoc.exists && now.day >= dayOfMonth) {
-    // ✅ Reset total income and expense
     await FirebaseFirestore.instance.collection("users").doc(uid).update({
       "totalIncome": 0.0,
       "totalExpense": 0.0,
     });
 
-    // ✅ Create a new budget doc for this month
     await FirebaseFirestore.instance
         .collection("users")
         .doc(uid)
