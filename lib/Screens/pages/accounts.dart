@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:intl/intl.dart';
 
 class AccountsPage extends StatelessWidget {
@@ -19,8 +18,7 @@ class AccountsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-
-    syncAccounts();
+    
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.primary,
@@ -161,5 +159,38 @@ class AccountsPage extends StatelessWidget {
               },
             ),
     );
+  }
+}
+
+
+Future<void> calcTotalBalance() async {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) return;
+
+  try {
+    final accountsSnap = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('accounts')
+        .get();
+
+    num totalBalance = 0;
+
+    for (final doc in accountsSnap.docs) {
+      final acc = doc.data() as Map<String, dynamic>;
+      final dynamic balanceRaw = acc['availableBalance']?['balanceAmount'] ?? 0;
+      if (balanceRaw is num) {
+        totalBalance += balanceRaw;
+      } else if (balanceRaw is String) {
+        totalBalance += num.tryParse(balanceRaw) ?? 0;
+      }
+    }
+
+    await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      'totalBalance': totalBalance,
+      'totalBalanceUpdatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  } catch (_) {
+    rethrow;
   }
 }

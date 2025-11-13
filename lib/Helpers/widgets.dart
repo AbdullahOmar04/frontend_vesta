@@ -12,12 +12,13 @@ import 'dart:async';
 /// Use `categoryLabelsNotifier` to rebuild UI when categories change,
 /// or read the current list via `categoryLabels`.
 final ValueNotifier<List<String>> categoryLabelsNotifier =
-  ValueNotifier<List<String>>([
-  'Food And Drinks',
-  'Groceries',
-  'Entertainment',
-  'Others',
-]);
+    ValueNotifier<List<String>>([
+      'Food And Drinks',
+      'Groceries',
+      'Entertainment',
+      'Savings',
+      'Others',
+    ]);
 
 List<String> get categoryLabels => categoryLabelsNotifier.value;
 
@@ -30,47 +31,73 @@ void _startCategoryListener() {
   _categorySub?.cancel();
 
   FirebaseAuth.instance.authStateChanges().listen((user) {
-  _categorySub?.cancel();
+    _categorySub?.cancel();
 
-  if (user == null) {
-    categoryLabelsNotifier.value = [];
-    return;
-  }
+    if (user == null) {
+      categoryLabelsNotifier.value = [];
+      return;
+    }
 
-  final col = FirebaseFirestore.instance
-    .collection('users')
-    .doc(user.uid)
-    .collection('categories')
-    .withConverter<Map<String, dynamic>>(
-      fromFirestore: (snap, _) => snap.data() ?? <String, dynamic>{},
-      toFirestore: (obj, _) => obj,
+    final col = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('categories')
+        .withConverter<Map<String, dynamic>>(
+          fromFirestore: (snap, _) => snap.data() ?? <String, dynamic>{},
+          toFirestore: (obj, _) => obj,
+        );
+
+    _categorySub = col.snapshots().listen(
+      (snap) {
+        var labels = snap.docs.map((d) {
+          final data = d.data();
+          if (data['name'] is String &&
+              (data['name'] as String).trim().isNotEmpty) {
+            return (data['name'] as String).trim();
+          }
+          return d.id;
+        }).toList();
+
+        // keep some defaults if collection is empty (optional)
+        if (labels.isEmpty) {
+          labels = [
+            'Food And Drinks',
+            'Groceries',
+            'Entertainment',
+            'Savings',
+            'Others',
+          ];
+        }
+
+        categoryLabelsNotifier.value = labels;
+      },
+      onError: (_) {
+        // on error keep existing labels or fallback
+      },
     );
-
-  _categorySub = col.snapshots().listen((snap) {
-    var labels = snap.docs.map((d) {
-    final data = d.data();
-    if (data['name'] is String && (data['name'] as String).trim().isNotEmpty) {
-      return (data['name'] as String).trim();
-    }
-    return d.id;
-    }).toList();
-
-    // keep some defaults if collection is empty (optional)
-    if (labels.isEmpty) {
-    labels = [
-      'Food And Drinks',
-      'Groceries',
-      'Entertainment',
-      'Savings',
-      'Others',
-    ];
-    }
-
-    categoryLabelsNotifier.value = labels;
-  }, onError: (_) {
-    // on error keep existing labels or fallback
   });
-  });
+}
+
+Future<bool> _checkForHouseholds() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return false;
+
+  final userDocRef = FirebaseFirestore.instance
+      .collection('users')
+      .doc(user.uid);
+
+  try {
+    final doc = await userDocRef.get();
+    final data = doc.data();
+    if (data == null || data['householdIds'] == null) {
+      return false;
+    } else {
+      final householdIds = List<String>.from(data['householdIds']);
+      return householdIds.isNotEmpty;
+    }
+  } catch (_) {
+    return false;
+  }
 }
 
 Widget largeButton(
@@ -127,6 +154,48 @@ Widget splashSmallButton(
   );
 }
 
+Widget BankCard(
+  BuildContext context,
+  String bankName,
+  String logoPath,
+  Color color,
+  VoidCallback onPressed,
+) {
+  return Padding(
+    padding: const EdgeInsets.all(8.0),
+    child: SizedBox(
+      height: 100,
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Image.asset(
+              logoPath,
+              width: 60,
+              height: 60,
+            ),
+            const SizedBox(width: 20),
+            Text(
+              bankName,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
 Widget drawer(BuildContext context, String username) {
   return Drawer(
     child: ListView(
@@ -458,8 +527,9 @@ Future<void> inputDayOfMonth(BuildContext context) async {
                             onPressed: isLoading
                                 ? null
                                 : () async {
-                                    if (!formKey.currentState!.validate())
+                                    if (!formKey.currentState!.validate()) {
                                       return;
+                                    }
 
                                     setState(() {
                                       isLoading = true;
@@ -874,8 +944,9 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
                             onPressed: isLoading
                                 ? null
                                 : () async {
-                                    if (!formKey.currentState!.validate())
+                                    if (!formKey.currentState!.validate()) {
                                       return;
+                                    }
 
                                     setState(() {
                                       isLoading = true;
@@ -1177,20 +1248,6 @@ class CategoryFilterDropdown extends StatelessWidget {
   }
 }
 
-Widget circularCategory(Color color, IconData icon, String text) {
-  return Column(
-    children: [
-      Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        child: Icon(icon, color: Colors.white, size: 30),
-      ),
-      Text(text, style: TextStyle(fontSize: 12)),
-    ],
-  );
-}
-
 // ==================== Transaction Card ====================
 
 class TransactionCard extends StatefulWidget {
@@ -1236,16 +1293,48 @@ class _TransactionCardState extends State<TransactionCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Amount
-            Text(
-              "${isDebit ? '- ' : '+ '}${widget.transaction.amount.toStringAsFixed(2)} ${widget.transaction.currency}",
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 18,
-                color: amountColor,
-              ),
-            ),
-            const SizedBox(height: 4),
+            Row(
+              children: [
+                Text(
+                  "${isDebit ? '- ' : '+ '}${widget.transaction.amount.toStringAsFixed(2)} ${widget.transaction.currency}",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                    color: amountColor,
+                  ),
+                ),
+                const Spacer(),
 
+                // 🔽 Check if there are households, then show a button
+                FutureBuilder<bool>(
+                  future: _checkForHouseholds(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const SizedBox.shrink();
+                    }
+
+                    final hasHouseholds = snapshot.data ?? false;
+
+                    if (!hasHouseholds) {
+                      return const SizedBox.shrink();
+                    }
+
+                    // ✅ Show the button
+                    return TextButton.icon(
+                      onPressed: () => _showAssignToHouseholdSheet(context),
+                      icon: const Icon(Icons.house_outlined, size: 18),
+                      label: const Text("Assign"),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.grey[800],
+                        textStyle: const TextStyle(fontSize: 14),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 4),
             // Account + Date
             Row(
               children: [
@@ -1255,8 +1344,10 @@ class _TransactionCardState extends State<TransactionCard> {
                 ),
                 Spacer(),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.grey[100],
                     borderRadius: BorderRadius.circular(8),
@@ -1270,7 +1361,7 @@ class _TransactionCardState extends State<TransactionCard> {
                     ),
                   ),
                 ),
-                Icon(Icons.chevron_right)
+                Icon(Icons.chevron_right),
               ],
             ),
 
@@ -1303,10 +1394,8 @@ class _TransactionCardState extends State<TransactionCard> {
                       child: Text("Unassign"),
                     ),
                     ...categoryLabels.map(
-                      (label) => DropdownMenuItem(
-                        value: label,
-                        child: Text(label),
-                      ),
+                      (label) =>
+                          DropdownMenuItem(value: label, child: Text(label)),
                     ),
                   ],
                   onChanged: _isUpdating ? null : _onCategoryChanged,
@@ -1377,9 +1466,9 @@ class _TransactionCardState extends State<TransactionCard> {
         setState(() => widget.transaction.category = value);
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Updated category to $value")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Updated category to $value")));
       widget.onCategoryChanged?.call();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1417,8 +1506,7 @@ class _TransactionCardState extends State<TransactionCard> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
-                color:
-                    widget.transaction.isDebit ? Colors.red : Colors.green,
+                color: widget.transaction.isDebit ? Colors.red : Colors.green,
               ),
             ),
             const SizedBox(height: 10),
@@ -1457,8 +1545,18 @@ class _TransactionCardState extends State<TransactionCard> {
   static String _formatDate(DateTime dt) {
     if (dt.millisecondsSinceEpoch == 0) return "—";
     const months = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
     return "${months[dt.month - 1]} ${dt.day}, ${dt.year}";
   }
@@ -1466,13 +1564,478 @@ class _TransactionCardState extends State<TransactionCard> {
   static String _formatDateInDetails(DateTime dt) {
     if (dt.millisecondsSinceEpoch == 0) return "—";
     const months = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
     return "${months[dt.month - 1]} ${dt.day}, ${dt.year}, ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
   }
+
+  void _showAssignToHouseholdSheet(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    // Load user households
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    final data = userDoc.data();
+    final householdIds = List<String>.from(data?['householdIds'] ?? []);
+
+    if (householdIds.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("You are not part of any household.")),
+        );
+      }
+      return;
+    }
+
+    // Fetch household details
+    final householdDocs = await FirebaseFirestore.instance
+        .collection('households')
+        .where(FieldPath.documentId, whereIn: householdIds)
+        .get();
+
+    if (!context.mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.all(16),
+        children: [
+          const Text(
+            "Assign to Household",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          ...householdDocs.docs.map((doc) {
+            final data = doc.data();
+            final name = data['householdName'] ?? 'Unnamed Household';
+            final householdId = doc.id; // ✅ define it here
+
+            return ListTile(
+              leading: const Icon(Icons.house_rounded),
+              title: Text(name),
+              onTap: () async {
+                final user = FirebaseAuth.instance.currentUser;
+                if (user == null) return;
+
+                final transactionRef = FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(user.uid)
+                    .collection('accounts')
+                    .doc(widget.transaction.accountId)
+                    .collection('transactions')
+                    .doc(widget.transaction.id);
+
+                final transactionSnapshot = await transactionRef.get();
+
+                if (!transactionSnapshot.exists) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Transaction not found")),
+                  );
+                  return;
+                }
+
+                final transactionData = transactionSnapshot.data()!;
+
+                final householdTransactionData = {
+                  ...transactionData, // include all transaction fields
+                  'assignedBy': user.uid,
+                  'assignedAt': FieldValue.serverTimestamp(),
+                  'originalTransactionId': widget.transaction.id,
+                };
+
+                // ✅ Write to the household’s transactions collection
+                await FirebaseFirestore.instance
+                    .collection('households')
+                    .doc(householdId)
+                    .collection('transactions')
+                    .doc(widget.transaction.id)
+                    .set(householdTransactionData, SetOptions(merge: true));
+
+                // ✅ Mark this transaction as assigned in the user’s record
+                await transactionRef.update({'householdId': householdId});
+
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Assigned to '$name' successfully!"),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              },
+            );
+          }),
+        ],
+      ),
+    );
+  }
 }
 
+// ==================== Household Transaction Card View ====================
+
+class HouseholdTransactionCard extends StatefulWidget {
+  const HouseholdTransactionCard({
+    super.key,
+    required this.transaction,
+    this.onCategoryChanged,
+  });
+
+  final HouseholdTransactionModel transaction;
+  final VoidCallback? onCategoryChanged;
+
+  @override
+  State<HouseholdTransactionCard> createState() =>
+      _HouseholdTransactionCardState();
+}
+
+class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
+  bool _isUpdating = false;
+  String? _addedByName;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAddedByName();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDebit = widget.transaction.isDebit;
+    final amountColor = isDebit ? Colors.red : Colors.green;
+
+    return GestureDetector(
+      onTap: () => _showDetailsSheet(context),
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// AMOUNT
+            Row(
+              children: [
+                Text(
+                  "${isDebit ? '- ' : '+ '}${widget.transaction.amount.toStringAsFixed(2)} ${widget.transaction.currency}",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                    color: amountColor,
+                  ),
+                ),
+                const Spacer(),
+
+                /// ADDED BY
+                if (_addedByName != null)
+                  Text(
+                    "By $_addedByName",
+                    style: const TextStyle(fontSize: 13, color: Colors.black54),
+                  ),
+              ],
+            ),
+
+            const SizedBox(height: 4),
+
+            /// DATE
+            Row(
+              children: [
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    _formatDate(widget.transaction.date),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.chevron_right),
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
+            /// CATEGORY DROPDOWN
+            Stack(
+              children: [
+                DropdownButtonFormField<String>(
+                  value: widget.transaction.category?.isNotEmpty == true
+                      ? widget.transaction.category
+                      : null,
+                  hint: const Text("Category"),
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  items: [
+                    const DropdownMenuItem(
+                      value: "Unassign",
+                      child: Text("Unassign"),
+                    ),
+                    ...categoryLabels.map(
+                      (label) =>
+                          DropdownMenuItem(value: label, child: Text(label)),
+                    ),
+                  ],
+                  onChanged: _isUpdating ? null : _onCategoryChanged,
+                ),
+                if (_isUpdating)
+                  const Positioned.fill(
+                    child: Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _fetchAddedByName() async {
+    final addedByUid = widget.transaction.assignedBy;
+    if (addedByUid == null || addedByUid.isEmpty) return;
+
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(addedByUid)
+          .get();
+
+      if (userDoc.exists) {
+        final userData = userDoc.data();
+        final username =
+            userData?['username'] ??
+            userData?['displayName'] ??
+            userData?['email'] ??
+            addedByUid;
+
+        if (mounted) {
+          setState(() => _addedByName = username);
+        }
+      } else {
+        if (mounted) setState(() => _addedByName = addedByUid);
+      }
+    } catch (e) {
+      debugPrint("⚠️ Error fetching addedBy name: $e");
+      if (mounted) setState(() => _addedByName = addedByUid);
+    }
+  }
+
+  /// 🏷️ Category Update
+  Future<void> _onCategoryChanged(String? value) async {
+    if (value == null) return;
+    setState(() => _isUpdating = true);
+
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) throw Exception("No user logged in");
+
+      final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
+      final txnRef = userRef
+          .collection('accounts')
+          .doc(widget.transaction.accountId)
+          .collection('transactions')
+          .doc(widget.transaction.id);
+
+      final batch = FirebaseFirestore.instance.batch();
+      final oldCategory = widget.transaction.category;
+      final amount = widget.transaction.amount;
+
+      if (value == "Unassign") {
+        if (oldCategory != null && oldCategory.isNotEmpty) {
+          final oldRef = userRef.collection('categories').doc(oldCategory);
+          final oldSnap = await oldRef.get();
+          if (oldSnap.exists) {
+            final total = (oldSnap.data()?['total'] ?? 0).toDouble();
+            batch.update(oldRef, {'total': total - amount});
+          }
+        }
+        batch.update(txnRef, {'category': FieldValue.delete()});
+        await batch.commit();
+        setState(() => widget.transaction.category = null);
+      } else {
+        batch.update(txnRef, {'category': value});
+        final newRef = userRef.collection('categories').doc(value);
+        final newSnap = await newRef.get();
+        if (newSnap.exists) {
+          final total = (newSnap.data()?['total'] ?? 0).toDouble();
+          batch.update(newRef, {'total': total + amount});
+        } else {
+          batch.set(newRef, {
+            'total': amount,
+            'type': widget.transaction.isDebit ? 'expense' : 'income',
+          });
+        }
+        await batch.commit();
+        setState(() => widget.transaction.category = value);
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Updated category to $value")));
+      widget.onCategoryChanged?.call();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+      );
+    } finally {
+      setState(() => _isUpdating = false);
+    }
+  }
+
+  /// 📋 Transaction Details Sheet
+  void _showDetailsSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      backgroundColor: Colors.white,
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Wrap(
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+            Text(
+              "${widget.transaction.amount.toStringAsFixed(2)} ${widget.transaction.currency}",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                color: widget.transaction.isDebit ? Colors.red : Colors.green,
+              ),
+            ),
+            const SizedBox(height: 10),
+            _info("From", widget.transaction.fromName),
+            _info("To", widget.transaction.toName),
+            _info("Status", widget.transaction.status.name),
+            _info("Channel", widget.transaction.channel),
+            if (widget.transaction.note?.isNotEmpty == true)
+              _info("Note", widget.transaction.note!),
+            _info("Date", _formatDateInDetails(widget.transaction.date)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _info(String title, String value) => Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Row(
+      children: [
+        SizedBox(width: 90, child: Text("$title:")),
+        Expanded(
+          child: Text(
+            value.isEmpty ? "—" : value,
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  static String _formatDate(DateTime dt) {
+    if (dt.millisecondsSinceEpoch == 0) return "—";
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return "${months[dt.month - 1]} ${dt.day}, ${dt.year}";
+  }
+
+  static String _formatDateInDetails(DateTime dt) {
+    if (dt.millisecondsSinceEpoch == 0) return "—";
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return "${months[dt.month - 1]} ${dt.day}, ${dt.year}, "
+        "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+  }
+}
 
 // ==================== Error View ====================
 class ErrorView extends StatelessWidget {

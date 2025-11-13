@@ -237,8 +237,6 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
     );
   }
 
-  /// SECTION: Spending Categories
-  /// Displays the Top 5 categories based on net amount.
   Widget _buildSpendingCategoriesSection(Map<String, double> netAmounts) {
     // Sort categories by the absolute value of their net amount, descending
     final sortedCategories = netAmounts.entries.toList()

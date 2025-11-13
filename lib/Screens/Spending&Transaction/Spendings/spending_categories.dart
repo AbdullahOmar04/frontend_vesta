@@ -48,7 +48,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      value: selectedType,
+                      initialValue: selectedType,
                       decoration: const InputDecoration(
                         labelText: "Category Type",
                       ),

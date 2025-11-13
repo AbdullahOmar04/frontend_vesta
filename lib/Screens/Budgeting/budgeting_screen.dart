@@ -643,7 +643,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
                 icon: icon,
                 color: color,
               );
-            }).toList(),
+            }),
         ],
       ),
     );

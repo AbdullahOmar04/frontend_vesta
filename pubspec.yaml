@@ -32,6 +32,8 @@ flutter:
     - assets/images/vesta_logo.png
     - assets/images/LOGO_APP-ICON.png
     - assets/images/Dark.png
+    - assets/images/choose_bank.png
+    - assets/images/jopacc.png
 
   fonts:
     - family: Poppins

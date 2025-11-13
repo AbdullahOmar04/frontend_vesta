@@ -60,7 +60,6 @@ class _LoginState extends State<Login> {
         password: password,
       );
 
-      syncAccounts();
       checkMonthlyResetOnLogin();
 
       if (mounted) {

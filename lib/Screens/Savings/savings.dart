@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Savings/create_savings.dart';
 
 class SavingsPage extends StatefulWidget {
@@ -366,13 +367,11 @@ class _SavingsPageState extends State<SavingsPage> {
             style: TextStyle(fontSize: 14, color: Colors.grey[500]),
           ),
           const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: _navigateToCreateSavings,
-            icon: const Icon(Icons.add),
-            label: const Text("Create Savings Goal"),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
+          largeButton(
+            context,
+            "Create Savings Goal",
+            Theme.of(context).colorScheme.onSurface,
+            _navigateToCreateSavings,
           ),
         ],
       ),
@@ -445,7 +444,7 @@ class _SavingsPageState extends State<SavingsPage> {
                             .snapshots(),
                         builder: (context, savingsSnapshot) {
                           double totalAllocated = 0.0;
-                  
+
                           if (savingsSnapshot.hasData) {
                             for (var doc in savingsSnapshot.data!.docs) {
                               final data = doc.data() as Map<String, dynamic>;
@@ -453,9 +452,9 @@ class _SavingsPageState extends State<SavingsPage> {
                                   .toDouble();
                             }
                           }
-                  
+
                           final unallocated = totalSavings - totalAllocated;
-                  
+
                           return Container(
                             padding: const EdgeInsets.all(24),
                             margin: const EdgeInsets.all(16),
@@ -528,7 +527,7 @@ class _SavingsPageState extends State<SavingsPage> {
                           );
                         },
                       ),
-                  
+
                       // Savings Goals List
                       Expanded(
                         child: StreamBuilder<QuerySnapshot>(
@@ -545,14 +544,14 @@ class _SavingsPageState extends State<SavingsPage> {
                                 child: CircularProgressIndicator(),
                               );
                             }
-                  
+
                             if (!savingsSnapshot.hasData ||
                                 savingsSnapshot.data!.docs.isEmpty) {
                               return _buildEmptyState();
                             }
-                  
+
                             final savingsGoals = savingsSnapshot.data!.docs;
-                  
+
                             return ListView.builder(
                               padding: const EdgeInsets.all(16),
                               itemCount: savingsGoals.length,
@@ -561,7 +560,7 @@ class _SavingsPageState extends State<SavingsPage> {
                                     savingsGoals[index].data()
                                         as Map<String, dynamic>;
                                 final goalId = savingsGoals[index].id;
-                  
+
                                 return _buildSavingsGoalCard(goal, goalId);
                               },
                             );

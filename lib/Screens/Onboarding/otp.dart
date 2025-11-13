@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
+import 'package:frontend_vesta/Screens/Onboarding/choose_bank.dart';
 import 'package:frontend_vesta/Screens/pages/main_screen.dart';
 
 class OTPVerificationPage extends StatefulWidget {
@@ -110,7 +111,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const MainScreen()),
+        MaterialPageRoute(builder: (_) => const ChooseBankSplash()),
         (route) => false,
       );
     } on FirebaseAuthException catch (e) {

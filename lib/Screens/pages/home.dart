@@ -8,6 +8,7 @@ import 'package:frontend_vesta/Screens/Budgeting/budgeting_screen.dart';
 import 'package:frontend_vesta/Screens/Household/household.dart';
 import 'package:frontend_vesta/Screens/Savings/savings.dart';
 import 'package:frontend_vesta/deep_link_service.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -22,6 +23,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    calcTotalBalance();
     deepLinkService.init(context);
 
     deepLinkService.checkPendingLink(context);
@@ -84,7 +86,12 @@ class _HomePageState extends State<HomePage> {
                           padding: const EdgeInsets.all(24),
                           margin: const EdgeInsets.symmetric(horizontal: 12),
                           decoration: BoxDecoration(
-                            color: const Color.fromARGB(32, 162, 0, 255), //onPrimary
+                            color: const Color.fromARGB(
+                              32,
+                              162,
+                              0,
+                              255,
+                            ), //onPrimary
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: GestureDetector(
@@ -235,7 +242,8 @@ class _HomePageState extends State<HomePage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => NewSpendingAnalysis(),
+                                      builder: (context) =>
+                                          NewSpendingAnalysis(),
                                     ),
                                   );
                                 },

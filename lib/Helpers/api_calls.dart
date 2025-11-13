@@ -7,27 +7,43 @@ import 'package:http/http.dart' as http;
 
 const String baseUrl = "https://backend-vesta.onrender.com";
 
-Future<void> syncAccounts() async {
+Future<void> syncAccounts([String? username]) async {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) return;
-
   final uid = user.uid;
-  const customerId = "IND_CUST_017";
 
-  final url = Uri.parse("$baseUrl/sync_accounts/$uid/$customerId");
+  String u = (username ?? '').trim();
+
+  // If no username passed, read from Firestore
+  if (u.isEmpty) {
+    final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    final stored = doc.data()?['providers']?['jopacc']?['username'];
+    if (stored is String && stored.trim().isNotEmpty) {
+      u = stored.trim();
+    }
+  }
+
+  // If still empty, abort gracefully
+  if (u.isEmpty) {
+    // ignore or log
+    return;
+  }
+
+  final url = Uri.parse("$baseUrl/sync_accounts/$uid/${Uri.encodeComponent(u)}");
 
   try {
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      print("✅ Accounts synced: $data");
+    final resp = await http.get(url);
+    if (resp.statusCode == 200) {
+      final data = jsonDecode(resp.body);
+      print("✅ Synced accounts: $data");
     } else {
-      print("❌ Failed: ${response.body}");
+      // print("❌ Failed: ${resp.body}");
     }
   } catch (e) {
-    print("⚠️ Error calling sync_accounts: $e");
+    // print("⚠️ Error calling sync_accounts: $e");
   }
 }
+
 
 Future<void> getTransactions() async {
   final user = FirebaseAuth.instance.currentUser;
