@@ -101,7 +101,7 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
 
         for (var txDoc in txSnap.docs) {
           final data = txDoc.data();
-          final txn = TransactionModel.fromFirestore(accDoc.id, txDoc.id, data);
+          final txn = TransactionModel.fromFirestore(txDoc.id, data);
           transactions.add(txn);
         }
       }
@@ -580,22 +580,11 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
   double _getAmountFromData(Map<String, dynamic> data) {
     try {
       // First, try to get the converted JOD amount
-      if (data.containsKey('currencyExchange') &&
-          data['currencyExchange'] != null &&
-          data['currencyExchange']['targetAmount'] != null) {
-        return double.tryParse(
-              data['currencyExchange']['targetAmount'].toString(),
-            ) ??
-            0.0;
-      }
-      // If no conversion, get the primary amount
-      if (data.containsKey('transactionAmount') &&
-          data['transactionAmount'] != null &&
-          data['transactionAmount']['amount'] != null) {
-        return double.tryParse(
-              data['transactionAmount']['amount'].toString(),
-            ) ??
-            0.0;
+
+      if (data.containsKey('amount') &&
+          data['amount'] != null &&
+          data['amount'] != null) {
+        return double.tryParse(data['amount'].toString()) ?? 0.0;
       }
       return 0.0; // No amount found
     } catch (e) {
@@ -606,9 +595,8 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
 
   DateTime? _getDateTimeFromData(Map<String, dynamic> data) {
     try {
-      if (data.containsKey('settlementDateTime') &&
-          data['settlementDateTime'] != null) {
-        return DateTime.tryParse(data['settlementDateTime'] as String);
+      if (data.containsKey('date') && data['date'] != null) {
+        return DateTime.tryParse(data['date'] as String);
       }
       return null; // No date found
     } catch (e) {
@@ -660,9 +648,7 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
       for (var doc in snap.docs) {
         final data = doc.data();
 
-        final transactionType = (data['transactionType'] ?? '')
-            .toString()
-            .toLowerCase();
+        final transactionType = (data['type'] ?? '').toString().toLowerCase();
         if (transactionType != 'debit') {
           continue;
         }
@@ -697,7 +683,6 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
     });
   }
 
-  /// WIDGET: Empty State (for transactions)
   Widget _buildEmptyTransactionState() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 32),

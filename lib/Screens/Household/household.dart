@@ -81,11 +81,10 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
         }
 
         // 👇 Get the user's account ID for this transaction (if needed)
-        final accountId = data['accountId'] ?? 'unknown_account';
+        //final accountId = data['accountId'] ?? 'unknown_account';
 
         // Convert to model
         final txn = HouseholdTransactionModel.fromFirestore(
-          accountId,
           txDoc.id,
           data,
         );
@@ -572,7 +571,6 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
       }
       endDate = DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59);
 
-      // 2️⃣ Load household budget (manually set in Firestore)
       final householdDoc = await FirebaseFirestore.instance
           .collection("households")
           .doc(householdId)
@@ -831,7 +829,7 @@ class _HouseholdPageState extends State<HouseholdPage> {
             "No Households Found",
             style: TextStyle(
               fontSize: 20,
-              fontWeight: FontWeight.w600,
+              fontWeight: .w600,
               color: Colors.grey[600],
             ),
           ),

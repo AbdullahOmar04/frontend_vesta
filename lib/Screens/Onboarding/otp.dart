@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Onboarding/choose_bank.dart';
-import 'package:frontend_vesta/Screens/pages/main_screen.dart';
 
 class OTPVerificationPage extends StatefulWidget {
   final String username;

@@ -177,7 +177,7 @@ Future<void> calcTotalBalance() async {
     num totalBalance = 0;
 
     for (final doc in accountsSnap.docs) {
-      final acc = doc.data() as Map<String, dynamic>;
+      final acc = doc.data();
       final dynamic balanceRaw = acc['availableBalance']?['balanceAmount'] ?? 0;
       if (balanceRaw is num) {
         totalBalance += balanceRaw;

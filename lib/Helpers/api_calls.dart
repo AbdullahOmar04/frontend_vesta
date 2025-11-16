@@ -44,7 +44,6 @@ Future<void> syncAccounts([String? username]) async {
   }
 }
 
-
 Future<void> getTransactions() async {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) return;
@@ -85,6 +84,7 @@ Future<void> getTransactions() async {
     print("⚠️ Error getting accounts from Firestore: $e");
   }
 }
+
 
 Future<void> checkMonthlyResetOnLogin() async {
   final uid = FirebaseAuth.instance.currentUser?.uid;

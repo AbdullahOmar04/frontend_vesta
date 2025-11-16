@@ -177,18 +177,11 @@ Widget BankCard(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Image.asset(
-              logoPath,
-              width: 60,
-              height: 60,
-            ),
+            Image.asset(logoPath, width: 60, height: 60),
             const SizedBox(width: 20),
             Text(
               bankName,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
           ],
         ),
@@ -196,6 +189,7 @@ Widget BankCard(
     ),
   );
 }
+
 Widget drawer(BuildContext context, String username) {
   return Drawer(
     child: ListView(
@@ -1296,7 +1290,9 @@ class _TransactionCardState extends State<TransactionCard> {
             Row(
               children: [
                 Text(
-                  "${isDebit ? '- ' : '+ '}${widget.transaction.amount.toStringAsFixed(2)} ${widget.transaction.currency}",
+                  "${isDebit ? '- ' : '+ '}"
+                  "${widget.transaction.amount.toStringAsFixed(2)} "
+                  "${widget.transaction.currency}",
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 18,
@@ -1314,7 +1310,6 @@ class _TransactionCardState extends State<TransactionCard> {
                     }
 
                     final hasHouseholds = snapshot.data ?? false;
-
                     if (!hasHouseholds) {
                       return const SizedBox.shrink();
                     }
@@ -1335,14 +1330,18 @@ class _TransactionCardState extends State<TransactionCard> {
             ),
 
             const SizedBox(height: 4),
+
             // Account + Date
             Row(
               children: [
                 Text(
-                  "Acc • ${widget.transaction.accountId}",
+                  widget.transaction.accountLabel != null &&
+                          widget.transaction.accountLabel!.isNotEmpty
+                      ? widget.transaction.accountLabel!
+                      : "Acc • ${widget.transaction.accountId}",
                   style: const TextStyle(fontSize: 13, color: Colors.black54),
                 ),
-                Spacer(),
+                const Spacer(),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -1361,7 +1360,7 @@ class _TransactionCardState extends State<TransactionCard> {
                     ),
                   ),
                 ),
-                Icon(Icons.chevron_right),
+                const Icon(Icons.chevron_right),
               ],
             ),
 
@@ -1480,6 +1479,10 @@ class _TransactionCardState extends State<TransactionCard> {
   }
 
   void _showDetailsSheet(BuildContext context) {
+    final isDebit = widget.transaction.isDebit;
+    final typeLabel = isDebit ? "Debit" : "Credit";
+    final sourceLabel = widget.transaction.source.name;
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -1502,23 +1505,26 @@ class _TransactionCardState extends State<TransactionCard> {
               ),
             ),
             Text(
-              "${widget.transaction.amount.toStringAsFixed(2)} ${widget.transaction.currency}",
+              "${widget.transaction.amount.toStringAsFixed(2)} "
+              "${widget.transaction.currency}",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
-                color: widget.transaction.isDebit ? Colors.red : Colors.green,
+                color: isDebit ? Colors.red : Colors.green,
               ),
             ),
             const SizedBox(height: 10),
-            _info("From", widget.transaction.fromName),
-            _info("To", widget.transaction.toName),
-            _info("Status", widget.transaction.status.name),
-            _info("Account", widget.transaction.accountId),
-            _info("Channel", widget.transaction.channel),
-            if (widget.transaction.note?.isNotEmpty == true)
-              _info("Note", widget.transaction.note!),
+            _info("Type", typeLabel),
+            _info("Merchant", widget.transaction.merchantName ?? "—"),
+            _info(
+              "Account",
+              widget.transaction.accountLabel ??
+                  "Acc • ${widget.transaction.accountId}",
+            ),
+            _info("Source", sourceLabel),
+            if (widget.transaction.description?.isNotEmpty == true)
+              _info("Description", widget.transaction.description!),
             _info("Date", _formatDateInDetails(widget.transaction.date)),
-            const SizedBox(height: 10),
           ],
         ),
       ),
@@ -1577,7 +1583,9 @@ class _TransactionCardState extends State<TransactionCard> {
       "Nov",
       "Dec",
     ];
-    return "${months[dt.month - 1]} ${dt.day}, ${dt.year}, ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+    return "${months[dt.month - 1]} ${dt.day}, ${dt.year}, "
+        "${dt.hour.toString().padLeft(2, '0')}:"
+        "${dt.minute.toString().padLeft(2, '0')}";
   }
 
   void _showAssignToHouseholdSheet(BuildContext context) async {
@@ -1627,7 +1635,7 @@ class _TransactionCardState extends State<TransactionCard> {
           ...householdDocs.docs.map((doc) {
             final data = doc.data();
             final name = data['householdName'] ?? 'Unnamed Household';
-            final householdId = doc.id; // ✅ define it here
+            final householdId = doc.id;
 
             return ListTile(
               leading: const Icon(Icons.house_rounded),
@@ -1656,13 +1664,12 @@ class _TransactionCardState extends State<TransactionCard> {
                 final transactionData = transactionSnapshot.data()!;
 
                 final householdTransactionData = {
-                  ...transactionData, // include all transaction fields
+                  ...transactionData,
                   'assignedBy': user.uid,
                   'assignedAt': FieldValue.serverTimestamp(),
                   'originalTransactionId': widget.transaction.id,
                 };
 
-                // ✅ Write to the household’s transactions collection
                 await FirebaseFirestore.instance
                     .collection('households')
                     .doc(householdId)
@@ -1670,7 +1677,6 @@ class _TransactionCardState extends State<TransactionCard> {
                     .doc(widget.transaction.id)
                     .set(householdTransactionData, SetOptions(merge: true));
 
-                // ✅ Mark this transaction as assigned in the user’s record
                 await transactionRef.update({'householdId': householdId});
 
                 if (context.mounted) {
@@ -1746,7 +1752,9 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
             Row(
               children: [
                 Text(
-                  "${isDebit ? '- ' : '+ '}${widget.transaction.amount.toStringAsFixed(2)} ${widget.transaction.currency}",
+                  "${isDebit ? '- ' : '+ '}"
+                  "${widget.transaction.amount.toStringAsFixed(2)} "
+                  "${widget.transaction.currency}",
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 18,
@@ -1939,6 +1947,10 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
 
   /// 📋 Transaction Details Sheet
   void _showDetailsSheet(BuildContext context) {
+    final isDebit = widget.transaction.isDebit;
+    final typeLabel = isDebit ? "Debit" : "Credit";
+    final sourceLabel = widget.transaction.source.name;
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -1961,20 +1973,26 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
               ),
             ),
             Text(
-              "${widget.transaction.amount.toStringAsFixed(2)} ${widget.transaction.currency}",
+              "${widget.transaction.amount.toStringAsFixed(2)} "
+              "${widget.transaction.currency}",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
-                color: widget.transaction.isDebit ? Colors.red : Colors.green,
+                color: isDebit ? Colors.red : Colors.green,
               ),
             ),
             const SizedBox(height: 10),
-            _info("From", widget.transaction.fromName),
-            _info("To", widget.transaction.toName),
-            _info("Status", widget.transaction.status.name),
-            _info("Channel", widget.transaction.channel),
-            if (widget.transaction.note?.isNotEmpty == true)
-              _info("Note", widget.transaction.note!),
+            _info("Type", typeLabel),
+            _info("Merchant", widget.transaction.merchantName ?? "—"),
+            _info(
+              "Account",
+              widget.transaction.accountLabel ??
+                  "Acc • ${widget.transaction.accountId}",
+            ),
+            _info("Source", sourceLabel),
+            if (widget.transaction.description?.isNotEmpty == true)
+              _info("Description", widget.transaction.description!),
+            if (_addedByName != null) _info("Added by", _addedByName!),
             _info("Date", _formatDateInDetails(widget.transaction.date)),
           ],
         ),
@@ -2033,7 +2051,8 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
       "Dec",
     ];
     return "${months[dt.month - 1]} ${dt.day}, ${dt.year}, "
-        "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+        "${dt.hour.toString().padLeft(2, '0')}:"
+        "${dt.minute.toString().padLeft(2, '0')}";
   }
 }
 
@@ -2146,6 +2165,384 @@ class EmptyFilterState extends StatelessWidget {
           label: const Text("Clear Filter"),
         ),
       ],
+    );
+  }
+}
+
+Widget AddTransaction(BuildContext context) {
+  return FloatingActionButton(
+    backgroundColor: Theme.of(context).colorScheme.secondary,
+    onPressed: () {
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (BuildContext ctx) {
+          return const _AddTransactionSheet();
+        },
+      );
+    },
+    child: const Icon(Icons.add, color: Colors.white),
+  );
+}
+
+/// Bottom sheet widget
+class _AddTransactionSheet extends StatefulWidget {
+  const _AddTransactionSheet();
+
+  @override
+  State<_AddTransactionSheet> createState() => _AddTransactionSheetState();
+}
+
+class _AddTransactionSheetState extends State<_AddTransactionSheet> {
+  final _amountCtrl = TextEditingController();
+  final _merchantCtrl = TextEditingController();
+  final _noteCtrl = TextEditingController();
+
+  bool _loading = true;
+  bool _saving = false;
+
+  List<Map<String, dynamic>> _accounts = []; // {id, name}
+  List<String> _categories = [];
+
+  String? _selectedAccountId;
+  String? _selectedCategory;
+  TransactionType _type = TransactionType.debit;
+  DateTime _date = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAccountsAndCategories();
+  }
+
+  @override
+  void dispose() {
+    _amountCtrl.dispose();
+    _merchantCtrl.dispose();
+    _noteCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadAccountsAndCategories() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+      return;
+    }
+
+    try {
+      final uid = user.uid;
+      final fire = FirebaseFirestore.instance;
+
+      // Accounts
+      final accountsSnap = await fire
+          .collection('users')
+          .doc(uid)
+          .collection('accounts')
+          .get();
+
+      final accounts = accountsSnap.docs.map((d) {
+        final data = d.data();
+        return {'id': d.id, 'name': data['accountName'] ?? d.id};
+      }).toList();
+
+      // Categories
+      final categoriesSnap = await fire
+          .collection('users')
+          .doc(uid)
+          .collection('categories')
+          .get();
+
+      final categories = categoriesSnap.docs.map((d) => d.id).toList();
+
+      if (mounted) {
+        setState(() {
+          _accounts = accounts;
+          _categories = categories;
+          if (_accounts.isNotEmpty) {
+            _selectedAccountId = _accounts.first['id'] as String;
+          }
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("⚠️ Error loading accounts/categories: $e");
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  Future<void> _save() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final uid = user.uid;
+
+    final rawAmount = _amountCtrl.text.trim();
+    final amount = double.tryParse(rawAmount);
+
+    if (amount == null || amount <= 0) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Enter a valid amount.")));
+      return;
+    }
+
+    if (_selectedAccountId == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Select an account.")));
+      return;
+    }
+
+    setState(() => _saving = true);
+
+    try {
+      final fire = FirebaseFirestore.instance;
+
+      final txCol = fire
+          .collection('users')
+          .doc(uid)
+          .collection('accounts')
+          .doc(_selectedAccountId)
+          .collection('transactions');
+
+      final newDoc = txCol.doc();
+
+      final txn = TransactionModel.manual(
+        firestoreAccountId: _selectedAccountId!,
+        id: newDoc.id,
+        amount: amount,
+        currency: "JOD", // TODO: derive from account if needed
+        type: _type,
+        date: _date,
+        merchantName: _merchantCtrl.text.trim().isEmpty
+            ? null
+            : _merchantCtrl.text.trim(),
+        description: _noteCtrl.text.trim().isEmpty
+            ? null
+            : _noteCtrl.text.trim(),
+        accountLabel: null,
+        category: _selectedCategory,
+      );
+
+      await newDoc.set(txn.toMap());
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Transaction added.")));
+      }
+    } catch (e) {
+      debugPrint("⚠️ Error saving transaction: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 16,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+      ),
+      child: _loading
+          ? const SizedBox(
+              height: 200,
+              child: Center(child: CircularProgressIndicator()),
+            )
+          : SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ),
+                  const Text(
+                    "Add Transaction",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Account
+                  if (_accounts.isNotEmpty)
+                    DropdownButtonFormField<String>(
+                      value: _selectedAccountId,
+                      decoration: const InputDecoration(
+                        labelText: "Account",
+                        border: OutlineInputBorder(),
+                      ),
+                      items: _accounts
+                          .map(
+                            (a) => DropdownMenuItem(
+                              value: a['id'] as String,
+                              child: Text(a['name'] as String),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (val) {
+                        setState(() => _selectedAccountId = val);
+                      },
+                    )
+                  else
+                    const Text(
+                      "No accounts found. Sync accounts first.",
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  const SizedBox(height: 10),
+
+                  // Amount
+                  TextField(
+                    controller: _amountCtrl,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: const InputDecoration(
+                      labelText: "Amount",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Type
+                  Row(
+                    children: [
+                      const Text("Type: "),
+                      const SizedBox(width: 8),
+                      ChoiceChip(
+                        label: const Text("Debit"),
+                        selected: _type == TransactionType.debit,
+                        onSelected: (_) {
+                          setState(() => _type = TransactionType.debit);
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      ChoiceChip(
+                        label: const Text("Credit"),
+                        selected: _type == TransactionType.credit,
+                        onSelected: (_) {
+                          setState(() => _type = TransactionType.credit);
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Date
+                  InkWell(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: _date,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                      );
+                      if (picked != null) {
+                        final now = DateTime.now();
+                        setState(() {
+                          _date = DateTime(
+                            picked.year,
+                            picked.month,
+                            picked.day,
+                            now.hour,
+                            now.minute,
+                          );
+                        });
+                      }
+                    },
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: "Date",
+                        border: OutlineInputBorder(),
+                      ),
+                      child: Text(
+                        "${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}",
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Merchant
+                  TextField(
+                    controller: _merchantCtrl,
+                    decoration: const InputDecoration(
+                      labelText: "Merchant / From",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Category
+                  if (_categories.isNotEmpty)
+                    DropdownButtonFormField<String>(
+                      value: _selectedCategory,
+                      decoration: const InputDecoration(
+                        labelText: "Category",
+                        border: OutlineInputBorder(),
+                      ),
+                      items: _categories
+                          .map(
+                            (c) => DropdownMenuItem(value: c, child: Text(c)),
+                          )
+                          .toList(),
+                      onChanged: (val) {
+                        setState(() => _selectedCategory = val);
+                      },
+                    ),
+                  if (_categories.isNotEmpty) const SizedBox(height: 10),
+
+                  // Note
+                  TextField(
+                    controller: _noteCtrl,
+                    minLines: 1,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: "Note (optional)",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: largeButton(
+                      context,
+                      'Add Transaction',
+                      Theme.of(context).colorScheme.secondary,
+                      () {
+                        if (!_saving) {
+                          _save();
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }

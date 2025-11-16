@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
-import 'package:frontend_vesta/Screens/pages/home.dart';
 import 'package:frontend_vesta/Screens/pages/main_screen.dart';
 import 'package:intl/intl.dart';
 
@@ -117,14 +116,12 @@ class ChooseBankSplash extends StatelessWidget {
   }
 }
 
-
 class Jopacc extends StatelessWidget {
   const Jopacc({super.key});
 
   @override
   Widget build(BuildContext context) => const JopaccLinkScreen();
 }
-
 
 class JopaccLinkScreen extends StatefulWidget {
   const JopaccLinkScreen({super.key});
@@ -159,12 +156,18 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
   Future<void> _tryAutoLoadStoredUsername() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
-    final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get();
     final stored = doc.data()?['providers']?['jopacc']?['username'];
     if (stored is String && stored.trim().isNotEmpty) {
       _username.text = stored;
       _lastUsername = stored;
-      setState(() { _loggedIn = true; _syncing = true; });
+      setState(() {
+        _loggedIn = true;
+        _syncing = true;
+      });
       try {
         await syncAccounts(''); // will read stored username
         await _pollAccountsOnce();
@@ -175,7 +178,11 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
   }
 
   String _fmt(num amount, String currency) {
-    final f = NumberFormat.currency(locale: 'en_US', symbol: "$currency ", decimalDigits: 2);
+    final f = NumberFormat.currency(
+      locale: 'en_US',
+      symbol: "$currency ",
+      decimalDigits: 2,
+    );
     return f.format(amount);
   }
 
@@ -192,8 +199,8 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
         'jopacc': {
           'username': entered,
           'updatedAt': FieldValue.serverTimestamp(),
-        }
-      }
+        },
+      },
     }, SetOptions(merge: true));
 
     setState(() {
@@ -216,7 +223,11 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
     if (uid == null) return;
     for (int i = 0; i < 6; i++) {
       final qs = await FirebaseFirestore.instance
-          .collection('users').doc(uid).collection('accounts').limit(1).get();
+          .collection('users')
+          .doc(uid)
+          .collection('accounts')
+          .limit(1)
+          .get();
       if (qs.docs.isNotEmpty) break;
       await Future.delayed(const Duration(seconds: 1));
     }
@@ -237,26 +248,25 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
     if (uid == null || _selected.isEmpty) return;
 
     final batch = FirebaseFirestore.instance.batch();
-    final col = FirebaseFirestore.instance.collection('users').doc(uid).collection('accounts');
+    final col = FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('accounts');
 
     for (final id in _selected) {
-      batch.set(
-        col.doc(id),
-        {
-          'linked': true,
-          'linkedAt': FieldValue.serverTimestamp(),
-          if (_lastUsername != null) 'linkedByUsername': _lastUsername,
-          'provider': 'JoPACC',
-        },
-        SetOptions(merge: true),
-      );
+      batch.set(col.doc(id), {
+        'linked': true,
+        'linkedAt': FieldValue.serverTimestamp(),
+        if (_lastUsername != null) 'linkedByUsername': _lastUsername,
+        'provider': 'JoPACC',
+      }, SetOptions(merge: true));
     }
     await batch.commit();
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Accounts linked')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Accounts linked')));
 
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const MainScreen()),
@@ -271,7 +281,10 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
       backgroundColor: scheme.primary,
       appBar: AppBar(
         backgroundColor: scheme.primary,
-        title: Text('Bank of JoPACC LTD.', style: TextStyle(color: scheme.surface)),
+        title: Text(
+          'Bank of JoPACC LTD.',
+          style: TextStyle(color: scheme.surface),
+        ),
         iconTheme: IconThemeData(color: scheme.surface),
         actions: [
           if (_loggedIn)
@@ -287,7 +300,10 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
         height: double.infinity,
         decoration: BoxDecoration(
           color: scheme.surface,
-          borderRadius: const BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
+          ),
         ),
         padding: const EdgeInsets.all(16),
         child: _loggedIn ? _buildAccountSelection() : _buildLoginForm(),
@@ -297,7 +313,10 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
               onPressed: _selected.isEmpty ? null : _linkSelected,
               backgroundColor: _selected.isEmpty ? Colors.grey : scheme.primary,
               icon: const Icon(Icons.link, color: Colors.white),
-              label: const Text('Link Selected', style: TextStyle(color: Colors.white)),
+              label: const Text(
+                'Link Selected',
+                style: TextStyle(color: Colors.white),
+              ),
             )
           : null,
     );
@@ -309,48 +328,53 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480),
         child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           elevation: 4,
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Form(
               key: _formKey,
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text('Mock Bank Login', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: scheme.primary)),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _username,
-                  decoration: const InputDecoration(
-                    labelText: 'Username (saved to Firestore)',
-                    border: OutlineInputBorder(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Login to JoPACC',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: scheme.primary,
+                    ),
                   ),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter a username' : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _password,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Password (ignored)',
-                    border: OutlineInputBorder(),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _username,
+                    decoration: const InputDecoration(
+                      labelText: 'Username',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Enter a username'
+                        : null,
                   ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _mockLogin,
-                    icon: const Icon(Icons.login),
-                    label: const Text('Login & Fetch Accounts'),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _password,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Password',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'This is a mock login. Password is not sent or stored.\nWe call the get-accounts API with your saved username.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ]),
+                  const SizedBox(height: 16),
+                  largeButton(context, 'Login', scheme.secondary, () {
+                    _mockLogin();
+                  }),
+                  const SizedBox(height: 8),
+                ],
+              ),
             ),
           ),
         ),
@@ -371,7 +395,10 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
           children: [
             Icon(Icons.account_balance),
             SizedBox(width: 8),
-            Text('Select accounts to link', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            Text(
+              'Select accounts to link',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -394,7 +421,7 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
               return ListView.separated(
                 padding: const EdgeInsets.only(bottom: 96),
                 itemCount: docs.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
                 itemBuilder: (context, i) {
                   final doc = docs[i];
                   final id = doc.id;
@@ -411,10 +438,12 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
                       "Unknown Type";
                   final balance =
                       acc["availableBalance"]?["balanceAmount"] ??
-                      acc["balance"] ?? 0;
+                      acc["balance"] ??
+                      0;
                   final currency =
                       acc["accountCurrency"]?.toString() ??
-                      acc["raw"]?["accountCurrency"]?.toString() ?? "JOD";
+                      acc["raw"]?["accountCurrency"]?.toString() ??
+                      "JOD";
                   final iban =
                       acc["mainRoute"]?["address"] ??
                       acc["iban"] ??
@@ -437,7 +466,9 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
                           },
                     child: Card(
                       elevation: 3,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Row(
@@ -467,26 +498,55 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
                                       Expanded(
                                         child: Text(
                                           bankName,
-                                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                          ),
                                         ),
                                       ),
                                       Text(
-                                        _fmt((balance is num) ? balance : 0, currency),
-                                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.green[700]),
+                                        _fmt(
+                                          (balance is num) ? balance : 0,
+                                          currency,
+                                        ),
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.green[700],
+                                        ),
                                       ),
                                     ],
                                   ),
                                   const SizedBox(height: 6),
-                                  Text(accountType, style: const TextStyle(color: Colors.grey)),
+                                  Text(
+                                    accountType,
+                                    style: const TextStyle(color: Colors.grey),
+                                  ),
                                   const SizedBox(height: 6),
-                                  Text("IBAN: $iban", style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                                  Text(
+                                    "IBAN: $iban",
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
                                   if (linked) ...[
                                     const SizedBox(height: 6),
                                     const Row(
                                       children: [
-                                        Icon(Icons.check_circle, color: Colors.green, size: 16),
+                                        Icon(
+                                          Icons.check_circle,
+                                          color: Colors.green,
+                                          size: 16,
+                                        ),
                                         SizedBox(width: 6),
-                                        Text('Linked', style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600)),
+                                        Text(
+                                          'Linked',
+                                          style: TextStyle(
+                                            color: Colors.green,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ],

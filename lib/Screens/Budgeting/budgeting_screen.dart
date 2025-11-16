@@ -1,10 +1,11 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: deprecated_member_use, avoid_print
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:frontend_vesta/Helpers/api_calls.dart';
+import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Budgeting/plan_budget.dart';
 
 class PersonalBudgetScreen extends StatefulWidget {
@@ -130,9 +131,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
             },
             icon: const Icon(Icons.edit, size: 18),
             label: const Text("Manage"),
-            style: TextButton.styleFrom(
-              foregroundColor: scheme.surface,
-            ),
+            style: TextButton.styleFrom(foregroundColor: scheme.surface),
           ),
         ],
       ),
@@ -194,11 +193,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: 100),
-          Icon(
-            Icons.account_balance_wallet_outlined,
-            size: 80,
-            color: Colors.grey[400],
-          ),
+          Image.asset('assets/images/budgeting.png', width: 150, height: 150),
           const SizedBox(height: 16),
           Text(
             "No Budget Plan Yet",
@@ -215,20 +210,21 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
             style: TextStyle(fontSize: 14, color: Colors.grey[500]),
           ),
           const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const PlanBudgetScreen()),
-              );
-              if (result == true) {
-                _refreshBudget();
-              }
-            },
-            icon: const Icon(Icons.add),
-            label: const Text("Create Budget Plan"),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          SizedBox(
+            width: 250,
+            child: largeButton(
+              context,
+              'Create Budget Plan',
+              Theme.of(context).colorScheme.secondary,
+              () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PlanBudgetScreen()),
+                );
+                if (result == true) {
+                  _refreshBudget();
+                }
+              },
             ),
           ),
         ],
@@ -751,22 +747,11 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
   double _getAmountFromData(Map<String, dynamic> data) {
     try {
       // First, try to get the converted JOD amount
-      if (data.containsKey('currencyExchange') &&
-          data['currencyExchange'] != null &&
-          data['currencyExchange']['targetAmount'] != null) {
-        return double.tryParse(
-              data['currencyExchange']['targetAmount'].toString(),
-            ) ??
-            0.0;
-      }
-      // If no conversion, get the primary amount
-      if (data.containsKey('transactionAmount') &&
-          data['transactionAmount'] != null &&
-          data['transactionAmount']['amount'] != null) {
-        return double.tryParse(
-              data['transactionAmount']['amount'].toString(),
-            ) ??
-            0.0;
+
+      if (data.containsKey('amount') &&
+          data['amount'] != null &&
+          data['amount'] != null) {
+        return double.tryParse(data['amount'].toString()) ?? 0.0;
       }
       return 0.0; // No amount found
     } catch (e) {
@@ -778,9 +763,8 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
   // --- NEW: Helper function to get date from your JSON structure ---
   DateTime? _getDateTimeFromData(Map<String, dynamic> data) {
     try {
-      if (data.containsKey('settlementDateTime') &&
-          data['settlementDateTime'] != null) {
-        return DateTime.tryParse(data['settlementDateTime'] as String);
+      if (data.containsKey('date') && data['date'] != null) {
+        return DateTime.tryParse(data['date'] as String);
       }
       return null; // No date found
     } catch (e) {

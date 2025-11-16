@@ -92,7 +92,7 @@ class _SpendingAnalysisState extends State<SpendingAnalysis> {
 
         for (var txDoc in txSnap.docs) {
           final data = txDoc.data();
-          final txn = TransactionModel.fromFirestore(accDoc.id, txDoc.id, data);
+          final txn = TransactionModel.fromFirestore(txDoc.id, data);
           transactions.add(txn);
 
           if (txn.category != null && txn.category!.isNotEmpty) {

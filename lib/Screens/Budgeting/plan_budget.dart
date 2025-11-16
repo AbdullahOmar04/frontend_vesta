@@ -30,7 +30,8 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
 
   Future<void> _loadExistingBudget() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    final String monthId = "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}";
+    final String monthId =
+        "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}";
 
     if (uid == null) return;
 
@@ -84,7 +85,8 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
     try {
       // Get the totalIncome value
       final totalIncome = double.tryParse(_totalIncomeController.text) ?? 0;
-      final String monthId = "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}";
+      final String monthId =
+          "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}";
 
       await FirebaseFirestore.instance
           .collection("users")
@@ -92,8 +94,7 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
           .collection("budget")
           .doc(monthId)
           .set({
-            "income":
-                totalIncome,
+            "income": totalIncome,
             "saving": double.tryParse(_savingController.text) ?? 0,
             "spending": double.tryParse(_spendingController.text) ?? 0,
             "luxuries": double.tryParse(_luxuriesController.text) ?? 0,
@@ -182,31 +183,23 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
 
               const SizedBox(height: 32),
 
-              // Continue Button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: _loading
-                    ? const Center(child: CircularProgressIndicator())
-                    : ElevatedButton(
-                        onPressed: _isValidPercentage ? _savePlan : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).primaryColor,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 2,
-                        ),
-                        child: const Text(
-                          "Save Budget Plan",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-              ),
+              _loading
+                  ? const SizedBox(
+                      height: 50,
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  : largeButton(
+                      context,
+                      'Save Budget Plan',
+                      _isValidPercentage
+                          ? Theme.of(context).colorScheme.secondary
+                          : Colors.grey,
+                      () {
+                        if (_isValidPercentage) {
+                          _savePlan();
+                        }
+                      },
+                    ),
             ],
           ),
         ),

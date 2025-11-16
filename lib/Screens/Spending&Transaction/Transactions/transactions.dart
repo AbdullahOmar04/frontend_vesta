@@ -98,7 +98,7 @@ class _TransactionsState extends State<Transactions> {
 
         for (final txDoc in txSnap.docs) {
           transactions.add(
-            TransactionModel.fromFirestore(accDoc.id, txDoc.id, txDoc.data()),
+            TransactionModel.fromFirestore(txDoc.id, txDoc.data()),
           );
         }
       }
@@ -206,6 +206,7 @@ class _TransactionsState extends State<Transactions> {
           ],
         ),
       ),
+      floatingActionButton: AddTransaction(context)
     );
   }
 
@@ -311,7 +312,7 @@ class _TransactionsState extends State<Transactions> {
     return ListView.separated(
       padding: const EdgeInsets.all(12),
       itemCount: _filteredTransactions.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, i) {
         return TransactionCard(transaction: _filteredTransactions[i]);
       },
