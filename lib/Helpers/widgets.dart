@@ -8,9 +8,49 @@ import 'package:frontend_vesta/Screens/pages/settings.dart' as app_settings;
 
 import 'dart:async';
 
-/// Dynamic category labels fetched from Firestore per-user.
-/// Use `categoryLabelsNotifier` to rebuild UI when categories change,
-/// or read the current list via `categoryLabels`.
+String inferBucketFromCategoryName(String name) {
+  final n = name.toLowerCase().trim();
+
+  if (n.contains('saving')) return 'savings';
+
+  // food-ish defaults
+  if (n.contains('grocery') || n.contains('supermarket')) {
+    return 'essential';
+  }
+  if (n.contains('food') || n.contains('drink') || n.contains('restaurant')) {
+    return 'essential'; // you can change to luxury if you want
+  }
+
+  if (n.contains('rent') ||
+      n.contains('bill') ||
+      n.contains('electric') ||
+      n.contains('water') ||
+      n.contains('internet') ||
+      n.contains('fuel') ||
+      n.contains('transport')) {
+    return 'essential';
+  }
+
+  if (n.contains('entertainment') ||
+      n.contains('cinema') ||
+      n.contains('netflix') ||
+      n.contains('spotify') ||
+      n.contains('travel') ||
+      n.contains('luxury')) {
+    return 'luxury';
+  }
+
+  if (n.contains('salary') ||
+      n.contains('income') ||
+      n.contains('wage') ||
+      n.contains('payroll')) {
+    return 'income';
+  }
+
+  // Default: treat as essential so it still counts in spending
+  return 'essential';
+}
+
 final ValueNotifier<List<String>> categoryLabelsNotifier =
     ValueNotifier<List<String>>([
       'Food And Drinks',
@@ -26,7 +66,7 @@ StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _categorySub;
 
 /// Starts a listener on the current user's `categories` collection and updates
 /// `categoryLabelsNotifier`. This is invoked once when this file is loaded.
-void _startCategoryListener() {
+void startCategoryListener() {
   // cancel previous if any
   _categorySub?.cancel();
 
@@ -154,6 +194,7 @@ Widget splashSmallButton(
   );
 }
 
+// ignore: non_constant_identifier_names
 Widget BankCard(
   BuildContext context,
   String bankName,
@@ -1110,7 +1151,7 @@ class AccountFilterDropdown extends StatelessWidget {
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
+        child: DropdownButton<String?>(
           isExpanded: true,
           value: selectedAccountId,
           hint: Row(
@@ -1125,7 +1166,7 @@ class AccountFilterDropdown extends StatelessWidget {
           ),
           icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
           items: [
-            const DropdownMenuItem<String>(
+            const DropdownMenuItem<String?>(
               value: null,
               child: Row(
                 children: [
@@ -1136,7 +1177,7 @@ class AccountFilterDropdown extends StatelessWidget {
               ),
             ),
             ...accounts.map((acc) {
-              return DropdownMenuItem<String>(
+              return DropdownMenuItem<String?>(
                 value: acc.id,
                 child: Row(
                   children: [
@@ -1191,7 +1232,7 @@ class CategoryFilterDropdown extends StatelessWidget {
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
+        child: DropdownButton<String?>(
           isExpanded: true,
           value: selectedCategory,
           hint: Row(
@@ -1206,7 +1247,7 @@ class CategoryFilterDropdown extends StatelessWidget {
           ),
           icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
           items: [
-            const DropdownMenuItem<String>(
+            const DropdownMenuItem<String?>(
               value: null,
               child: Row(
                 children: [
@@ -1217,7 +1258,7 @@ class CategoryFilterDropdown extends StatelessWidget {
               ),
             ),
             ...categories.map(
-              (cat) => DropdownMenuItem<String>(
+              (cat) => DropdownMenuItem<String?>(
                 value: cat,
                 child: Row(
                   children: [
@@ -1263,7 +1304,6 @@ class _TransactionCardState extends State<TransactionCard> {
 
   @override
   Widget build(BuildContext context) {
-    _startCategoryListener();
     final isDebit = widget.transaction.isDebit;
     final amountColor = isDebit ? Colors.red : Colors.green;
 
@@ -1369,35 +1409,48 @@ class _TransactionCardState extends State<TransactionCard> {
             // Category dropdown
             Stack(
               children: [
-                DropdownButtonFormField<String>(
-                  value: widget.transaction.category?.isNotEmpty == true
-                      ? widget.transaction.category
-                      : null,
-                  hint: const Text("Category"),
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  items: [
-                    const DropdownMenuItem(
-                      value: "Unassign",
-                      child: Text("Unassign"),
-                    ),
-                    ...categoryLabels.map(
-                      (label) =>
-                          DropdownMenuItem(value: label, child: Text(label)),
-                    ),
-                  ],
-                  onChanged: _isUpdating ? null : _onCategoryChanged,
+                Builder(
+                  builder: (context) {
+                    // dedupe labels
+                    final labels = categoryLabels.toSet().toList();
+
+                    final current = widget.transaction.category;
+                    final isValidValue =
+                        current != null &&
+                        current.isNotEmpty &&
+                        (current == "Unassign" || labels.contains(current));
+
+                    return DropdownButtonFormField<String>(
+                      value: isValidValue ? current : null,
+                      hint: const Text("Category"),
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      items: [
+                        const DropdownMenuItem(
+                          value: "Unassign",
+                          child: Text("Unassign"),
+                        ),
+                        ...labels.map(
+                          (label) => DropdownMenuItem(
+                            value: label,
+                            child: Text(label),
+                          ),
+                        ),
+                      ],
+                      onChanged: _isUpdating ? null : _onCategoryChanged,
+                    );
+                  },
                 ),
                 if (_isUpdating)
                   const Positioned.fill(
@@ -1437,6 +1490,7 @@ class _TransactionCardState extends State<TransactionCard> {
       final amount = widget.transaction.amount;
 
       if (value == "Unassign") {
+        // remove from old category total
         if (oldCategory != null && oldCategory.isNotEmpty) {
           final oldRef = userRef.collection('categories').doc(oldCategory);
           final oldSnap = await oldRef.get();
@@ -1445,25 +1499,36 @@ class _TransactionCardState extends State<TransactionCard> {
             batch.update(oldRef, {'total': total - amount});
           }
         }
+
+        // remove category field from transaction
         batch.update(txnRef, {'category': FieldValue.delete()});
-        await batch.commit();
+        // local state
         setState(() => widget.transaction.category = null);
       } else {
+        // update category on transaction
         batch.update(txnRef, {'category': value});
+
         final newRef = userRef.collection('categories').doc(value);
         final newSnap = await newRef.get();
         if (newSnap.exists) {
           final total = (newSnap.data()?['total'] ?? 0).toDouble();
           batch.update(newRef, {'total': total + amount});
         } else {
+          final inferredBucket = inferBucketFromCategoryName(value);
           batch.set(newRef, {
             'total': amount,
             'type': widget.transaction.isDebit ? 'expense' : 'income',
+            'bucket': inferredBucket,
+            'name': value,
           });
         }
-        await batch.commit();
+
+        // local state
         setState(() => widget.transaction.category = value);
       }
+
+      // ❗ actually write to Firestore
+      await batch.commit();
 
       ScaffoldMessenger.of(
         context,
@@ -1476,6 +1541,21 @@ class _TransactionCardState extends State<TransactionCard> {
     } finally {
       setState(() => _isUpdating = false);
     }
+  }
+
+  Future<void> _deleteTransaction() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final txnRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('accounts')
+        .doc(widget.transaction.accountId)
+        .collection('transactions')
+        .doc(widget.transaction.id);
+
+    await txnRef.delete();
   }
 
   void _showDetailsSheet(BuildContext context) {
@@ -1525,6 +1605,26 @@ class _TransactionCardState extends State<TransactionCard> {
             if (widget.transaction.description?.isNotEmpty == true)
               _info("Description", widget.transaction.description!),
             _info("Date", _formatDateInDetails(widget.transaction.date)),
+            largeButton(context, 'Delete Transaction', Colors.red, () {
+              _deleteTransaction()
+                  .then((_) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Transaction deleted"),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  })
+                  .catchError((e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Error deleting transaction: $e"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  });
+            }),
           ],
         ),
       ),
@@ -1923,13 +2023,14 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
           final total = (newSnap.data()?['total'] ?? 0).toDouble();
           batch.update(newRef, {'total': total + amount});
         } else {
+          final inferredBucket = inferBucketFromCategoryName(value);
           batch.set(newRef, {
             'total': amount,
             'type': widget.transaction.isDebit ? 'expense' : 'income',
+            'bucket': inferredBucket,
+            'name': value,
           });
         }
-        await batch.commit();
-        setState(() => widget.transaction.category = value);
       }
 
       ScaffoldMessenger.of(
@@ -2169,25 +2270,6 @@ class EmptyFilterState extends StatelessWidget {
   }
 }
 
-Widget AddTransaction(BuildContext context) {
-  return FloatingActionButton(
-    backgroundColor: Theme.of(context).colorScheme.secondary,
-    onPressed: () {
-      showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        builder: (BuildContext ctx) {
-          return const _AddTransactionSheet();
-        },
-      );
-    },
-    child: const Icon(Icons.add, color: Colors.white),
-  );
-}
-
 /// Bottom sheet widget
 class _AddTransactionSheet extends StatefulWidget {
   const _AddTransactionSheet();
@@ -2204,7 +2286,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
   bool _loading = true;
   bool _saving = false;
 
-  List<Map<String, dynamic>> _accounts = []; // {id, name}
+  List<Map<String, dynamic>> _accounts = [];
   List<String> _categories = [];
 
   String? _selectedAccountId;
@@ -2244,6 +2326,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
           .collection('users')
           .doc(uid)
           .collection('accounts')
+          .where('linked', isEqualTo: true)
           .get();
 
       final accounts = accountsSnap.docs.map((d) {
@@ -2319,7 +2402,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
         firestoreAccountId: _selectedAccountId!,
         id: newDoc.id,
         amount: amount,
-        currency: "JOD", // TODO: derive from account if needed
+        currency: "JOD",
         type: _type,
         date: _date,
         merchantName: _merchantCtrl.text.trim().isEmpty

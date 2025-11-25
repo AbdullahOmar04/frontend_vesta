@@ -2,12 +2,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/new_spending.dart';
+import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/add_transaction.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
 
 class Transactions extends StatefulWidget {
-  const Transactions({super.key});
+  final bool showBack;
+  const Transactions({super.key, required this.showBack});
 
   @override
   State<Transactions> createState() => _TransactionsState();
@@ -66,6 +69,7 @@ class _TransactionsState extends State<Transactions> {
           .collection("users")
           .doc(uid)
           .collection("accounts")
+          .where('linked', isEqualTo: true)
           .get();
 
       _accounts = accountsSnap.docs.map((doc) {
@@ -206,12 +210,21 @@ class _TransactionsState extends State<Transactions> {
           ],
         ),
       ),
-      floatingActionButton: AddTransaction(context)
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddTransaction()),
+          ).then((_) => _loadTransactions());
+        },
+        child: Icon(Icons.add, color: Theme.of(context).colorScheme.surface),
+      ),
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
+      automaticallyImplyLeading: widget.showBack,
       title: Text(
         'Transactions',
         style: TextStyle(color: Theme.of(context).colorScheme.surface),

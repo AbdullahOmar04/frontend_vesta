@@ -65,7 +65,6 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       return;
     }
 
-    // DEMO: Accept only 111111
     if (otp != '111111') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

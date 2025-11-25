@@ -60,7 +60,7 @@ class _LoginState extends State<Login> {
         password: password,
       );
 
-      checkMonthlyResetOnLogin();
+      handleBudgetCycleOnLogin();
 
       if (mounted) {
         Navigator.pushReplacement(

@@ -6,6 +6,7 @@ class CreateHousehold extends StatefulWidget {
   const CreateHousehold({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _CreateHouseholdState createState() => _CreateHouseholdState();
 }
 
@@ -49,14 +50,14 @@ class _CreateHouseholdState extends State<CreateHousehold> {
       WriteBatch batch = db.batch();
 
       batch.set(householdRef, {
-        'householdName': householdName, 
+        'householdName': householdName,
         'createdBy': uid,
         'members': [uid],
         'createdAt': FieldValue.serverTimestamp(),
       });
 
       batch.update(userRef, {
-        'householdIds': FieldValue.arrayUnion([householdRef.id])
+        'householdIds': FieldValue.arrayUnion([householdRef.id]),
       });
 
       // 5. Commit the batch
@@ -86,9 +87,7 @@ class _CreateHouseholdState extends State<CreateHousehold> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Create Household'),
-      ),
+      appBar: AppBar(title: const Text('Create Household')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -96,12 +95,14 @@ class _CreateHouseholdState extends State<CreateHousehold> {
           children: [
             TextField(
               controller: _householdNameController,
-              decoration: const InputDecoration(
-                labelText: 'Household Name',
-              ),
+              decoration: const InputDecoration(labelText: 'Household Name'),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: Theme.of(context).colorScheme.secondary,
+              ),
               onPressed: _isCreating ? null : _createHousehold,
               child: _isCreating
                   ? const SizedBox(
@@ -109,7 +110,12 @@ class _CreateHouseholdState extends State<CreateHousehold> {
                       width: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Create'),
+                  : Text(
+                      'Create',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.surface,
+                      ),
+                    ),
             ),
           ],
         ),

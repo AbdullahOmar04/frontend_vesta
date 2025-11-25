@@ -6,10 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Household/create_household.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/new_spending.dart';
+import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/spending_categories.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transactions.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:fl_chart/fl_chart.dart';
+
+const List<String> categoryLabels = [
+  'Food And Drinks',
+  'Groceries',
+  'Entertainment',
+  'Others',
+];
 
 class HouseholdDetailPage extends StatefulWidget {
   final String householdId;
@@ -84,10 +92,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
         //final accountId = data['accountId'] ?? 'unknown_account';
 
         // Convert to model
-        final txn = HouseholdTransactionModel.fromFirestore(
-          txDoc.id,
-          data,
-        );
+        final txn = HouseholdTransactionModel.fromFirestore(txDoc.id, data);
         transactions.add(txn);
       }
 
@@ -174,6 +179,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final latestTransactions = _getLatestTransactions();
+    final categoryNetAmounts = _calculateCategoryNetAmounts();
 
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       stream: _db.collection('households').doc(widget.householdId).snapshots(),
@@ -335,6 +341,8 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
                   const SizedBox(height: 20),
                   _buildBudgetTrackerBar(),
                   const SizedBox(height: 20),
+                  _buildSpendingCategoriesSection(categoryNetAmounts),
+                  const SizedBox(height: 20),
                   _buildLatestTransactionsSection(latestTransactions),
                 ],
               ),
@@ -343,6 +351,24 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
         );
       },
     );
+  }
+
+  Map<String, double> _calculateCategoryNetAmounts() {
+    final filtered = _getTransactionsForCurrentPeriod();
+    final netAmounts = <String, double>{};
+
+    for (var txn in filtered) {
+      final category = txn.category!;
+      double currentAmount = netAmounts[category] ?? 0.0;
+
+      if (txn.isDebit) {
+        netAmounts[category] = currentAmount - txn.amount;
+      } else {
+        netAmounts[category] = currentAmount + txn.amount;
+      }
+    }
+
+    return netAmounts;
   }
 
   Future<void> _fetchHouseholdChartData(String householdId) async {
@@ -401,13 +427,11 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
 
         for (final tx in txSnap.docs) {
           final tData = tx.data();
-          final type = (tData["transactionType"] ?? "")
-              .toString()
-              .toLowerCase();
+          final type = (tData["type"] ?? "").toString().toLowerCase();
           if (type != "debit") continue;
 
           DateTime? txDate;
-          final rawDate = tData["settlementDateTime"];
+          final rawDate = tData["date"];
           if (rawDate is String && rawDate.isNotEmpty) {
             try {
               txDate = DateTime.parse(rawDate).toLocal();
@@ -416,8 +440,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
 
           if (txDate == null) continue;
           if (!txDate.isBefore(startDate) && !txDate.isAfter(endDate)) {
-            final amtStr = (tData["transactionAmount"]?["amount"] ?? 0)
-                .toString();
+            final amtStr = (tData["amount"] ?? 0).toString();
             final amount = double.tryParse(amtStr) ?? 0;
             totalSpending += amount;
           }
@@ -593,12 +616,12 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
         final tData = tx.data();
 
         // Skip non-debit
-        final type = (tData["transactionType"] ?? "").toString().toLowerCase();
+        final type = (tData["type"] ?? "").toString().toLowerCase();
         if (type != "debit") continue;
 
         // Parse date
         DateTime? txDate;
-        final rawDate = tData["settlementDateTime"];
+        final rawDate = tData["date"];
         if (rawDate is String && rawDate.isNotEmpty) {
           try {
             txDate = DateTime.parse(rawDate).toLocal();
@@ -609,8 +632,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
 
         // Check if within current cycle
         if (!txDate.isBefore(startDate) && !txDate.isAfter(endDate)) {
-          final amtStr = (tData["transactionAmount"]?["amount"] ?? 0)
-              .toString();
+          final amtStr = (tData["amount"] ?? 0).toString();
           final amount = double.tryParse(amtStr) ?? 0;
           totalSpending += amount;
         }
@@ -643,6 +665,173 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
     }
   }
 
+  Widget _buildSpendingCategoriesSection(Map<String, double> netAmounts) {
+    // Sort categories by the absolute value of their net amount, descending
+    final sortedCategories = netAmounts.entries.toList()
+      ..sort((a, b) => b.value.abs().compareTo(a.value.abs()));
+
+    final top5Categories = sortedCategories.take(5).toList();
+
+    return Column(
+      children: [
+        // Header
+        Row(
+          children: [
+            const Text(
+              "Spending Categories",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            const Spacer(),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SpendingCategories(),
+                  ),
+                );
+              },
+              child: const Text("See All"),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        // List or Empty State
+        if (top5Categories.isEmpty)
+          _buildEmptyCategoryState()
+        else
+          ListView.builder(
+            itemCount: top5Categories.length,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemBuilder: (context, index) {
+              final entry = top5Categories[index];
+              return _buildCategoryNetItem(entry);
+            },
+          ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyCategoryState() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.pie_chart_outline, size: 60, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              "No categorized spending yet",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Assign categories to transactions\nto see your analysis.",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryNetItem(MapEntry<String, double> entry) {
+    final categoryData = _categories[entry.key];
+    final netAmount = entry.value;
+
+    final Color amountColor;
+    final String sign;
+    if (netAmount > 0) {
+      amountColor = Colors.green.shade600;
+      sign = "+";
+    } else if (netAmount < 0) {
+      amountColor = Colors.red.shade600;
+      sign = "-";
+    } else {
+      amountColor = Colors.grey.shade600;
+      sign = "";
+    }
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      color: Colors.white,
+      child: ListTile(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const Transactions(showBack: true,),
+              settings: RouteSettings(
+                arguments: {'selectedCategory': entry.key},
+              ),
+            ),
+          );
+        },
+        leading: CircleAvatar(
+          backgroundColor:
+              categoryData?.color.withOpacity(0.2) ??
+              Colors.grey.withOpacity(0.2),
+          child: Icon(
+            categoryData?.icon ?? Icons.category,
+            color: categoryData?.color ?? Colors.grey,
+          ),
+        ),
+        title: Text(
+          categoryData?.name ?? entry.key,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          '${_getTransactionsForCurrentPeriod().where((t) => t.category == entry.key).length} transactions',
+          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+        ),
+        trailing: Text(
+          "$sign JOD ${netAmount.abs().toStringAsFixed(2)}",
+          style: TextStyle(
+            color: amountColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<TransactionModel> _getTransactionsForCurrentPeriod() {
+    final now = DateTime.now();
+    DateTime startDate;
+    DateTime endDate;
+
+    if (now.day >= _budgetResetDay) {
+      startDate = DateTime(now.year, now.month, _budgetResetDay);
+      final nextMonth = DateTime(now.year, now.month + 1, _budgetResetDay);
+      endDate = nextMonth.subtract(const Duration(days: 1));
+    } else {
+      startDate = DateTime(now.year, now.month - 1, _budgetResetDay);
+      final thisMonth = DateTime(now.year, now.month, _budgetResetDay);
+      endDate = thisMonth.subtract(const Duration(days: 1));
+    }
+
+    endDate = DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59);
+
+    return _allTransactions.where((txn) {
+      // ✅ Must have valid date, category, and within cycle
+      if (txn.date.isBefore(startDate) || txn.date.isAfter(endDate)) {
+        return false;
+      }
+      if (txn.category == null || txn.category!.isEmpty) return false;
+      if (!categoryLabels.contains(txn.category)) return false;
+
+      return true;
+    }).toList();
+  }
+
   Widget _buildLatestTransactionsSection(
     List<HouseholdTransactionModel> transactions,
   ) {
@@ -660,7 +849,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const Transactions()),
+                  MaterialPageRoute(builder: (context) => const Transactions(showBack: true,)),
                 );
               },
               child: Text(
@@ -840,18 +1029,17 @@ class _HouseholdPageState extends State<HouseholdPage> {
             style: TextStyle(fontSize: 14, color: Colors.grey[500]),
           ),
           const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () {
+
+          largeButton(
+            context,
+            'Create Household',
+            Theme.of(context).colorScheme.secondary,
+            () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const CreateHousehold()),
               );
             },
-            icon: const Icon(Icons.add),
-            label: const Text("Create Household"),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
           ),
         ],
       ),
@@ -936,7 +1124,7 @@ class _HouseholdPageState extends State<HouseholdPage> {
             MaterialPageRoute(builder: (_) => const CreateHousehold()),
           );
         },
-        child: Icon(Icons.add),
+        child: Icon(Icons.add, color: scheme.surface),
       ),
       body: Container(
         height: double.infinity,

@@ -18,7 +18,6 @@ class AccountsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.primary,
@@ -31,9 +30,8 @@ class AccountsPage extends StatelessWidget {
         iconTheme: IconThemeData(color: Theme.of(context).colorScheme.surface),
         centerTitle: true,
       ),
-      // Floating action button (UI only, no action)
       floatingActionButton: FloatingActionButton(
-        onPressed: () {}, // void: UI only
+        onPressed: () {}, // later: navigate to ChooseBank
         tooltip: 'Add Account',
         backgroundColor: Theme.of(context).colorScheme.primary,
         child: Icon(Icons.add, color: Theme.of(context).colorScheme.surface),
@@ -45,6 +43,7 @@ class AccountsPage extends StatelessWidget {
                   .collection("users")
                   .doc(uid)
                   .collection("accounts")
+                  .where('linked', isEqualTo: true) // 👈 only linked
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -53,7 +52,8 @@ class AccountsPage extends StatelessWidget {
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const Center(
                     child: Text(
-                      "No accounts available",
+                      "No linked accounts.\nGo to “Link Your Bank” to add some.",
+                      textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 16),
                     ),
                   );
@@ -162,7 +162,6 @@ class AccountsPage extends StatelessWidget {
   }
 }
 
-
 Future<void> calcTotalBalance() async {
   final uid = FirebaseAuth.instance.currentUser?.uid;
   if (uid == null) return;
@@ -172,13 +171,15 @@ Future<void> calcTotalBalance() async {
         .collection('users')
         .doc(uid)
         .collection('accounts')
+        .where('linked', isEqualTo: true)
         .get();
 
     num totalBalance = 0;
 
     for (final doc in accountsSnap.docs) {
       final acc = doc.data();
-      final dynamic balanceRaw = acc['availableBalance']?['balanceAmount'] ?? 0;
+      final dynamic balanceRaw =
+          acc['availableBalance']?['balanceAmount'] ?? 0;
       if (balanceRaw is num) {
         totalBalance += balanceRaw;
       } else if (balanceRaw is String) {

@@ -9,17 +9,25 @@ class ProfilePage extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Profile")),
+      appBar: AppBar(
+        title: const Text("Profile"),
+        automaticallyImplyLeading: false,
+      ),
+
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Email: ${user?.email ?? "Unknown"}",
-                style: const TextStyle(fontSize: 18)),
+            Text(
+              "Email: ${user?.email ?? "Unknown"}",
+              style: const TextStyle(fontSize: 18),
+            ),
             const SizedBox(height: 10),
-            Text("Username: ${user?.displayName ?? "No username"}",
-                style: const TextStyle(fontSize: 18)),
+            Text(
+              "Username: ${user?.displayName ?? "No username"}",
+              style: const TextStyle(fontSize: 18),
+            ),
             const Spacer(),
             ElevatedButton(
               onPressed: () async {

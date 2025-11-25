@@ -26,14 +26,16 @@ class _SavingsPageState extends State<SavingsPage> {
     }
   }
 
-  void _showAllocateDialog(String goalId, Map<String, dynamic> goal) async {
+  void _showAllocateBottomSheet(
+    String goalId,
+    Map<String, dynamic> goal,
+  ) async {
     final amountController = TextEditingController();
     final goalTitle = goal['goalTitle'] ?? 'Goal';
     final currentAmount = (goal['currentAmount'] ?? 0).toDouble();
     final targetAmount = (goal['targetAmount'] ?? 0).toDouble();
     final remaining = targetAmount - currentAmount;
 
-    // Get available amount
     final userId = user?.uid;
     if (userId == null) return;
 
@@ -58,20 +60,45 @@ class _SavingsPageState extends State<SavingsPage> {
 
     if (!mounted) return;
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Allocate to $goalTitle', textAlign: TextAlign.center),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 16,
+            right: 16,
+            top: 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[400],
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              Text(
+                'Allocate to $goalTitle',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 255, 203, 209),
-                  borderRadius: BorderRadius.circular(8),
+                  color: const Color.fromARGB(32, 162, 0, 255),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,42 +122,87 @@ class _SavingsPageState extends State<SavingsPage> {
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            TextField(
-              controller: amountController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              decoration: InputDecoration(
-                labelText: 'Amount to Allocate',
-                prefixText: 'JOD ',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+              const SizedBox(height: 16),
+              TextField(
+                controller: amountController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
-              ),
-              autofocus: true,
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                TextButton(
-                  onPressed: () {
-                    if (currentAmount > 0) {
-                      Navigator.pop(context);
-                      _showDeallocateDialog(goalId, goal);
-                    }
-                  },
-                  child: Text(
-                    'Remove from goal',
-                    style: TextStyle(
-                      color: currentAmount > 0 ? Colors.red : Colors.grey,
-                    ),
+                decoration: InputDecoration(
+                  labelText: 'Amount to Allocate',
+                  prefixText: 'JOD ',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-              ],
-            ),
-          ],
+                autofocus: true,
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  TextButton(
+                    onPressed: currentAmount > 0
+                        ? () {
+                            Navigator.pop(context);
+                            _showDeallocateDialog(goalId, goal);
+                          }
+                        : null,
+                    child: Text(
+                      'Remove from goal',
+                      style: TextStyle(
+                        color: currentAmount > 0 ? Colors.red : Colors.grey,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      final amount = double.tryParse(amountController.text);
+                      if (amount != null && amount > 0) {
+                        if (amount > available) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Insufficient available balance'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        } else {
+                          _allocateToGoal(goalId, goal, amount);
+                          Navigator.pop(context);
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please enter a valid amount'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
+                    child: const Text('Allocate'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _deleteSavingGoalDialog(String goalId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Savings Goal'),
+        content: const Text(
+          'Are you sure you want to delete this savings goal? This action cannot be undone.',
         ),
         actions: [
           TextButton(
@@ -138,30 +210,29 @@ class _SavingsPageState extends State<SavingsPage> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              final amount = double.tryParse(amountController.text);
-              if (amount != null && amount > 0) {
-                if (amount > available) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Insufficient available balance'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                } else {
-                  _allocateToGoal(goalId, goal, amount);
-                  Navigator.pop(context);
-                }
-              } else {
+            onPressed: () async {
+              final userId = user?.uid;
+              if (userId == null) return;
+
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(userId)
+                  .collection('savings')
+                  .doc(goalId)
+                  .delete();
+
+              if (mounted) {
+                Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Please enter a valid amount'),
-                    backgroundColor: Colors.red,
+                    content: Text('Savings goal deleted successfully'),
+                    backgroundColor: Colors.green,
                   ),
                 );
               }
             },
-            child: const Text('Allocate'),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -350,7 +421,7 @@ class _SavingsPageState extends State<SavingsPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: 100),
-          Icon(Icons.savings, size: 80, color: Colors.grey[400]),
+          Icon(Icons.savings, size: 80, color: const Color.fromARGB(255, 98, 0, 255)),
           const SizedBox(height: 16),
           Text(
             "No Savings Goals Yet",
@@ -367,11 +438,14 @@ class _SavingsPageState extends State<SavingsPage> {
             style: TextStyle(fontSize: 14, color: Colors.grey[500]),
           ),
           const SizedBox(height: 24),
-          largeButton(
-            context,
-            "Create Savings Goal",
-            Theme.of(context).colorScheme.onSurface,
-            _navigateToCreateSavings,
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: largeButton(
+              context,
+              "Create Savings Goal",
+              Theme.of(context).colorScheme.secondary,
+              _navigateToCreateSavings,
+            ),
           ),
         ],
       ),
@@ -601,7 +675,8 @@ class _SavingsPageState extends State<SavingsPage> {
         ],
       ),
       child: InkWell(
-        onTap: () => _showAllocateDialog(goalId, goal),
+        onTap: () => _showAllocateBottomSheet(goalId, goal),
+        onLongPress: () => {_deleteSavingGoalDialog(goalId)},
         borderRadius: BorderRadius.circular(16),
         child: Column(
           children: [

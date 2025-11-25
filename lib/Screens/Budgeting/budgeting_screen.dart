@@ -23,6 +23,8 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
 
   List<FlSpot> _expenseData = [];
   List<FlSpot> _savingsData = [];
+  Map<String, String> _categoryBuckets = {};
+
   double _currentCycleBudget = 0.01;
   double _currentCycleSpending = 0.0;
 
@@ -43,6 +45,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     }
 
     await _fetchBudget();
+    await _loadCategoryBuckets();
 
     await Future.wait([
       _fetchSOSPsFromFirestore(),
@@ -57,6 +60,32 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
 
   void _refreshBudget() {
     _loadAllData();
+  }
+
+  Future<void> _loadCategoryBuckets() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final snap = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('categories')
+        .get();
+
+    final map = <String, String>{};
+    for (final doc in snap.docs) {
+      final data = doc.data();
+      final name = doc.id;
+      final bucketRaw = (data['bucket'] ?? '') as String;
+      final bucket = bucketRaw.isEmpty
+          ? inferBucketFromCategoryName(name)
+          : bucketRaw;
+      map[name] = bucket;
+    }
+
+    if (mounted) {
+      setState(() => _categoryBuckets = map);
+    }
   }
 
   Future<void> _fetchBudget() async {
@@ -487,6 +516,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
         .collection("users")
         .doc(uid)
         .collection("accounts")
+        .where("linked", isEqualTo: true)
         .get();
 
     List<Map<String, dynamic>> all = [];
@@ -805,7 +835,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
         .get();
 
     for (var account in accountsSnap.docs) {
-      // Get all transactions and filter in Dart
       final snap = await FirebaseFirestore.instance
           .collection("users")
           .doc(uid)
@@ -816,15 +845,30 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
 
       for (var doc in snap.docs) {
         final data = doc.data();
-        final transactionDate = _getDateTimeFromData(data);
 
-        if (transactionDate != null) {
-          // Check if the date falls within our cycle
-          if (!transactionDate.isBefore(startDate) &&
-              !transactionDate.isAfter(endDate)) {
-            currentSpending += _getAmountFromData(data);
-          }
+        // Only debits (money going out)
+        final transactionType = (data['type'] ?? '').toString().toLowerCase();
+        if (transactionType != 'debit') continue;
+
+        final transactionDate = _getDateTimeFromData(data);
+        if (transactionDate == null) continue;
+
+        if (transactionDate.isBefore(startDate) ||
+            transactionDate.isAfter(endDate)) {
+          continue;
         }
+
+        // Category bucket
+        final category = data['category'] as String?;
+        if (category == null || category.isEmpty) continue;
+
+        final bucket =
+            _categoryBuckets[category] ?? inferBucketFromCategoryName(category);
+
+        // Only essential + luxury count against the spending budget
+        if (bucket != 'essential' && bucket != 'luxury') continue;
+
+        currentSpending += _getAmountFromData(data);
       }
     }
 
@@ -843,7 +887,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     }
   }
 
-  // --- REPLACED: Corrected data fetching logic ---
   Future<void> _fetchChartData() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
@@ -902,7 +945,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
         // 5. Aggregate totals
         for (var doc in snap.docs) {
           final data = doc.data();
-          final category = data['category'] as String?;
           final transactionDate = _getDateTimeFromData(data);
 
           if (transactionDate != null) {
@@ -910,13 +952,26 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
             if (!transactionDate.isBefore(cycleStartDate) &&
                 !transactionDate.isAfter(cycleEndDate)) {
               final amount = _getAmountFromData(data);
-              if (category == 'Groceries' ||
-                  category == 'Entertainment' ||
-                  category == 'Food And Drinks' ||
-                  category == 'Others') {
-                totalSpending += amount;
-              } else if (category == 'Savings') {
-                totalSavings += amount;
+              final category = data['category'] as String?;
+              if (category == null || category.isEmpty) continue;
+
+              final bucket =
+                  _categoryBuckets[category] ??
+                  inferBucketFromCategoryName(category);
+
+              // Only debits
+              final transactionType = (data['type'] ?? '')
+                  .toString()
+                  .toLowerCase();
+              if (transactionType != 'debit') continue;
+
+              if (!transactionDate.isBefore(cycleStartDate) &&
+                  !transactionDate.isAfter(cycleEndDate)) {
+                if (bucket == 'essential' || bucket == 'luxury') {
+                  totalSpending += amount;
+                } else if (bucket == 'savings') {
+                  totalSavings += amount;
+                }
               }
             }
           }

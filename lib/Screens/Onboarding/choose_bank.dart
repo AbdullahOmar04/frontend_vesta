@@ -139,6 +139,7 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
   bool _syncing = false;
   String? _lastUsername;
   final Set<String> _selected = {};
+  bool _consentGiven = false;
 
   @override
   void initState() {
@@ -169,7 +170,7 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
         _syncing = true;
       });
       try {
-        await syncAccounts(''); // will read stored username
+        await syncAccounts(''); 
         await _pollAccountsOnce();
       } finally {
         if (mounted) setState(() => _syncing = false);
@@ -193,7 +194,6 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
 
     final entered = _username.text.trim();
 
-    // Save username to Firestore for future syncs
     await FirebaseFirestore.instance.collection('users').doc(uid).set({
       'providers': {
         'jopacc': {
@@ -205,7 +205,7 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
 
     setState(() {
       _loggedIn = true;
-      _syncing = true;
+      _consentGiven = false;
       _lastUsername = entered;
       _selected.clear();
     });
@@ -215,6 +215,111 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
       await _pollAccountsOnce();
     } finally {
       if (mounted) setState(() => _syncing = false);
+    }
+  }
+
+  Widget _buildConsentScreen() {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
+        child: Card(
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 4,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.shield_outlined, size: 28),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Share your data with Vesta?',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: scheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'By continuing, you allow Vesta to securely access:',
+                ),
+                const SizedBox(height: 8),
+                const Text('• Your account list and balances'),
+                const Text('• Your transactions history'),
+                const Text('• Standing orders & scheduled payments'),
+                const SizedBox(height: 12),
+                const Text(
+                  'Access is read-only and you can stop sharing at any time from your bank.',
+                  style: TextStyle(fontSize: 12, color: Colors.black54),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _loggedIn = false;
+                            _consentGiven = false;
+                          });
+                        },
+                        child: const Text('No, cancel'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: scheme.primary,
+                          foregroundColor: scheme.surface,
+                        ),
+                        onPressed: _onConsentApproved,
+                        child: const Text('Allow & continue'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _onConsentApproved() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    setState(() {
+      _syncing = true;
+    });
+
+    try {
+      await syncAccounts(_lastUsername ?? '');
+      await _pollAccountsOnce(); 
+
+      if (!mounted) return;
+      setState(() {
+        _consentGiven = true; 
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _syncing = false);
+      }
     }
   }
 
@@ -306,8 +411,13 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
           ),
         ),
         padding: const EdgeInsets.all(16),
-        child: _loggedIn ? _buildAccountSelection() : _buildLoginForm(),
+        child: !_loggedIn
+            ? _buildLoginForm() // STEP 1: bank login
+            : (!_consentGiven
+                  ? _buildConsentScreen() // STEP 2: consent
+                  : _buildAccountSelection()), // STEP 3: accounts in Vesta
       ),
+
       floatingActionButton: _loggedIn
           ? FloatingActionButton.extended(
               onPressed: _selected.isEmpty ? null : _linkSelected,

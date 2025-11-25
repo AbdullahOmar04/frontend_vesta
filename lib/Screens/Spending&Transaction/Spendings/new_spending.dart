@@ -8,14 +8,6 @@ import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/spending_categories.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transactions.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
-// import 'package:fl_chart/fl_chart.dart'; // No longer needed
-
-const List<String> categoryLabels = [
-  'Food And Drinks',
-  'Groceries',
-  'Entertainment',
-  'Others',
-];
 
 enum TimeFilter { day, week, month, year }
 
@@ -32,6 +24,7 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
   bool _loading = true;
   List<TransactionModel> _allTransactions = [];
   Map<String, CategoryData> _categories = {};
+  Map<String, String> _categoryBuckets = {};
 
   double _currentCycleBudget = 0.01;
   double _currentCycleSpending = 0.0;
@@ -73,12 +66,23 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
       debugPrint("📁 Found ${categoriesSnap.docs.length} categories");
 
       final categoryMap = <String, CategoryData>{};
+      final bucketMap = <String, String>{};
+
       for (var doc in categoriesSnap.docs) {
+        final data = doc.data();
+        final name = doc.id;
+        final bucketRaw = (data['bucket'] ?? '') as String;
+        final bucket = bucketRaw.isEmpty
+            ? inferBucketFromCategoryName(name)
+            : bucketRaw;
+
+        bucketMap[doc.id] = bucket;
+
         categoryMap[doc.id] = CategoryData(
           id: doc.id,
-          name: doc.id,
-          icon: _getIconForCategory(doc.id),
-          color: _getColorForCategory(doc.id),
+          name: name,
+          icon: _getIconForCategory(name),
+          color: _getColorForCategory(name),
         );
       }
 
@@ -87,6 +91,7 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
           .collection('users')
           .doc(uid)
           .collection('accounts')
+          .where('linked', isEqualTo: true)
           .get();
 
       debugPrint("💳 Found ${accountsSnap.docs.length} accounts");
@@ -108,13 +113,16 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
 
       debugPrint("📝 Total transactions loaded: ${transactions.length}");
 
+      if (!mounted) return;
       setState(() {
         _categories = categoryMap;
         _allTransactions = transactions;
+        _categoryBuckets = bucketMap;
         _loading = false;
       });
     } catch (e) {
       debugPrint("⚠️ Error loading data: $e");
+      if (!mounted) return;
       setState(() => _loading = false);
     }
   }
@@ -242,7 +250,7 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
     final sortedCategories = netAmounts.entries.toList()
       ..sort((a, b) => b.value.abs().compareTo(a.value.abs()));
 
-    final top5Categories = sortedCategories.take(5).toList();
+    final top5Categories = sortedCategories.take(3).toList();
 
     return Column(
       children: [
@@ -261,7 +269,10 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
                   MaterialPageRoute(
                     builder: (context) => const SpendingCategories(),
                   ),
-                );
+                ).then((_) {
+                  _loadData();
+                  _fetchCurrentCycleData();
+                });
               },
               child: const Text("See All"),
             ),
@@ -310,12 +321,15 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const Transactions(),
+              builder: (context) => const Transactions(showBack: true),
               settings: RouteSettings(
                 arguments: {'selectedCategory': entry.key},
               ),
             ),
-          );
+          ).then((_) {
+            _loadData();
+            _fetchCurrentCycleData();
+          });
         },
         leading: CircleAvatar(
           backgroundColor:
@@ -363,8 +377,13 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const Transactions()),
-                );
+                  MaterialPageRoute(
+                    builder: (context) => const Transactions(showBack: true),
+                  ),
+                ).then((_) {
+                  _loadData();
+                  _fetchCurrentCycleData();
+                });
               },
               child: Text(
                 "All Transactions",
@@ -636,7 +655,6 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
         .get();
 
     for (var account in accountsSnap.docs) {
-      // Get all transactions and filter in Dart
       final snap = await FirebaseFirestore.instance
           .collection("users")
           .doc(uid)
@@ -648,19 +666,29 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
       for (var doc in snap.docs) {
         final data = doc.data();
 
+        // Only debits
         final transactionType = (data['type'] ?? '').toString().toLowerCase();
-        if (transactionType != 'debit') {
+        if (transactionType != 'debit') continue;
+
+        // Date in current cycle
+        final transactionDate = _getDateTimeFromData(data);
+        if (transactionDate == null) continue;
+        if (transactionDate.isBefore(startDate) ||
+            transactionDate.isAfter(endDate)) {
           continue;
         }
 
-        final transactionDate = _getDateTimeFromData(data);
-        if (transactionDate == null) continue;
+        // Category + bucket
+        final category = data['category'] as String?;
+        if (category == null || category.isEmpty) continue;
 
-        // ✅ Check if date within range
-        if (!transactionDate.isBefore(startDate) &&
-            !transactionDate.isAfter(endDate)) {
-          currentSpending += _getAmountFromData(data);
-        }
+        final bucket =
+            _categoryBuckets[category] ?? inferBucketFromCategoryName(category);
+
+        // Only essential + luxury spending should count against spending budget
+        if (bucket != 'essential' && bucket != 'luxury') continue;
+
+        currentSpending += _getAmountFromData(data);
       }
     }
 
