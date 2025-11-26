@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart'; 
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Onboarding/otp.dart';
 
@@ -20,7 +21,7 @@ class PhoneNumberPage extends StatefulWidget {
 
 class _PhoneNumberPageState extends State<PhoneNumberPage> {
   final _phoneController = TextEditingController();
-  final bool _loading = false;
+  bool _loading = false; 
 
   @override
   void dispose() {
@@ -28,8 +29,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
     super.dispose();
   }
 
-  void _goToOtp() {
-    // Jordan-only demo: we require number to start with 7 and be 9 digits total (e.g. 79XXXXXXX)
+  void _goToOtp() async {
     final local = _phoneController.text.trim();
     final valid = RegExp(r'^(7\d{8})$').hasMatch(local);
 
@@ -45,18 +45,52 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
       return;
     }
 
-    final fullPhone = '+962$local'; // hardcoded +962
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => OTPVerificationPage(
-          username: widget.username,
-          email: widget.email,
-          password: widget.password,
-          phoneNumber: fullPhone,
+    final fullPhone = '+962$local'; 
+
+    setState(() => _loading = true);
+
+    try {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: fullPhone,
+        timeout: const Duration(seconds: 60),
+        verificationCompleted: (PhoneAuthCredential credential) async {
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          setState(() => _loading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.message ?? "Phone verification failed"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          setState(() => _loading = false);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => OTPVerificationPage(
+                username: widget.username,
+                email: widget.email,
+                password: widget.password,
+                phoneNumber: fullPhone,
+                verificationId: verificationId,
+                resendToken: resendToken,
+              ),
+            ),
+          );
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {},
+      );
+    } catch (e) {
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error starting phone verification: $e"),
+          backgroundColor: Colors.red,
         ),
-      ),
-    );
+      );
+    }
   }
 
   @override
@@ -91,10 +125,13 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                     Text(
                       'Enter your phone number',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: scheme.primary, fontSize: 24, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: scheme.primary,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 16),
-
                     Row(
                       children: [
                         Container(
@@ -128,7 +165,6 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 24),
                     _loading
                         ? const CircularProgressIndicator()

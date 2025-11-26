@@ -10,12 +10,17 @@ class OTPVerificationPage extends StatefulWidget {
   final String password;
   final String phoneNumber;
 
+  final String verificationId;
+  final int? resendToken;
+
   const OTPVerificationPage({
     super.key,
     required this.username,
     required this.email,
     required this.password,
     required this.phoneNumber,
+    required this.verificationId,
+    this.resendToken,
   });
 
   @override
@@ -53,9 +58,9 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
   }
 
   Future<void> _finishSignup() async {
-    final otp = _otpController.text.trim();
+    final smsCode = _otpController.text.trim();
 
-    if (otp.length != 6) {
+    if (smsCode.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Please enter a 6-digit OTP"),
@@ -65,48 +70,52 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       return;
     }
 
-    if (otp != '111111') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Invalid OTP"),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
     setState(() => _loading = true);
 
     try {
-      // Create the Firebase Auth user now
-      final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      final phoneCred = PhoneAuthProvider.credential(
+        verificationId: widget.verificationId,
+        smsCode: smsCode,
+      );
+
+      final phoneUserCred = await FirebaseAuth.instance.signInWithCredential(
+        phoneCred,
+      );
+      final phoneUser = phoneUserCred.user;
+      if (phoneUser == null) {
+        throw Exception('Phone verification failed');
+      }
+
+      final emailCred = EmailAuthProvider.credential(
         email: widget.email,
         password: widget.password,
       );
 
-      await cred.user?.updateDisplayName(widget.username);
-      await cred.user?.reload();
+      await phoneUser.linkWithCredential(emailCred);
 
-      // Save user document in Firestore
-      await FirebaseFirestore.instance
-          .collection("users")
-          .doc(cred.user!.uid)
-          .set({
-            "username": widget.username,
-            "email": widget.email,
-            "phoneNumber": widget.phoneNumber,
-            "createdAt": FieldValue.serverTimestamp(),
-            "currency": "JOD",
-            "totalBalance": 0.0,
-            "totalIncome": 0.0,
-            "totalExpense": 0.0,
-            "dayOfMonth": 28,
-            "householdIds": [],
-          });
+      // Optional: set display name
+      await phoneUser.updateDisplayName(widget.username);
 
-      initializeDefaultCategories(cred.user!.uid);
+      final uid = phoneUser.uid;
+
+      // 4) Create Firestore user doc
+      await FirebaseFirestore.instance.collection("users").doc(uid).set({
+        "username": widget.username,
+        "email": widget.email,
+        "phoneNumber": widget.phoneNumber,
+        "createdAt": FieldValue.serverTimestamp(),
+        "currency": "JOD",
+        "totalBalance": 0.0,
+        "totalIncome": 0.0,
+        "totalExpense": 0.0,
+        "dayOfMonth": 28,
+        "householdIds": [],
+      });
+
+      await initializeDefaultCategories(uid);
 
       if (!mounted) return;
+
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const ChooseBankSplash()),
@@ -116,7 +125,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.message ?? "Signup failed"),
+          content: Text(e.message ?? "Verification failed"),
           backgroundColor: Colors.red,
         ),
       );
@@ -127,6 +136,52 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       );
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _resendOtp() async {
+    if (_loading) return;
+
+    setState(() => _loading = true);
+    try {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: widget.phoneNumber,
+        timeout: const Duration(seconds: 60),
+        forceResendingToken: widget.resendToken,
+        verificationCompleted: (PhoneAuthCredential credential) async {},
+        verificationFailed: (FirebaseAuthException e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.message ?? "Failed to resend OTP"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          // Just update the verificationId used for next attempt
+          setState(() {
+            _loading = false;
+            // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+            (widget as dynamic).verificationId = verificationId;
+            (widget as dynamic).resendToken = resendToken;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("OTP resent"),
+              backgroundColor: Colors.green,
+            ),
+          );
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {},
+      );
+    } catch (e) {
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error resending OTP: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -168,9 +223,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-
                     const SizedBox(height: 16),
-
                     TextField(
                       controller: _otpController,
                       maxLength: 6,
@@ -208,20 +261,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
                         children: [
                           WidgetSpan(
                             child: GestureDetector(
-                              onTap: _loading
-                                  ? null
-                                  : () {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            "OTP resent (demo mode: always 111111)",
-                                          ),
-                                          backgroundColor: Colors.green,
-                                        ),
-                                      );
-                                    },
+                              onTap: _loading ? null : _resendOtp,
                               child: Text(
                                 "Resend OTP",
                                 style: TextStyle(
