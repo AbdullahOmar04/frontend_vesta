@@ -89,7 +89,7 @@ class _RegisterState extends State<Register> {
                   children: [
                     const SizedBox(height: 32),
                     Text(
-                      'Welcome To',
+                      'Join Us Today',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 35,

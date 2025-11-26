@@ -17,29 +17,29 @@ class OnboardingSplash extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
-                  height: 160, // reserve a smaller amount of layout space
-                  child: OverflowBox(
-                  maxWidth: double.infinity,
-                  maxHeight: 400, // allow the image to grow beyond the reserved space
-                  alignment: Alignment.center,
-                  child: Image.asset(
-                    'assets/images/Dark.png',
-                    width: 400,
-                    height: 400,
-                  ),
-                  ),
-                ),
                 Text(
-                  'Welcome to \nVesta',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
+                      'Welcome To',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 35,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
+                SizedBox(
+                  height: 160,
+                  child: OverflowBox(
+                    maxWidth: double.infinity,
+                    maxHeight: 400,
+                    alignment: Alignment.center,
+                    child: Image.asset(
+                      'assets/images/Dark.png',
+                      width: 400,
+                      height: 400,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 12),
                 Text(
                   'Link. Manage. Thrive.',
                   textAlign: TextAlign.center,

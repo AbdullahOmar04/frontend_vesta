@@ -109,7 +109,7 @@ class _LoginState extends State<Login> {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 26),
                     Text(
                       'Welcome Back',
                       textAlign: TextAlign.center,
@@ -117,22 +117,20 @@ class _LoginState extends State<Login> {
                         fontSize: 35,
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.secondary,
+                        fontFamily: 'Poppins',
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'Login with your username or email',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 20,
-                      ),
+                      style: TextStyle(fontSize: 20, fontFamily: 'Poppins'),
                     ),
                     SizedBox(
-                      height: 160, // reserve a smaller amount of layout space
+                      height: 160,
                       child: OverflowBox(
                         maxWidth: double.infinity,
-                        maxHeight:
-                            400, // allow the image to grow beyond the reserved space
+                        maxHeight: 400,
                         alignment: Alignment.center,
                         child: Image.asset(
                           'assets/images/Dark.png',
