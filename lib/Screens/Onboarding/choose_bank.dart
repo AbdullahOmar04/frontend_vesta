@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
+import 'package:frontend_vesta/Screens/pages/home.dart';
 import 'package:frontend_vesta/Screens/pages/main_screen.dart';
 import 'package:intl/intl.dart';
 
@@ -36,24 +37,43 @@ class _ChooseBankState extends State<ChooseBank> {
             topRight: Radius.circular(30),
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              BankCard(
-                context,
-                'Bank of JoPACC LTD.',
-                'assets/images/jopacc.png',
-                Colors.white,
-                () {
-                  Navigator.push(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  BankCard(
                     context,
-                    MaterialPageRoute(builder: (context) => const Jopacc()),
+                    'Bank of JoPACC LTD.',
+                    'assets/images/jopacc.png',
+                    Colors.white,
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const Jopacc()),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Spacer(),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: largeButton(
+                context,
+                'Not Right Now',
+                Theme.of(context).colorScheme.primary,
+                () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomePage()),
                   );
                 },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -170,7 +190,7 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
         _syncing = true;
       });
       try {
-        await syncAccounts(''); 
+        await syncAccounts('');
         await _pollAccountsOnce();
       } finally {
         if (mounted) setState(() => _syncing = false);
@@ -310,11 +330,11 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
 
     try {
       await syncAccounts(_lastUsername ?? '');
-      await _pollAccountsOnce(); 
+      await _pollAccountsOnce();
 
       if (!mounted) return;
       setState(() {
-        _consentGiven = true; 
+        _consentGiven = true;
       });
     } finally {
       if (mounted) {
@@ -575,6 +595,7 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
                             });
                           },
                     child: Card(
+                      color: Colors.white,
                       elevation: 3,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
@@ -597,7 +618,17 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
                                         }
                                       });
                                     },
+                              fillColor: WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
+                                  if (states.contains(WidgetState.disabled)) {
+                                    return Colors.green;
+                                  }
+                                  return Colors.white;
+                                },
+                              ),
+                              checkColor: Colors.black,
                             ),
+
                             const SizedBox(width: 4),
                             Expanded(
                               child: Column(

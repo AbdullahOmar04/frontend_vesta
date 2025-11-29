@@ -1,6 +1,3 @@
-// lib/screens/pages/spending_analysis.dart
-// ignore_for_file: deprecated_member_use, avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -200,7 +197,10 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
         backgroundColor: scheme.primary,
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? Container(
+              color: scheme.surface,
+              child: const Center(child: CircularProgressIndicator()),
+            )
           : _buildBody(),
     );
   }
@@ -406,11 +406,19 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
             physics: const NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
               final txn = transactions[index];
-              return TransactionCard(transaction: txn);
+              return TransactionCard(
+                transaction: txn,
+                onCategoryChanged: _refreshAfterCategoryChange,
+              );
             },
           ),
       ],
     );
+  }
+
+  void _refreshAfterCategoryChange() {
+    _loadData();
+    _fetchCurrentCycleData();
   }
 
   Widget _buildBudgetTrackerBar() {
@@ -598,8 +606,6 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
 
   double _getAmountFromData(Map<String, dynamic> data) {
     try {
-      // First, try to get the converted JOD amount
-
       if (data.containsKey('amount') &&
           data['amount'] != null &&
           data['amount'] != null) {
@@ -617,7 +623,7 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
       if (data.containsKey('date') && data['date'] != null) {
         return DateTime.tryParse(data['date'] as String);
       }
-      return null; // No date found
+      return null;
     } catch (e) {
       print('Error parsing date: $e');
       return null;
@@ -629,7 +635,6 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
     if (uid == null) return;
     if (_budgetData.isEmpty) return;
 
-    // 1. Determine the current budget cycle dates
     final now = DateTime.now();
     DateTime startDate;
     DateTime endDate;
@@ -646,7 +651,6 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
 
     endDate = DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59);
 
-    // 2. Query transactions
     double currentSpending = 0;
     final accountsSnap = await FirebaseFirestore.instance
         .collection("users")
@@ -666,11 +670,9 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
       for (var doc in snap.docs) {
         final data = doc.data();
 
-        // Only debits
         final transactionType = (data['type'] ?? '').toString().toLowerCase();
         if (transactionType != 'debit') continue;
 
-        // Date in current cycle
         final transactionDate = _getDateTimeFromData(data);
         if (transactionDate == null) continue;
         if (transactionDate.isBefore(startDate) ||
@@ -678,34 +680,29 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
           continue;
         }
 
-        // Category + bucket
         final category = data['category'] as String?;
         if (category == null || category.isEmpty) continue;
 
         final bucket =
             _categoryBuckets[category] ?? inferBucketFromCategoryName(category);
 
-        // Only essential + luxury spending should count against spending budget
         if (bucket != 'essential' && bucket != 'luxury') continue;
 
         currentSpending += _getAmountFromData(data);
       }
     }
 
-    // 3. Get the budget for this cycle
     final totalIncome = double.tryParse(_totalIncomeController.text) ?? 0;
     final spendingPercent = (_budgetData["spending"] ?? 0).toDouble();
     final luxuriesPercent = (_budgetData["luxuries"] ?? 0).toDouble();
     final totalBudget = totalIncome * (spendingPercent + luxuriesPercent) / 100;
 
-    // 4. Update the state
     if (mounted) {
       setState(() {
         _currentCycleBudget = totalBudget > 0 ? totalBudget : 0.01;
         _currentCycleSpending = currentSpending;
       });
     }
-    // Persist totalExpense for the current budget cycle
     FirebaseFirestore.instance.collection("users").doc(uid).update({
       "totalExpense": currentSpending,
     });
@@ -734,8 +731,6 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
     );
   }
 
-  // --- Helper Functions for Icons/Colors ---
-
   IconData _getIconForCategory(String category) {
     switch (category.toLowerCase()) {
       case "food and drinks":
@@ -763,24 +758,16 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
   }
 }
 
-// Still needs the CategoryData helper class
 class CategoryData {
   final String id;
   final String name;
   final IconData icon;
   final Color color;
-  // final double total; // Not used in this version
-  // final String type; // Not used in this version
 
   CategoryData({
     required this.id,
     required this.name,
     required this.icon,
     required this.color,
-    // required this.total,
-    // required this.type,
   });
 }
-
-// The TransactionModel class from the other file is assumed to be correct
-// and is imported at the top.

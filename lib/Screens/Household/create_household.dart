@@ -54,6 +54,7 @@ class _CreateHouseholdState extends State<CreateHousehold> {
         'createdBy': uid,
         'members': [uid],
         'createdAt': FieldValue.serverTimestamp(),
+        'budget': 0,
       });
 
       batch.update(userRef, {

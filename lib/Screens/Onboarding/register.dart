@@ -15,6 +15,8 @@ class _RegisterState extends State<Register> {
   final _password = TextEditingController();
   final _repeatPassword = TextEditingController();
   final bool _loading = false;
+  bool _obscurePassword = true;
+  bool _obscureRepeatPassword = true;
 
   @override
   void dispose() {
@@ -139,27 +141,50 @@ class _RegisterState extends State<Register> {
                     const SizedBox(height: 16),
                     TextField(
                       controller: _password,
-                      obscureText: true,
+                      obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         labelText: 'Password',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
                         ),
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _repeatPassword,
-                      obscureText: true,
+                      obscureText: _obscureRepeatPassword,
                       decoration: InputDecoration(
                         labelText: 'Repeat Password',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureRepeatPassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureRepeatPassword = !_obscureRepeatPassword;
+                            });
+                          },
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
-
                     _loading
                         ? const CircularProgressIndicator()
                         : largeButton(

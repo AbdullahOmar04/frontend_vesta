@@ -39,6 +39,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
   int _budgetResetDay = 28;
   List<FlSpot> _householdSpendingData = [];
   List<FlSpot> _householdBudgetData = [];
+  double _manualHouseholdBudget = 0;
 
   bool _loading = true;
 
@@ -48,6 +49,23 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
     _loadData(widget.householdId);
     _fetchHouseholdCycleData(widget.householdId);
     _fetchHouseholdChartData(widget.householdId);
+    _loadHouseholdBudget();
+  }
+
+  Future<void> _loadHouseholdBudget() async {
+    final doc = await FirebaseFirestore.instance
+        .collection("households")
+        .doc(widget.householdId)
+        .get();
+
+    final data = doc.data() ?? {};
+    final manualBudget = (data["budget"] ?? 0).toDouble();
+
+    setState(() {
+      _manualHouseholdBudget = manualBudget;
+      // if you want the tracker to use this:
+      _currentCycleHouseholdBudget = manualBudget;
+    });
   }
 
   Future<void> _loadData(String householdId) async {
@@ -305,7 +323,6 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
                         ),
 
                         lineBarsData: [
-                          // Budget line (dashed)
                           if (_householdBudgetData.isNotEmpty)
                             LineChartBarData(
                               spots: _householdBudgetData,
@@ -488,85 +505,122 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
     ];
     String cycleMonthName = monthNames[now.month];
     int cycleYear = now.year;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[800],
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Spending Budget for $cycleMonthName $cycleYear",
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
+
+    return GestureDetector(
+      onTap: () async {
+        final newBudget = await inputHouseholBudget(
+          context,
+          widget.householdId,
+          _manualHouseholdBudget,
+        );
+
+        if (newBudget != null && mounted) {
+          // 1) Update local state for the bar
+          setState(() {
+            _manualHouseholdBudget = newBudget;
+            _currentCycleHouseholdBudget = newBudget;
+          });
+
+          // 2) Recompute cycle spending + chart lines using new budget
+          await _fetchHouseholdCycleData(widget.householdId);
+          await _fetchHouseholdChartData(widget.householdId);
+
+          if (!mounted) return;
+
+          // 3) Confirm to user
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                "Budget updated to JOD ${newBudget.toStringAsFixed(0)}",
               ),
-              const Icon(
-                Icons.arrow_forward_ios,
-                color: Colors.white30,
-                size: 16,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // The progress bar
-          Container(
-            height: 10,
-            decoration: BoxDecoration(
-              color: Colors.grey[700],
-              borderRadius: BorderRadius.circular(10),
+              backgroundColor: Colors.green,
             ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: FractionallySizedBox(
-                widthFactor: percent.isNaN ? 0.0 : percent, // Avoid NaN errors
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
+          );
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey[800],
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Title row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Spending Budget for $cycleMonthName $cycleYear",
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.white30,
+                  size: 16,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Progress bar
+            Container(
+              height: 10,
+              decoration: BoxDecoration(
+                color: Colors.grey[700],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: FractionallySizedBox(
+                  widthFactor: percent.isNaN ? 0.0 : percent,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          // Labels
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "JOD ${_currentCycleHouseholdSpending.toStringAsFixed(0)}",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+            const SizedBox(height: 8),
+
+            // Labels
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "JOD ${_currentCycleHouseholdSpending.toStringAsFixed(0)}",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              Text(
-                "JOD ${_currentCycleHouseholdBudget.toStringAsFixed(0)}",
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                Text(
+                  "JOD ${_currentCycleHouseholdBudget.toStringAsFixed(0)}",
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -604,7 +658,6 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
       final data = householdDoc.data()!;
       final manualBudget = (data["budget"] ?? 0).toDouble();
 
-      // 3️⃣ Calculate total spending from transactions
       double totalSpending = 0;
       final txSnap = await FirebaseFirestore.instance
           .collection("households")
@@ -767,7 +820,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const Transactions(showBack: true,),
+              builder: (context) => const Transactions(showBack: true),
               settings: RouteSettings(
                 arguments: {'selectedCategory': entry.key},
               ),
@@ -849,8 +902,12 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const Transactions(showBack: true,)),
-                );
+                  MaterialPageRoute(
+                    builder: (context) => const Transactions(showBack: true),
+                  ),
+                ).then((_) {
+                  _loadData(widget.householdId);
+                });
               },
               child: Text(
                 "All Transactions",

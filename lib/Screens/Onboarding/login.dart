@@ -18,6 +18,7 @@ class _LoginState extends State<Login> {
   final TextEditingController passwordController = TextEditingController();
 
   bool _loading = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -152,11 +153,23 @@ class _LoginState extends State<Login> {
                     const SizedBox(height: 16),
                     TextField(
                       controller: passwordController,
-                      obscureText: true,
+                      obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         labelText: 'Password',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
                         ),
                       ),
                     ),

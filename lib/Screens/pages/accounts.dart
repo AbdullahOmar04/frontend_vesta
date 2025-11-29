@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Screens/Onboarding/choose_bank.dart';
 import 'package:intl/intl.dart';
 
 class AccountsPage extends StatelessWidget {
@@ -31,7 +32,12 @@ class AccountsPage extends StatelessWidget {
         centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {}, // later: navigate to ChooseBank
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ChooseBank()),
+          );
+        },
         tooltip: 'Add Account',
         backgroundColor: Theme.of(context).colorScheme.primary,
         child: Icon(Icons.add, color: Theme.of(context).colorScheme.surface),
@@ -43,18 +49,27 @@ class AccountsPage extends StatelessWidget {
                   .collection("users")
                   .doc(uid)
                   .collection("accounts")
-                  .where('linked', isEqualTo: true) // 👈 only linked
+                  .where('linked', isEqualTo: true)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      "No linked accounts.\nGo to “Link Your Bank” to add some.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16),
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30),
+                      ),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        "No linked accounts.\nGo to “Link Your Bank” to add some.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16),
+                      ),
                     ),
                   );
                 }
@@ -178,8 +193,7 @@ Future<void> calcTotalBalance() async {
 
     for (final doc in accountsSnap.docs) {
       final acc = doc.data();
-      final dynamic balanceRaw =
-          acc['availableBalance']?['balanceAmount'] ?? 0;
+      final dynamic balanceRaw = acc['availableBalance']?['balanceAmount'] ?? 0;
       if (balanceRaw is num) {
         totalBalance += balanceRaw;
       } else if (balanceRaw is String) {

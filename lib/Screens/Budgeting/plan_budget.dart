@@ -14,13 +14,16 @@ class PlanBudgetScreen extends StatefulWidget {
 
 class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _incomeController = TextEditingController();
+
   final _savingController = TextEditingController();
   final _spendingController = TextEditingController();
   final _luxuriesController = TextEditingController();
   final _totalIncomeController = TextEditingController();
 
-  bool _loading = false;
+  bool _savingPlanLoading = false;
+  bool _initialLoading = true;
+
+  double _totalIncome = 0.0;
 
   @override
   void initState() {
@@ -30,12 +33,17 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
 
   Future<void> _loadExistingBudget() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      setState(() => _initialLoading = false);
+      return;
+    }
+
     final String monthId =
         "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}";
 
-    if (uid == null) return;
-
     try {
+      setState(() => _initialLoading = true);
+
       final doc = await FirebaseFirestore.instance
           .collection("users")
           .doc(uid)
@@ -43,25 +51,30 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
           .doc(monthId)
           .get();
 
-      final doc2 = await FirebaseFirestore.instance
+      final userDoc = await FirebaseFirestore.instance
           .collection("users")
           .doc(uid)
           .get();
 
       if (doc.exists) {
         final data = doc.data()!;
-        _incomeController.text = (data["income"] ?? 0).toString();
         _savingController.text = (data["saving"] ?? 0).toString();
         _spendingController.text = (data["spending"] ?? 0).toString();
         _luxuriesController.text = (data["luxuries"] ?? 0).toString();
       }
 
-      if (doc2.exists) {
-        final data = doc2.data()!;
-        _totalIncomeController.text = (data["totalIncome"] ?? 0).toString();
+      if (userDoc.exists) {
+        final data = userDoc.data()!;
+        final raw = data["totalIncome"] ?? 0;
+        _totalIncome = double.tryParse(raw.toString()) ?? 0.0;
+        _totalIncomeController.text = _totalIncome.toStringAsFixed(2);
       }
     } catch (e) {
-      // Handle error silently, user can still enter data
+      // silent fail, allow user to type manually
+    } finally {
+      if (mounted) {
+        setState(() => _initialLoading = false);
+      }
     }
   }
 
@@ -80,11 +93,12 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
-    setState(() => _loading = true);
+    setState(() => _savingPlanLoading = true);
 
     try {
-      // Get the totalIncome value
-      final totalIncome = double.tryParse(_totalIncomeController.text) ?? 0;
+      final double income =
+          double.tryParse(_totalIncomeController.text.trim()) ?? 0.0;
+
       final String monthId =
           "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}";
 
@@ -94,7 +108,7 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
           .collection("budget")
           .doc(monthId)
           .set({
-            "income": totalIncome,
+            "income": income,
             "saving": double.tryParse(_savingController.text) ?? 0,
             "spending": double.tryParse(_spendingController.text) ?? 0,
             "luxuries": double.tryParse(_luxuriesController.text) ?? 0,
@@ -112,7 +126,7 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
       }
     } finally {
       if (mounted) {
-        setState(() => _loading = false);
+        setState(() => _savingPlanLoading = false);
       }
     }
   }
@@ -130,80 +144,81 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
         foregroundColor: Colors.black87,
         elevation: 0,
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Income Section
-              _buildSectionHeader("Monthly Income", Icons.attach_money),
-              const SizedBox(height: 12),
-              _buildIncomeField(),
+      body: _initialLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Income Section
+                    _buildSectionHeader("Monthly Income", Icons.attach_money),
+                    const SizedBox(height: 12),
+                    _buildIncomeField(),
 
-              const SizedBox(height: 32),
+                    const SizedBox(height: 32),
 
-              // Budget Allocation Section
-              _buildSectionHeader("Budget Allocation", Icons.pie_chart),
-              const SizedBox(height: 16),
+                    _buildSectionHeader("Budget Allocation", Icons.pie_chart),
+                    const SizedBox(height: 16),
 
-              _buildPercentageField(
-                controller: _savingController,
-                label: "Savings",
-                icon: Icons.savings,
-                color: Colors.green,
-                hint: "How much to save each month",
-              ),
-
-              const SizedBox(height: 16),
-
-              _buildPercentageField(
-                controller: _spendingController,
-                label: "Essential Spending",
-                icon: Icons.shopping_cart,
-                color: Colors.blue,
-                hint: "Rent, groceries, bills, etc.",
-              ),
-
-              const SizedBox(height: 16),
-
-              _buildPercentageField(
-                controller: _luxuriesController,
-                label: "Luxuries & Entertainment",
-                icon: Icons.diamond,
-                color: Colors.orange,
-                hint: "Dining out, entertainment, etc.",
-              ),
-
-              const SizedBox(height: 20),
-
-              // Total percentage indicator
-              _buildTotalPercentageIndicator(),
-
-              const SizedBox(height: 32),
-
-              _loading
-                  ? const SizedBox(
-                      height: 50,
-                      child: Center(child: CircularProgressIndicator()),
-                    )
-                  : largeButton(
-                      context,
-                      'Save Budget Plan',
-                      _isValidPercentage
-                          ? Theme.of(context).colorScheme.secondary
-                          : Colors.grey,
-                      () {
-                        if (_isValidPercentage) {
-                          _savePlan();
-                        }
-                      },
+                    _buildPercentageField(
+                      controller: _savingController,
+                      label: "Savings",
+                      icon: Icons.savings,
+                      color: Colors.green,
+                      hint: "How much to save each month",
                     ),
-            ],
-          ),
-        ),
-      ),
+
+                    const SizedBox(height: 16),
+
+                    _buildPercentageField(
+                      controller: _spendingController,
+                      label: "Essential Spending",
+                      icon: Icons.shopping_cart,
+                      color: Colors.blue,
+                      hint: "Rent, groceries, bills, etc.",
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    _buildPercentageField(
+                      controller: _luxuriesController,
+                      label: "Luxuries & Entertainment",
+                      icon: Icons.diamond,
+                      color: Colors.orange,
+                      hint: "Dining out, entertainment, etc.",
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Total percentage indicator
+                    _buildTotalPercentageIndicator(),
+
+                    const SizedBox(height: 32),
+
+                    _savingPlanLoading
+                        ? const SizedBox(
+                            height: 50,
+                            child: Center(child: CircularProgressIndicator()),
+                          )
+                        : largeButton(
+                            context,
+                            'Save Budget Plan',
+                            _isValidPercentage
+                                ? Theme.of(context).colorScheme.secondary
+                                : Colors.grey,
+                            () {
+                              if (_isValidPercentage) {
+                                _savePlan();
+                              }
+                            },
+                          ),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 
@@ -225,51 +240,60 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
   }
 
   Widget _buildIncomeField() {
-    final totalIncome = double.tryParse(_totalIncomeController.text) ?? 0;
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.attach_money, color: Colors.green, size: 28),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextFormField(
-              controller: _totalIncomeController,
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                hintText: "Enter your monthly income",
+    final totalIncome =
+        double.tryParse(_totalIncomeController.text.trim()) ?? 0.0;
+
+    Future<void> _openIncomeDialog() async {
+      // inputIncome is assumed to update Firestore + maybe return new value.
+      await inputIncome(context, totalIncome);
+      // Reload from Firestore so UI reflects new value
+      await _loadExistingBudget();
+    }
+
+    return GestureDetector(
+      onTap: _openIncomeDialog,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.attach_money, color: Colors.green, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                "JOD ${totalIncome.toStringAsFixed(2)}",
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
               ),
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
+            ),
+            ElevatedButton(
+              onPressed: _openIncomeDialog,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
               ),
-              keyboardType: TextInputType.number,
-              onChanged: (value) => setState(() {}),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => inputIncome(context, totalIncome),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+              child: Text(
+                totalIncome > 0 ? "Edit" : "Enter",
+                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
-            child: Text(
-              totalIncome > 0 ? "Edit" : "Enter",
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -372,7 +396,6 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
 
   @override
   void dispose() {
-    _incomeController.dispose();
     _savingController.dispose();
     _spendingController.dispose();
     _luxuriesController.dispose();

@@ -18,7 +18,7 @@ class PersonalBudgetScreen extends StatefulWidget {
 class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
   Map<String, dynamic> _budgetData = {};
   List<Map<String, dynamic>> _sosps = [];
-  bool _isLoading = true; // Main loading state for the whole screen
+  bool _isLoading = true;
   final _totalIncomeController = TextEditingController();
 
   List<FlSpot> _expenseData = [];
@@ -27,8 +27,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
 
   double _currentCycleBudget = 0.01;
   double _currentCycleSpending = 0.0;
-
-  // ------------------------------------------
 
   int _budgetResetDay = 28;
 
@@ -183,7 +181,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     final spendingPercent = (_budgetData["spending"] ?? 0).toDouble();
     final luxuriesPercent = (_budgetData["luxuries"] ?? 0).toDouble();
 
-    // Calculate amounts based on percentages
     final savingAmount = (totalIncome * savingPercent / 100);
     final spendingAmount = (totalIncome * spendingPercent / 100);
     final luxuriesAmount = (totalIncome * luxuriesPercent / 100);
@@ -199,9 +196,9 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        SizedBox(height: 36),
         _buildBudgetLineChart(totalBudgetAmount),
         const SizedBox(height: 24),
-
         _buildBudgetBreakdown(
           savingAmount,
           spendingAmount,
@@ -210,7 +207,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
           totalIncome,
         ),
         const SizedBox(height: 24),
-
         _buildUpcomingPayments(),
       ],
     );
@@ -267,7 +263,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
       FlSpot(5, totalBudgetAmount),
     ];
 
-    // Get month labels for the X-axis
     final List<String> monthLabels = [];
     final now = DateTime.now();
     for (int i = 5; i >= 0; i--) {
@@ -345,7 +340,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
           lineBarsData: _expenseData.isEmpty && _savingsData.isEmpty
               ? []
               : [
-                  // Line 1: Budget (The Plan)
                   LineChartBarData(
                     spots: budgetLineData,
                     isCurved: false,
@@ -356,7 +350,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
                     belowBarData: BarAreaData(show: false),
                     dashArray: [5, 5],
                   ),
-                  // Line 2: Actual Expenses
                   if (_expenseData.isNotEmpty)
                     LineChartBarData(
                       spots: _expenseData,
@@ -370,7 +363,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
                         color: Colors.blue.withOpacity(0.1),
                       ),
                     ),
-                  // Line 3: Actual Savings
                   if (_savingsData.isNotEmpty)
                     LineChartBarData(
                       spots: _savingsData,
@@ -504,13 +496,9 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     );
   }
 
-  // --- CHANGED: Removed internal loading state ---
   Future<void> _fetchSOSPsFromFirestore() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
-
-    // The main _loadAllData function handles loading state
-    // setState(() => _loadingSosps = true);
 
     final accountsSnap = await FirebaseFirestore.instance
         .collection("users")
@@ -621,8 +609,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
               final status = (sosp["SOSPStatus"] ?? "unknown").toString();
               final type = (sosp["SOSPType"] ?? "departure")
                   .toString(); // Default to outgoing
-              final remaining =
-                  sosp["paymentSchedule"]?["remainingPayments"]; // Can be null or int
+              final remaining = sosp["paymentSchedule"]?["remainingPayments"];
 
               final nextPaymentDateStr =
                   sosp["paymentSchedule"]?["nextPaymentDateTime"];
@@ -773,11 +760,8 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     );
   }
 
-  // --- NEW: Helper function to get amount from your JSON structure ---
   double _getAmountFromData(Map<String, dynamic> data) {
     try {
-      // First, try to get the converted JOD amount
-
       if (data.containsKey('amount') &&
           data['amount'] != null &&
           data['amount'] != null) {
@@ -790,7 +774,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     }
   }
 
-  // --- NEW: Helper function to get date from your JSON structure ---
   DateTime? _getDateTimeFromData(Map<String, dynamic> data) {
     try {
       if (data.containsKey('date') && data['date'] != null) {
@@ -803,13 +786,11 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     }
   }
 
-  // --- REPLACED: Corrected data fetching logic ---
   Future<void> _fetchCurrentCycleData() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
     if (_budgetData.isEmpty) return;
 
-    // 1. Determine the current budget cycle dates
     final now = DateTime.now();
     DateTime startDate;
     DateTime endDate;
@@ -826,7 +807,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
 
     endDate = DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59);
 
-    // 2. Query transactions
     double currentSpending = 0;
     final accountsSnap = await FirebaseFirestore.instance
         .collection("users")
@@ -846,7 +826,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
       for (var doc in snap.docs) {
         final data = doc.data();
 
-        // Only debits (money going out)
         final transactionType = (data['type'] ?? '').toString().toLowerCase();
         if (transactionType != 'debit') continue;
 
@@ -858,27 +837,23 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
           continue;
         }
 
-        // Category bucket
         final category = data['category'] as String?;
         if (category == null || category.isEmpty) continue;
 
         final bucket =
             _categoryBuckets[category] ?? inferBucketFromCategoryName(category);
 
-        // Only essential + luxury count against the spending budget
         if (bucket != 'essential' && bucket != 'luxury') continue;
 
         currentSpending += _getAmountFromData(data);
       }
     }
 
-    // 3. Get the budget for this cycle
     final totalIncome = double.tryParse(_totalIncomeController.text) ?? 0;
     final spendingPercent = (_budgetData["spending"] ?? 0).toDouble();
     final luxuriesPercent = (_budgetData["luxuries"] ?? 0).toDouble();
     final totalBudget = totalIncome * (spendingPercent + luxuriesPercent) / 100;
 
-    // 4. Update the state
     if (mounted) {
       setState(() {
         _currentCycleBudget = totalBudget > 0 ? totalBudget : 0.01;
@@ -902,7 +877,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
         .get();
 
     for (int i = 5; i >= 0; i--) {
-      // 3. Calculate start/end dates for each past cycle
       DateTime cycleStartDate;
       DateTime cycleEndDate;
 
