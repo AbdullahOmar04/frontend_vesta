@@ -31,7 +31,7 @@ class HouseholdDetailPage extends StatefulWidget {
 class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
   final _db = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
-  final String _appDomain = "https://vesta-7e96a.web.app";
+  final String _appDomain = "https://vestaapp.co";
   List<HouseholdTransactionModel> _allTransactions = [];
   Map<String, CategoryData> _categories = {};
   double _currentCycleHouseholdBudget = 0;
@@ -106,9 +106,6 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
           continue;
         }
 
-        // 👇 Get the user's account ID for this transaction (if needed)
-        //final accountId = data['accountId'] ?? 'unknown_account';
-
         // Convert to model
         final txn = HouseholdTransactionModel.fromFirestore(txDoc.id, data);
         transactions.add(txn);
@@ -168,7 +165,12 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      final inviteLink = "$_appDomain/join?inviteId=${inviteDoc.id}";
+      final inviteUri = Uri.https("vestaapp.co", "/join", {
+        "inviteId": inviteDoc.id,
+      });
+
+      final inviteLink = inviteUri.toString();
+
       await Share.share(
         "Join my household '$householdName' on Vesta! Click here: $inviteLink",
         subject: "You're invited to join my household!",
@@ -1095,7 +1097,9 @@ class _HouseholdPageState extends State<HouseholdPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const CreateHousehold()),
-              );
+              ).then((_) {
+                setState(() {}); // Refresh on return
+              });
             },
           ),
         ],
@@ -1139,6 +1143,52 @@ class _HouseholdPageState extends State<HouseholdPage> {
                   MaterialPageRoute(
                     builder: (context) =>
                         HouseholdDetailPage(householdId: householdId),
+                  ),
+                );
+              },
+              onLongPress: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text('Delete Household'),
+                    content: Text(
+                      'Are you sure you want to delete this household? This action cannot be undone.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          // Remove household reference from user document
+                          final currentUser = _auth.currentUser;
+                          if (currentUser != null) {
+                            final userDocRef = _db
+                                .collection('users')
+                                .doc(currentUser.uid);
+                            await userDocRef.update({
+                              'householdIds': FieldValue.arrayRemove([
+                                householdId,
+                              ]),
+                            });
+                          }
+
+                          // Optionally, delete the household document itself
+                          await _db
+                              .collection('households')
+                              .doc(householdId)
+                              .delete();
+
+                          Navigator.pop(context); // Close dialog
+                          setState(() {}); // Refresh list
+                        },
+                        child: Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },

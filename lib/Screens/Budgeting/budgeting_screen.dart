@@ -14,7 +14,7 @@ class PersonalBudgetScreen extends StatefulWidget {
   @override
   State<PersonalBudgetScreen> createState() => _PersonalBudgetScreenState();
 }
-
+  
 class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
   Map<String, dynamic> _budgetData = {};
   List<Map<String, dynamic>> _sosps = [];

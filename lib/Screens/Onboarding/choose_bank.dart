@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
-import 'package:frontend_vesta/Screens/pages/home.dart';
 import 'package:frontend_vesta/Screens/pages/main_screen.dart';
 import 'package:intl/intl.dart';
 
@@ -68,7 +67,7 @@ class _ChooseBankState extends State<ChooseBank> {
                 () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const HomePage()),
+                    MaterialPageRoute(builder: (context) => const MainScreen()),
                   );
                 },
               ),

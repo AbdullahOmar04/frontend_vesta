@@ -243,10 +243,9 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
     final totalIncome =
         double.tryParse(_totalIncomeController.text.trim()) ?? 0.0;
 
+    // ignore: no_leading_underscores_for_local_identifiers
     Future<void> _openIncomeDialog() async {
-      // inputIncome is assumed to update Firestore + maybe return new value.
       await inputIncome(context, totalIncome);
-      // Reload from Firestore so UI reflects new value
       await _loadExistingBudget();
     }
 
