@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
+import 'package:frontend_vesta/Screens/Onboarding/ahli.dart';
 import 'package:frontend_vesta/Screens/pages/home.dart';
 import 'package:frontend_vesta/Screens/pages/main_screen.dart';
 import 'package:intl/intl.dart';
@@ -51,7 +52,19 @@ class _ChooseBankState extends State<ChooseBank> {
                     () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const Jopacc()),
+                        MaterialPageRoute(builder: (context) => const BankScreen(bankId: 'jopacc')),
+                      );
+                    },
+                  ),
+                  BankCard(
+                    context,
+                    'Ahli Bank',
+                    'assets/images/ahli_bank.jpeg',
+                    Colors.white,
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const BankScreen(bankId: 'ahli',)),
                       );
                     },
                   ),
@@ -136,21 +149,31 @@ class ChooseBankSplash extends StatelessWidget {
   }
 }
 
-class Jopacc extends StatelessWidget {
-  const Jopacc({super.key});
+class BankScreen extends StatelessWidget {
+  const BankScreen({super.key, required this.bankId});
+  final String bankId;
 
   @override
-  Widget build(BuildContext context) => const JopaccLinkScreen();
+  Widget build(BuildContext context) {
+    switch (bankId) {
+      case 'jopacc':
+        return const BankLinkScreen(bankId: 'jopacc');
+      case 'ahli':
+        return const AhliLinkScreen();
+      default:
+        return const Scaffold(body: Center(child: Text('Unknown bank')));
+    }
+  }
 }
 
-class JopaccLinkScreen extends StatefulWidget {
-  const JopaccLinkScreen({super.key});
-
+class BankLinkScreen extends StatefulWidget {
+  const BankLinkScreen({super.key, required this.bankId});
+  final String bankId;
   @override
-  State<JopaccLinkScreen> createState() => _JopaccLinkScreenState();
+  State<BankLinkScreen> createState() => _BankLinkScreenState();
 }
 
-class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
+class _BankLinkScreenState extends State<BankLinkScreen> {
   final _username = TextEditingController();
   final _password = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -188,9 +211,10 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
       setState(() {
         _loggedIn = true;
         _syncing = true;
+        _selected.clear();
       });
       try {
-        await syncAccounts('');
+        await syncAccounts(bankId: '', username: '', sandbox: '');
         await _pollAccountsOnce();
       } finally {
         if (mounted) setState(() => _syncing = false);
@@ -216,7 +240,7 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
 
     await FirebaseFirestore.instance.collection('users').doc(uid).set({
       'providers': {
-        'jopacc': {
+        widget.bankId: {
           'username': entered,
           'updatedAt': FieldValue.serverTimestamp(),
         },
@@ -231,7 +255,7 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
     });
 
     try {
-      await syncAccounts(entered);
+      await syncAccounts(bankId: '', username: entered, sandbox: '');
       await _pollAccountsOnce();
     } finally {
       if (mounted) setState(() => _syncing = false);
@@ -329,13 +353,11 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
     });
 
     try {
-      await syncAccounts(_lastUsername ?? '');
+      await syncAccounts(bankId: '', username: '', sandbox: '');
       await _pollAccountsOnce();
 
       if (!mounted) return;
-      setState(() {
-        _consentGiven = true;
-      });
+      setState(() => _consentGiven = true);
     } finally {
       if (mounted) {
         setState(() => _syncing = false);
@@ -358,10 +380,21 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
     }
   }
 
+  String getBankName(String bankId) {
+    switch (bankId) {
+      case 'jopacc':
+        return 'Bank of JoPACC LTD.';
+      case 'ahli':
+        return 'Ahli Bank';
+      default:
+        return 'Unknown Bank';
+    }
+  }
+
   Future<void> _resync() async {
     setState(() => _syncing = true);
     try {
-      await syncAccounts(''); // will read stored username
+      await syncAccounts(bankId: '', username: _lastUsername ?? '', sandbox: '');
       await _pollAccountsOnce();
     } finally {
       if (mounted) setState(() => _syncing = false);
@@ -380,9 +413,9 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
 
     for (final id in _selected) {
       batch.set(col.doc(id), {
-        'linked': true,
-        'linkedAt': FieldValue.serverTimestamp(),
-        if (_lastUsername != null) 'linkedByUsername': _lastUsername,
+          'linked': true,
+          'linkedAt': FieldValue.serverTimestamp(),
+          if (_lastUsername != null) 'linkedByUsername': _lastUsername,
         'provider': 'JoPACC',
       }, SetOptions(merge: true));
     }
@@ -407,7 +440,7 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
       appBar: AppBar(
         backgroundColor: scheme.primary,
         title: Text(
-          'Bank of JoPACC LTD.',
+          getBankName(widget.bankId),
           style: TextStyle(color: scheme.surface),
         ),
         iconTheme: IconThemeData(color: scheme.surface),
@@ -471,7 +504,7 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Login to JoPACC',
+                    'Login to ${getBankName(widget.bankId)}',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
@@ -659,10 +692,7 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
                                     ],
                                   ),
                                   const SizedBox(height: 6),
-                                  Text(
-                                    accountType,
-                                    style: const TextStyle(color: Colors.grey),
-                                  ),
+                                  Text(accountType, style: const TextStyle(color: Colors.grey)),
                                   const SizedBox(height: 6),
                                   Text(
                                     "IBAN: $iban",

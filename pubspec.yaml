@@ -18,6 +18,7 @@ dependencies:
   async: ^2.13.0
   share_plus: ^12.0.1
   app_links: ^6.4.1
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
@@ -35,6 +36,7 @@ flutter:
     - assets/images/choose_bank.png
     - assets/images/jopacc.png
     - assets/images/budgeting.png
+    - assets/images/ahli_bank.jpeg
 
   fonts:
     - family: Poppins

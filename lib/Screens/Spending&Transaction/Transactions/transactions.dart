@@ -36,7 +36,7 @@ class _TransactionsState extends State<Transactions> {
   @override
   void initState() {
     super.initState();
-    getTransactions();
+    getTransactions(bankId: '');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkForCategoryFilter();
       _loadTransactions();

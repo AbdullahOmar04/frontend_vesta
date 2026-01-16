@@ -7,49 +7,31 @@ import 'package:http/http.dart' as http;
 
 const String baseUrl = "https://backend-vesta.onrender.com";
 
-Future<void> syncAccounts([String? username]) async {
+Future<void> syncAccounts({required String bankId, String? username, required String sandbox}) async {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) return;
-  final uid = user.uid;
 
+  final uid = user.uid;
   String u = (username ?? '').trim();
 
-  // If no username passed, read from Firestore
   if (u.isEmpty) {
     final doc = await FirebaseFirestore.instance
         .collection('users')
         .doc(uid)
         .get();
-    final stored = doc.data()?['providers']?['jopacc']?['username'];
-    if (stored is String && stored.trim().isNotEmpty) {
-      u = stored.trim();
-    }
+    final stored = doc.data()?['providers']?[bankId]?['username'];
+    if (stored is String && stored.trim().isNotEmpty) u = stored.trim();
   }
-
-  // If still empty, abort gracefully
-  if (u.isEmpty) {
-    // ignore or log
-    return;
-  }
+  if (u.isEmpty) return;
 
   final url = Uri.parse(
-    "$baseUrl/sync_accounts/$uid/${Uri.encodeComponent(u)}",
-  );
+    "$baseUrl/banks/$bankId/sync_accounts/$uid",
+  ).replace(queryParameters: {"customer_id": u});
 
-  try {
-    final resp = await http.get(url);
-    if (resp.statusCode == 200) {
-      final data = jsonDecode(resp.body);
-      print("✅ Synced accounts: $data");
-    } else {
-      // print("❌ Failed: ${resp.body}");
-    }
-  } catch (e) {
-    // print("⚠️ Error calling sync_accounts: $e");
-  }
+  await http.get(url);
 }
 
-Future<void> getTransactions() async {
+Future<void> getTransactions({required String bankId}) async {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) return;
 
@@ -62,6 +44,7 @@ Future<void> getTransactions() async {
         .doc(uid)
         .collection("accounts")
         .where('linked', isEqualTo: true)
+        .where('provider', isEqualTo: bankId)
         .get();
 
     if (accountsSnap.docs.isEmpty) {
@@ -72,7 +55,9 @@ Future<void> getTransactions() async {
     // Step 2: Loop through each account and fetch transactions
     for (var doc in accountsSnap.docs) {
       final accountId = doc.id;
-      final url = Uri.parse("$baseUrl/get_transactions/$uid/$accountId");
+      final url = Uri.parse(
+        "$baseUrl/banks/$bankId/get_transactions/$uid/$accountId",
+      );
 
       try {
         final response = await http.get(url);
@@ -347,5 +332,73 @@ Future<void> getSOSPs() async {
     }
   } catch (e) {
     print("⚠️ Error getting accounts from Firestore: $e");
+  }
+}
+
+
+//////////////////////////////////////AHLI BANK//////////////////////////////////////
+
+
+Future<String?> ahliStartAuth() async {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) return null;
+
+  final url = Uri.parse("$baseUrl/banks/ahli/auth/start/$uid");
+  final res = await http.get(url);
+
+  if (res.statusCode != 200) {
+    print("❌ ahliStartAuth failed: ${res.body}");
+    return null;
+  }
+
+  final data = jsonDecode(res.body);
+  return (data["auth_url"] ?? data["url"])?.toString();
+}
+
+/// 2) Exchange authorization code -> access token (authorization_code)
+/// Backend should also persist tokens (Firestore or server store).
+Future<bool> ahliFinishAuth({required String code, required String state}) async {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) return false;
+
+  final url = Uri.parse("$baseUrl/banks/ahli/auth/callback/$uid");
+  final res = await http.post(
+    url,
+    headers: {"Content-Type": "application/json"},
+    body: jsonEncode({"code": code, "state": state}),
+  );
+
+  if (res.statusCode != 200) {
+    print("❌ ahliFinishAuth failed: ${res.body}");
+    return false;
+  }
+
+  return true;
+}
+
+/// 3) Use stored tokens to fetch/sync accounts into:
+/// users/{uid}/accounts/{accountId}
+Future<void> ahliSyncAccounts() async {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) return;
+
+  final url = Uri.parse("$baseUrl/banks/ahli/sync_accounts/$uid");
+  final res = await http.get(url);
+
+  if (res.statusCode != 200) {
+    print("❌ ahliSyncAccounts failed: ${res.body}");
+  }
+}
+
+/// 4) Fetch transactions for all linked Ahli accounts (optional)
+Future<void> ahliGetTransactions() async {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) return;
+
+  final url = Uri.parse("$baseUrl/banks/ahli/get_transactions/$uid");
+  final res = await http.get(url);
+
+  if (res.statusCode != 200) {
+    print("❌ ahliGetTransactions failed: ${res.body}");
   }
 }

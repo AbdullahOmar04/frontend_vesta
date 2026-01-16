@@ -27,6 +27,8 @@ class _HomePageState extends State<HomePage> {
     deepLinkService.init(context);
 
     deepLinkService.checkPendingLink(context);
+    deepLinkService.checkPendingFinxCallback(context);
+
     uname = user?.displayName ?? user?.email ?? "User";
   }
 
