@@ -86,12 +86,7 @@ class _HomePageState extends State<HomePage> {
                           padding: const EdgeInsets.all(24),
                           margin: const EdgeInsets.symmetric(horizontal: 12),
                           decoration: BoxDecoration(
-                            color: const Color.fromARGB(
-                              32,
-                              162,
-                              0,
-                              255,
-                            ), //onPrimary
+                            color: const Color.fromARGB(32, 162, 0, 255),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: GestureDetector(
@@ -103,31 +98,40 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               );
                             },
-                            child: Center(
-                              child: RichText(
-                                textAlign: TextAlign.center,
-                                text: TextSpan(
-                                  children: [
-                                    const TextSpan(
-                                      text: 'Total Balance\n',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                            child: Row(
+                              children: [
+                                Spacer(),
+                                Center(
+                                  child: RichText(
+                                    textAlign: TextAlign.center,
+                                    text: TextSpan(
+                                      children: [
+                                        const TextSpan(
+                                          text: 'Total Balance\n',
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text:
+                                              '$currency ${totalBalance.toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 30,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    TextSpan(
-                                      text:
-                                          '$currency ${totalBalance.toStringAsFixed(2)}',
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 30,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
+                                Spacer(),
+                                const Icon(
+                                  Icons.chevron_right,
+                                ),
+                              ],
                             ),
                           ),
                         ),

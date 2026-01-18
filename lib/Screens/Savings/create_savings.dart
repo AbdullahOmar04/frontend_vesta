@@ -685,11 +685,13 @@ class _SavingsGoalDetailsState extends State<SavingsGoalDetails> {
                 ),
               ),
               onChanged: (value) {
-                if (_isCalculatingFromMonths) {
-                  _calculateMonthlyAmount();
-                } else {
-                  _calculateMonths();
-                }
+                setState(() {
+                  if (_isCalculatingFromMonths) {
+                    _calculateMonthlyAmount();
+                  } else {
+                    _calculateMonths();
+                  }
+                });
               },
             ),
             const SizedBox(height: 24),
@@ -712,8 +714,9 @@ class _SavingsGoalDetailsState extends State<SavingsGoalDetails> {
                   onSelected: (selected) {
                     setState(() {
                       _isCalculatingFromMonths = true;
-                      _calculateMonthlyAmount();
                     });
+                    // Automatically recalculate when switching modes
+                    _calculateMonthlyAmount();
                   },
                 ),
                 const SizedBox(width: 8),
@@ -723,8 +726,9 @@ class _SavingsGoalDetailsState extends State<SavingsGoalDetails> {
                   onSelected: (selected) {
                     setState(() {
                       _isCalculatingFromMonths = false;
-                      _calculateMonths();
                     });
+                    // Automatically recalculate when switching modes
+                    _calculateMonths();
                   },
                 ),
               ],
@@ -770,9 +774,11 @@ class _SavingsGoalDetailsState extends State<SavingsGoalDetails> {
                 ),
               ),
               onChanged: (value) {
-                if (_isCalculatingFromMonths) {
-                  _calculateMonthlyAmount();
-                }
+                setState(() {
+                  if (_isCalculatingFromMonths) {
+                    _calculateMonthlyAmount();
+                  }
+                });
               },
             ),
             if (_monthsController.text.isNotEmpty &&
@@ -833,9 +839,11 @@ class _SavingsGoalDetailsState extends State<SavingsGoalDetails> {
                 ),
               ),
               onChanged: (value) {
-                if (!_isCalculatingFromMonths) {
-                  _calculateMonths();
-                }
+                setState(() {
+                  if (!_isCalculatingFromMonths) {
+                    _calculateMonths();
+                  }
+                });
               },
             ),
             const SizedBox(height: 32),

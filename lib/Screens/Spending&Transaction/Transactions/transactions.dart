@@ -36,14 +36,17 @@ class _TransactionsState extends State<Transactions> {
   @override
   void initState() {
     super.initState();
-    getTransactions();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkForCategoryFilter();
-      _loadTransactions();
+    getTransactions().then((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkForCategoryFilter();
+        _loadTransactions();
+      });
     });
   }
 
   void _checkForCategoryFilter() {
+    if (!mounted) return;
+
     final args =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (args != null && args['selectedCategory'] != null) {
