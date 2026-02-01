@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Onboarding/phone_number.dart';
 
@@ -14,12 +15,25 @@ class _RegisterState extends State<Register> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _repeatPassword = TextEditingController();
-  final bool _loading = false;
+  bool _loading = false;
   bool _obscurePassword = true;
   bool _obscureRepeatPassword = true;
 
+  // Password validation state
+  bool _hasMinLength = false;
+  bool _hasUppercase = false;
+  bool _hasLowercase = false;
+  bool _hasNumber = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _password.addListener(_validatePassword);
+  }
+
   @override
   void dispose() {
+    _password.removeListener(_validatePassword);
     _username.dispose();
     _email.dispose();
     _password.dispose();
@@ -27,7 +41,43 @@ class _RegisterState extends State<Register> {
     super.dispose();
   }
 
-  void _goToPhoneStep() {
+  void _validatePassword() {
+    final password = _password.text;
+    setState(() {
+      _hasMinLength = password.length >= 6;
+      _hasUppercase = password.contains(RegExp(r'[A-Z]'));
+      _hasLowercase = password.contains(RegExp(r'[a-z]'));
+      _hasNumber = password.contains(RegExp(r'[0-9]'));
+    });
+  }
+
+  bool get _isPasswordValid =>
+      _hasMinLength && _hasUppercase && _hasLowercase && _hasNumber;
+
+  Widget _buildPasswordRequirement(String text, bool isMet) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Icon(
+            isMet ? Icons.check_circle : Icons.circle_outlined,
+            size: 16,
+            color: isMet ? Colors.green : Colors.grey,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              color: isMet ? Colors.green.shade700 : Colors.grey.shade600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _goToPhoneStep() async {
     final username = _username.text.trim();
     final email = _email.text.trim();
     final pass = _password.text;
@@ -52,13 +102,125 @@ class _RegisterState extends State<Register> {
       return;
     }
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) =>
-            PhoneNumberPage(username: username, email: email, password: pass),
-      ),
-    );
+    // Validate password requirements
+    if (!_isPasswordValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please ensure your password meets all requirements"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Validate username format (alphanumeric and underscore only)
+    final usernameRegex = RegExp(r'^[a-zA-Z0-9_]+$');
+    if (!usernameRegex.hasMatch(username)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Username can only contain letters, numbers, and underscores"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Validate email format
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter a valid email address"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _loading = true);
+
+    try {
+      // Try to check username in new usernames collection first
+      // If that fails (collection doesn't exist yet), fall back to users collection
+      bool usernameExists = false;
+      bool emailExists = false;
+
+      try {
+        final usernameDoc = await FirebaseFirestore.instance
+            .collection("usernames")
+            .doc(username.toLowerCase())
+            .get();
+        usernameExists = usernameDoc.exists;
+      } catch (e) {
+        // Fallback: Check in users collection if usernames collection doesn't exist
+        final usernameQuery = await FirebaseFirestore.instance
+            .collection("users")
+            .where("username", isEqualTo: username)
+            .limit(1)
+            .get();
+        usernameExists = usernameQuery.docs.isNotEmpty;
+      }
+
+      if (usernameExists) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Username already taken. Please choose another one."),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() => _loading = false);
+        return;
+      }
+
+      try {
+        final emailDoc = await FirebaseFirestore.instance
+            .collection("emails")
+            .doc(email.toLowerCase())
+            .get();
+        emailExists = emailDoc.exists;
+      } catch (e) {
+        // Fallback: Check in users collection if emails collection doesn't exist
+        final emailQuery = await FirebaseFirestore.instance
+            .collection("users")
+            .where("email", isEqualTo: email)
+            .limit(1)
+            .get();
+        emailExists = emailQuery.docs.isNotEmpty;
+      }
+
+      if (emailExists) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Email already registered. Please use another email or login."),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() => _loading = false);
+        return;
+      }
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              PhoneNumberPage(username: username, email: email, password: pass),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error checking username/email: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -159,6 +321,48 @@ class _RegisterState extends State<Register> {
                             });
                           },
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Password Requirements:',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          _buildPasswordRequirement(
+                            'At least 6 characters',
+                            _hasMinLength,
+                          ),
+                          _buildPasswordRequirement(
+                            'At least one uppercase letter (A-Z)',
+                            _hasUppercase,
+                          ),
+                          _buildPasswordRequirement(
+                            'At least one lowercase letter (a-z)',
+                            _hasLowercase,
+                          ),
+                          _buildPasswordRequirement(
+                            'At least one number (0-9)',
+                            _hasNumber,
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 16),

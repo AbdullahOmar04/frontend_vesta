@@ -23,6 +23,13 @@ class _SavingsPageState extends State<SavingsPage> {
     );
     if (result == true && mounted) {
       setState(() {});
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Savings goal created successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
     }
   }
 
@@ -34,7 +41,9 @@ class _SavingsPageState extends State<SavingsPage> {
     final goalTitle = goal['goalTitle'] ?? 'Goal';
     final currentAmount = (goal['currentAmount'] ?? 0).toDouble();
     final targetAmount = (goal['targetAmount'] ?? 0).toDouble();
-    final remaining = targetAmount - currentAmount;
+    final remaining = (targetAmount - currentAmount) > 0
+        ? (targetAmount - currentAmount)
+        : 0.0;
 
     final userId = user?.uid;
     if (userId == null) return;
@@ -58,6 +67,9 @@ class _SavingsPageState extends State<SavingsPage> {
 
     final available = totalSavings - totalAllocated;
 
+    // Store the parent scaffold messenger to use after bottom sheet closes
+    final parentScaffoldMessenger = ScaffoldMessenger.of(context);
+
     if (!mounted) return;
 
     showModalBottomSheet(
@@ -66,10 +78,10 @@ class _SavingsPageState extends State<SavingsPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) {
+      builder: (sheetContext) {
         return Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
             left: 16,
             right: 16,
             top: 16,
@@ -116,7 +128,7 @@ class _SavingsPageState extends State<SavingsPage> {
                       style: TextStyle(color: Colors.grey[600], fontSize: 13),
                     ),
                     Text(
-                      'Remaining: JOD ${remaining.toStringAsFixed(2)}',
+                      'Remaining to reach goal: JOD ${remaining.toStringAsFixed(2)}',
                       style: TextStyle(color: Colors.grey[600], fontSize: 13),
                     ),
                   ],
@@ -143,7 +155,7 @@ class _SavingsPageState extends State<SavingsPage> {
                   TextButton(
                     onPressed: currentAmount > 0
                         ? () {
-                            Navigator.pop(context);
+                            Navigator.pop(sheetContext);
                             _showDeallocateDialog(goalId, goal);
                           }
                         : null,
@@ -156,33 +168,63 @@ class _SavingsPageState extends State<SavingsPage> {
                   ),
                   const Spacer(),
                   TextButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => Navigator.pop(sheetContext),
                     child: const Text('Cancel'),
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton(
                     onPressed: () {
                       final amount = double.tryParse(amountController.text);
-                      if (amount != null && amount > 0) {
-                        if (amount > available) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Insufficient available balance'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        } else {
-                          _allocateToGoal(goalId, goal, amount);
-                          Navigator.pop(context);
-                        }
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                      if (amount == null || amount <= 0) {
+                        parentScaffoldMessenger.clearSnackBars();
+                        parentScaffoldMessenger.showSnackBar(
                           const SnackBar(
                             content: Text('Please enter a valid amount'),
                             backgroundColor: Colors.red,
                           ),
                         );
+                        return;
                       }
+
+                      if (amount > available) {
+                        parentScaffoldMessenger.clearSnackBars();
+                        parentScaffoldMessenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Insufficient available balance'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+
+                      if (remaining <= 0) {
+                        parentScaffoldMessenger.clearSnackBars();
+                        parentScaffoldMessenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('This goal is already fully funded'),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                        return;
+                      }
+
+                      // Cap the amount to remaining if user tries to allocate more
+                      final actualAmount = amount > remaining ? remaining : amount;
+
+                      if (amount > remaining) {
+                        parentScaffoldMessenger.clearSnackBars();
+                        parentScaffoldMessenger.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Allocating JOD ${actualAmount.toStringAsFixed(2)} (capped to remaining goal amount)',
+                            ),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                      }
+
+                      Navigator.pop(sheetContext);
+                      _allocateToGoal(goalId, goal, actualAmount);
                     },
                     child: const Text('Allocate'),
                   ),
@@ -197,16 +239,19 @@ class _SavingsPageState extends State<SavingsPage> {
   }
 
   void _deleteSavingGoalDialog(String goalId) {
+    // Store parent scaffold messenger before showing dialog
+    final parentScaffoldMessenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Savings Goal'),
         content: const Text(
           'Are you sure you want to delete this savings goal? This action cannot be undone.',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
@@ -214,21 +259,34 @@ class _SavingsPageState extends State<SavingsPage> {
               final userId = user?.uid;
               if (userId == null) return;
 
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(userId)
-                  .collection('savings')
-                  .doc(goalId)
-                  .delete();
+              try {
+                await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(userId)
+                    .collection('savings')
+                    .doc(goalId)
+                    .delete();
 
-              if (mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Savings goal deleted successfully'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
+                if (mounted) {
+                  Navigator.pop(dialogContext);
+                  parentScaffoldMessenger.clearSnackBars();
+                  parentScaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Savings goal deleted successfully'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  parentScaffoldMessenger.clearSnackBars();
+                  parentScaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text('Error deleting goal: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -244,9 +302,12 @@ class _SavingsPageState extends State<SavingsPage> {
     final goalTitle = goal['goalTitle'] ?? 'Goal';
     final currentAmount = (goal['currentAmount'] ?? 0).toDouble();
 
+    // Store parent scaffold messenger before showing dialog
+    final parentScaffoldMessenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text('Remove from $goalTitle'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -292,32 +353,36 @@ class _SavingsPageState extends State<SavingsPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
               final amount = double.tryParse(amountController.text);
-              if (amount != null && amount > 0) {
-                if (amount > currentAmount) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Amount exceeds current allocation'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                } else {
-                  _deallocateFromGoal(goalId, goal, amount);
-                  Navigator.pop(context);
-                }
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
+              if (amount == null || amount <= 0) {
+                parentScaffoldMessenger.clearSnackBars();
+                parentScaffoldMessenger.showSnackBar(
                   const SnackBar(
                     content: Text('Please enter a valid amount'),
                     backgroundColor: Colors.red,
                   ),
                 );
+                return;
               }
+
+              if (amount > currentAmount) {
+                parentScaffoldMessenger.clearSnackBars();
+                parentScaffoldMessenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Amount exceeds current allocation'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              Navigator.pop(dialogContext);
+              _deallocateFromGoal(goalId, goal, amount);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Remove'),
@@ -353,6 +418,7 @@ class _SavingsPageState extends State<SavingsPage> {
           });
 
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -364,6 +430,7 @@ class _SavingsPageState extends State<SavingsPage> {
       }
     } catch (e) {
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
@@ -397,6 +464,7 @@ class _SavingsPageState extends State<SavingsPage> {
           });
 
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -408,6 +476,7 @@ class _SavingsPageState extends State<SavingsPage> {
       }
     } catch (e) {
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
@@ -658,8 +727,9 @@ class _SavingsPageState extends State<SavingsPage> {
     final monthlyAmount = (goal['monthlyAmount'] ?? 0).toDouble();
     final isCompleted = goal['isCompleted'] ?? false;
 
-    final progress = targetAmount > 0 ? currentAmount / targetAmount : 0.0;
-    final progressPercentage = (progress * 100).toStringAsFixed(1);
+    final rawProgress = targetAmount > 0 ? currentAmount / targetAmount : 0.0;
+    final progress = rawProgress > 1.0 ? 1.0 : rawProgress; // Cap at 100%
+    final progressPercentage = (rawProgress * 100).toStringAsFixed(1);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -799,7 +869,7 @@ class _SavingsPageState extends State<SavingsPage> {
                   Expanded(
                     child: _buildInfoColumn(
                       'Remaining',
-                      'JOD ${(targetAmount - currentAmount).toStringAsFixed(2)}',
+                      'JOD ${((targetAmount - currentAmount) > 0 ? (targetAmount - currentAmount) : 0).toStringAsFixed(2)}',
                     ),
                   ),
                 ],

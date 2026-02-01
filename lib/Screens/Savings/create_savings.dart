@@ -24,8 +24,8 @@ class _CreateSavingsState extends State<CreateSavings> {
     },
   ];
 
-  void _onGoalTap(Map<String, dynamic> goal) {
-    Navigator.push(
+  void _onGoalTap(Map<String, dynamic> goal) async {
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => SavingsGoalDetails(
@@ -35,6 +35,11 @@ class _CreateSavingsState extends State<CreateSavings> {
         ),
       ),
     );
+
+    if (result == true && mounted) {
+      // Go back to SavingsPage which will show the success snackbar
+      Navigator.pop(context, true);
+    }
   }
 
   void _addNewGoal() {
@@ -229,7 +234,11 @@ class _CustomGoalDialogState extends State<_CustomGoalDialog> {
 
   void _createGoal() {
     if (_titleController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      // Get the parent scaffold messenger to show snackbar on the right screen
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      Navigator.pop(context);
+      scaffoldMessenger.clearSnackBars();
+      scaffoldMessenger.showSnackBar(
         const SnackBar(
           content: Text('Please enter a goal title'),
           backgroundColor: Colors.red,
@@ -529,6 +538,7 @@ class _SavingsGoalDetailsState extends State<SavingsGoalDetails> {
     final monthlyAmount = double.tryParse(_monthlyAmountController.text);
 
     if (targetAmount == null || targetAmount <= 0) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please enter a valid target amount'),
@@ -539,6 +549,7 @@ class _SavingsGoalDetailsState extends State<SavingsGoalDetails> {
     }
 
     if (months == null || months <= 0) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please enter a valid duration'),
@@ -549,6 +560,7 @@ class _SavingsGoalDetailsState extends State<SavingsGoalDetails> {
     }
 
     if (monthlyAmount == null || monthlyAmount <= 0) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please enter a valid monthly amount'),
@@ -560,6 +572,7 @@ class _SavingsGoalDetailsState extends State<SavingsGoalDetails> {
 
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('User not logged in'),
@@ -587,17 +600,12 @@ class _SavingsGoalDetailsState extends State<SavingsGoalDetails> {
           });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${widget.goalTitle} savings goal created!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
+        // Pop first, then show snackbar (it will appear on the previous screen)
         Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error creating goal: $e'),

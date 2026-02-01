@@ -17,11 +17,15 @@ class DeepLinkService {
   Uri? _pendingInviteLink;
   bool _isInitialized = false;
 
+  /// Global navigator key to access context from anywhere
+  GlobalKey<NavigatorState>? _navigatorKey;
+
   /// Call this ONCE in the `initState` of your main app screen
   /// (e.g., in your `MainScreen` *after* login).
-  void init(BuildContext context) {
+  void init(BuildContext context, {GlobalKey<NavigatorState>? navigatorKey}) {
     if (_isInitialized) return; // Only init once
     _isInitialized = true;
+    _navigatorKey = navigatorKey;
 
     print("DeepLinkService: Initializing...");
 
@@ -36,7 +40,9 @@ class DeepLinkService {
     // --- 2. Handle links that open the app while it's running ---
     _appLinks.uriLinkStream.listen((uri) {
       print("DeepLinkService: Received new link: $uri");
-      _handleLink(uri, context);
+      // Try to get fresh context from navigator key, fallback to stored context
+      final freshContext = _navigatorKey?.currentContext ?? context;
+      _handleLink(uri, freshContext);
     });
   }
 
@@ -93,16 +99,21 @@ class DeepLinkService {
     try {
       // 1. Get the invite data to show the inviter's name
       final inviteDoc = await _db.collection('invites').doc(inviteId).get();
-      if (!context.mounted) return;
-      if (!inviteDoc.exists)
+
+      // Try to get fresh context from navigator key
+      final activeContext = _navigatorKey?.currentContext ?? context;
+      if (!activeContext.mounted) return;
+
+      if (!inviteDoc.exists) {
         throw Exception("Invite link is invalid or expired.");
+      }
 
       final inviterUid = inviteDoc.data()!['inviterUid'];
 
       // Prevent user from accepting their own invite
       if (inviterUid == currentUserUid) {
-        if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
+        if (!activeContext.mounted) return;
+        ScaffoldMessenger.of(activeContext).showSnackBar(
           const SnackBar(content: Text("You can't accept your own invite.")),
         );
         return;
@@ -110,24 +121,24 @@ class DeepLinkService {
 
       // 2. Get the inviter's name
       final inviterDoc = await _db.collection('users').doc(inviterUid).get();
-      if (!context.mounted) return;
+      if (!activeContext.mounted) return;
       final inviterName = inviterDoc.data()?['username'] ?? 'Someone';
 
       // 3. Get the household's name
       final householdName =
-          inviterDoc.data()?['householdName'] ?? 'a household';
+          inviteDoc.data()?['householdName'] ?? 'a household';
 
       // 4. Show the dialog
-      if (!context.mounted) return;
+      if (!activeContext.mounted) return;
       showDialog(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: Text("You're Invited!"),
+        context: activeContext,
+        builder: (dialogCtx) => AlertDialog(
+          title: const Text("You're Invited!"),
           content: Text("$inviterName has invited you to join $householdName."),
           actions: [
             TextButton(
               child: const Text("Decline"),
-              onPressed: () => Navigator.of(dialogContext).pop(),
+              onPressed: () => Navigator.of(dialogCtx).pop(),
             ),
             ElevatedButton(
               child: const Text("Accept"),
@@ -138,17 +149,21 @@ class DeepLinkService {
                     'status': 'accepted',
                     'acceptedByUid': currentUserUid,
                   });
-                  Navigator.of(dialogContext).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Invite accepted! Joining household..."),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
+                  Navigator.of(dialogCtx).pop();
+                  if (activeContext.mounted) {
+                    ScaffoldMessenger.of(activeContext).showSnackBar(
+                      const SnackBar(
+                        content: Text("Invite accepted! Joining household..."),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Error: ${e.toString()}")),
-                  );
+                  if (activeContext.mounted) {
+                    ScaffoldMessenger.of(activeContext).showSnackBar(
+                      SnackBar(content: Text("Error: ${e.toString()}")),
+                    );
+                  }
                 }
               },
             ),
@@ -156,8 +171,9 @@ class DeepLinkService {
         ),
       );
     } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      final activeContext = _navigatorKey?.currentContext ?? context;
+      if (!activeContext.mounted) return;
+      ScaffoldMessenger.of(activeContext).showSnackBar(
         SnackBar(
           content: Text("Error: ${e.toString()}"),
           backgroundColor: Colors.red,

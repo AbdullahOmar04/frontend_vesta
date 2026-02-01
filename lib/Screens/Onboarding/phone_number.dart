@@ -21,12 +21,66 @@ class PhoneNumberPage extends StatefulWidget {
 
 class _PhoneNumberPageState extends State<PhoneNumberPage> {
   final _phoneController = TextEditingController();
-  bool _loading = false; 
+  bool _loading = false;
 
   @override
   void dispose() {
     _phoneController.dispose();
     super.dispose();
+  }
+
+  bool _isBlockedError(dynamic error) {
+    final errorString = error.toString().toLowerCase();
+    return errorString.contains('too-many-requests') ||
+        errorString.contains('blocked') ||
+        errorString.contains('unusual activity') ||
+        errorString.contains('too many attempts');
+  }
+
+  void _showBlockedDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.block, color: Colors.red.shade600),
+            const SizedBox(width: 8),
+            const Text('Phone Number Blocked'),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Your phone number has been temporarily blocked due to multiple verification attempts.',
+              style: TextStyle(fontSize: 15),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Block Duration: 30 minutes',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+            SizedBox(height: 12),
+            Text(
+              'To regain access:',
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+            SizedBox(height: 8),
+            Text('1. Wait for the block period to expire (up to 30 minutes)'),
+            Text('2. Ensure you have access to the phone number'),
+            Text('3. Try again after the waiting period'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _goToOtp() async {
@@ -57,12 +111,16 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
         },
         verificationFailed: (FirebaseAuthException e) {
           setState(() => _loading = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.message ?? "Phone verification failed"),
-              backgroundColor: Colors.red,
-            ),
-          );
+          if (_isBlockedError(e)) {
+            _showBlockedDialog();
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(e.message ?? "Phone verification failed"),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         },
         codeSent: (String verificationId, int? resendToken) {
           setState(() => _loading = false);
@@ -84,12 +142,16 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
       );
     } catch (e) {
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error starting phone verification: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (_isBlockedError(e)) {
+        _showBlockedDialog();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error starting phone verification: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

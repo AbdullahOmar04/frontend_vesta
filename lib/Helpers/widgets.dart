@@ -8,6 +8,123 @@ import 'package:frontend_vesta/Screens/pages/settings.dart' as app_settings;
 
 import 'dart:async';
 
+Future<void> fetchCurrentCycleData() async {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) return;
+
+  final fire = FirebaseFirestore.instance;
+  final userRef = fire.collection('users').doc(uid);
+
+  final String monthId =
+          "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}";
+
+  // 1. Fetch budget data
+  final budgetDoc = await fire
+            .collection("users")
+            .doc(uid)
+            .collection("budget")
+            .doc(monthId)
+            .get();  
+
+  final budgetData = budgetDoc.data() ?? {};
+  final budgetResetDay = (budgetData['budgetResetDay'] ?? 28) as int;
+
+  // 2. Fetch category buckets
+  final categoriesSnap = await userRef.collection('categories').get();
+  final categoryBuckets = <String, String>{};
+  for (var doc in categoriesSnap.docs) {
+    final data = doc.data();
+    final bucketRaw = (data['bucket'] ?? '') as String;
+    final bucket = bucketRaw.isEmpty
+        ? inferBucketFromCategoryName(doc.id)
+        : bucketRaw;
+    categoryBuckets[doc.id] = bucket;
+  }
+
+  // 3. Calculate current cycle dates
+  final now = DateTime.now();
+  DateTime startDate;
+  DateTime endDate;
+
+  if (now.day >= budgetResetDay) {
+    startDate = DateTime(now.year, now.month, budgetResetDay);
+    final nextMonth = DateTime(now.year, now.month + 1, budgetResetDay);
+    endDate = nextMonth.subtract(const Duration(days: 1));
+  } else {
+    startDate = DateTime(now.year, now.month - 1, budgetResetDay);
+    final thisMonth = DateTime(now.year, now.month, budgetResetDay);
+    endDate = thisMonth.subtract(const Duration(days: 1));
+  }
+  endDate = DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59);
+
+  // 4. Calculate current spending from all accounts
+  double currentSpending = 0;
+  double totalSavings = 0;
+  final accountsSnap = await userRef.collection('accounts').get();
+
+  for (var account in accountsSnap.docs) {
+    final accountData = account.data();
+
+    // Check if this is a savings account and add its balance to totalSavings
+    final accountTypeCode = (accountData['accountTypeCode'] ?? '').toString();
+    final isLinked = accountData['linked'] == true;
+    if (isLinked && accountTypeCode == 'SAV.IND') {
+      final balance = (accountData['balanceAmount'] ?? 0).toDouble();
+      totalSavings += balance;
+    }
+
+    final txSnap = await userRef
+        .collection('accounts')
+        .doc(account.id)
+        .collection('transactions')
+        .get();
+
+    for (var doc in txSnap.docs) {
+      final data = doc.data();
+
+      // Only count debit transactions
+      final transactionType = (data['type'] ?? '').toString().toLowerCase();
+      if (transactionType != 'debit') continue;
+
+      // Parse date
+      DateTime? transactionDate;
+      if (data.containsKey('date') && data['date'] != null) {
+        transactionDate = DateTime.tryParse(data['date'] as String);
+      }
+      if (transactionDate == null) continue;
+
+      // Check if within cycle
+      if (transactionDate.isBefore(startDate) ||
+          transactionDate.isAfter(endDate)) {
+        continue;
+      }
+
+      // Check category
+      final category = data['category'] as String?;
+      if (category == null || category.isEmpty) continue;
+
+      final bucket =
+          categoryBuckets[category] ?? inferBucketFromCategoryName(category);
+
+      // Only count essential and luxury buckets for spending
+      if (bucket != 'essential' && bucket != 'luxury') continue;
+
+      // Parse amount
+      double amount = 0;
+      if (data.containsKey('amount') && data['amount'] != null) {
+        amount = double.tryParse(data['amount'].toString()) ?? 0.0;
+      }
+      currentSpending += amount;
+    }
+  }
+
+  // 5. Update Firestore with total expense and savings
+  await userRef.update({
+    'totalExpense': currentSpending,
+    'totalSavings': totalSavings,
+  });
+}
+
 String inferBucketFromCategoryName(String name) {
   final n = name.toLowerCase().trim();
 
@@ -437,7 +554,6 @@ Future<void> inputDayOfMonth(BuildContext context) async {
                               color: Colors.black87,
                             ),
                             decoration: InputDecoration(
-                              prefixIcon: const Icon(Icons.calendar_today),
                               hintText: "Enter day (1-31)",
                               hintStyle: TextStyle(
                                 color: Colors.grey[400],
@@ -895,8 +1011,8 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
                               if (amount == null) {
                                 return 'Please enter a valid number';
                               }
-                              if (amount <= 0) {
-                                return 'Amount must be greater than 0';
+                              if (amount < 0) {
+                                return 'Amount must be 0 or greater';
                               }
                               if (amount > 999999) {
                                 return 'Amount is too large';
@@ -2142,10 +2258,12 @@ class HouseholdTransactionCard extends StatefulWidget {
   const HouseholdTransactionCard({
     super.key,
     required this.transaction,
+    required this.householdId,
     this.onCategoryChanged,
   });
 
   final HouseholdTransactionModel transaction;
+  final String householdId;
   final VoidCallback? onCategoryChanged;
 
   @override
@@ -2322,54 +2440,25 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
     }
   }
 
-  /// 🏷️ Category Update
+  /// 🏷️ Category Update - Updates the household transaction
   Future<void> _onCategoryChanged(String? value) async {
     if (value == null) return;
     setState(() => _isUpdating = true);
 
     try {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null) throw Exception("No user logged in");
-
-      final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
-      final txnRef = userRef
-          .collection('accounts')
-          .doc(widget.transaction.accountId)
+      // Reference to the household transaction
+      final txnRef = FirebaseFirestore.instance
+          .collection('households')
+          .doc(widget.householdId)
           .collection('transactions')
           .doc(widget.transaction.id);
 
-      final batch = FirebaseFirestore.instance.batch();
-      final oldCategory = widget.transaction.category;
-      final amount = widget.transaction.amount;
-
       if (value == "Unassign") {
-        if (oldCategory != null && oldCategory.isNotEmpty) {
-          final oldRef = userRef.collection('categories').doc(oldCategory);
-          final oldSnap = await oldRef.get();
-          if (oldSnap.exists) {
-            final total = (oldSnap.data()?['total'] ?? 0).toDouble();
-            batch.update(oldRef, {'total': total - amount});
-          }
-        }
-        batch.update(txnRef, {'category': FieldValue.delete()});
-        await batch.commit();
+        await txnRef.update({'category': FieldValue.delete()});
         setState(() => widget.transaction.category = null);
       } else {
-        batch.update(txnRef, {'category': value});
-        final newRef = userRef.collection('categories').doc(value);
-        final newSnap = await newRef.get();
-        if (newSnap.exists) {
-          final total = (newSnap.data()?['total'] ?? 0).toDouble();
-          batch.update(newRef, {'total': total + amount});
-        } else {
-          final inferredBucket = inferBucketFromCategoryName(value);
-          batch.set(newRef, {
-            'total': amount,
-            'type': widget.transaction.isDebit ? 'expense' : 'income',
-            'bucket': inferredBucket,
-            'name': value,
-          });
-        }
+        await txnRef.update({'category': value});
+        setState(() => widget.transaction.category = value);
       }
 
       ScaffoldMessenger.of(
@@ -2879,9 +2968,9 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
                     onTap: () async {
                       final picked = await showDatePicker(
                         context: context,
-                        initialDate: _date,
+                        initialDate: _date.isAfter(DateTime.now()) ? DateTime.now() : _date,
                         firstDate: DateTime(2020),
-                        lastDate: DateTime(2100),
+                        lastDate: DateTime.now(),
                       );
                       if (picked != null) {
                         final now = DateTime.now();

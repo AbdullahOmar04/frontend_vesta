@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transactions.dart';
 import 'package:frontend_vesta/Screens/pages/home.dart';
 import 'package:frontend_vesta/Screens/pages/profile.dart';
+import 'package:frontend_vesta/deep_link_service.dart';
+import 'package:frontend_vesta/main.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -14,6 +16,13 @@ class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = const [HomePage(), Transactions(showBack: false,), ProfilePage()];
+
+  @override
+  void initState() {
+    super.initState();
+    deepLinkService.init(context, navigatorKey: navigatorKey);
+    deepLinkService.checkPendingLink(context);
+  }
 
   @override
   Widget build(BuildContext context) {

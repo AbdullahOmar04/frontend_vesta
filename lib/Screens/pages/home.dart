@@ -24,6 +24,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     calcTotalBalance();
+    fetchCurrentCycleData();
     deepLinkService.init(context);
 
     deepLinkService.checkPendingLink(context);

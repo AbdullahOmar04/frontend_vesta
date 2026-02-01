@@ -474,11 +474,6 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const Icon(
-                Icons.arrow_forward_ios,
-                color: Colors.white30,
-                size: 16,
-              ),
             ],
           ),
           const SizedBox(height: 12),

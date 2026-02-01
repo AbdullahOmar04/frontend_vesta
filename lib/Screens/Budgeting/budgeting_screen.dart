@@ -302,6 +302,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     double savingsTransfers = 0.0;
     double actualIncome = 0.0;
     double uncategorizedSpending = 0.0;
+    double totalSavingsBalance = 0.0;
 
     try {
       final firestore = FirebaseFirestore.instance;
@@ -314,6 +315,15 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
           .get();
 
       for (final account in accountsSnap.docs) {
+        final accountData = account.data();
+
+        // Check if this is a savings account and add its balance
+        final accountTypeCode = (accountData['accountTypeCode'] ?? '').toString();
+        if (accountTypeCode == 'SAV.IND') {
+          final balance = (accountData['balanceAmount'] ?? 0).toDouble();
+          totalSavingsBalance += balance;
+        }
+
         final transactionsSnap = await userRef
             .collection('accounts')
             .doc(account.id)
@@ -372,6 +382,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
         'essentialSpending': essentialSpending,
         'luxurySpending': luxurySpending,
         'savingsTransfers': savingsTransfers,
+        'totalSavings': totalSavingsBalance,
         'actualIncome': actualIncome,
         'uncategorizedSpending': uncategorizedSpending,
       });

@@ -400,9 +400,9 @@ class AddTransactionState extends State<AddTransaction> {
                         onTap: () async {
                           final picked = await showDatePicker(
                             context: context,
-                            initialDate: _date,
+                            initialDate: _date.isAfter(DateTime.now()) ? DateTime.now() : _date,
                             firstDate: DateTime(2020),
-                            lastDate: DateTime(2100),
+                            lastDate: DateTime.now(),
                           );
                           if (picked != null) {
                             final now = DateTime.now();

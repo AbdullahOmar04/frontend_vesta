@@ -932,7 +932,14 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
             physics: const NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
               final txn = transactions[index];
-              return HouseholdTransactionCard(transaction: txn);
+              return HouseholdTransactionCard(
+                transaction: txn,
+                householdId: widget.householdId,
+                onCategoryChanged: () {
+                  _loadData(widget.householdId);
+                  _fetchHouseholdCycleData(widget.householdId);
+                },
+              );
             },
           ),
       ],
@@ -1133,10 +1140,26 @@ class _HouseholdPageState extends State<HouseholdPage> {
             final household = householdDocs[index].data();
             final householdId = householdDocs[index].id;
 
+            final members = List<String>.from(household['members'] ?? []);
+            final memberCount = members.length;
+
             return ListTile(
               leading: Icon(Icons.house_outlined),
               title: Text(household['householdName'] ?? 'Unnamed Household'),
               subtitle: Text(household['live_text'] ?? 'Tap to open'),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.people_outline, size: 16, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$memberCount',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(Icons.arrow_forward_ios, size: 16),
+                ],
+              ),
               onTap: () {
                 Navigator.push(
                   context,
@@ -1244,12 +1267,11 @@ class _HouseholdPageState extends State<HouseholdPage> {
         ),
         child: Padding(
           padding: const EdgeInsets.all(20.0),
-          // 1. OUTER STREAM: Listens to the user's document
           child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
             stream: _db
                 .collection('users')
                 .doc(uid)
-                .snapshots(), // Use safe uid
+                .snapshots(),
             builder: (context, userSnapshot) {
               if (userSnapshot.connectionState == ConnectionState.waiting) {
                 return Center(child: CircularProgressIndicator());
