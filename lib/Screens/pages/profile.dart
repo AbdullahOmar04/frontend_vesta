@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:frontend_vesta/Helpers/secure_storage.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -31,12 +32,16 @@ class ProfilePage extends StatelessWidget {
             const Spacer(),
             ElevatedButton(
               onPressed: () async {
+                // Clear secure storage on logout (V06 fix)
+                await SecureStorage().deleteAll();
                 await FirebaseAuth.instance.signOut();
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/',
-                  (route) => false,
-                );
+                if (context.mounted) {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/',
+                    (route) => false,
+                  );
+                }
               },
               child: const Text("Logout"),
             ),

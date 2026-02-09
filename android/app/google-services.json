@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "579399466424",
-    "project_id": "vesta-7e96a",
-    "storage_bucket": "vesta-7e96a.firebasestorage.app"
+    "project_number": "1089402463760",
+    "project_id": "vesta-83939",
+    "storage_bucket": "vesta-83939.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:579399466424:android:6294f033030cf893cee34d",
+        "mobilesdk_app_id": "1:1089402463760:android:2c61b12e6fe0a9b7088c95",
         "android_client_info": {
           "package_name": "com.example.vesta"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyC0xcAfL4dp3s50u6tWNb41ZrMdOESFBL4"
+          "current_key": "AIzaSyAfPTW8al_dnzClUKa17rJ1QlsjunbQQNs"
         }
       ],
       "services": {
@@ -26,7 +26,7 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:579399466424:android:fdf06e0dafe3a9c5cee34d",
+        "mobilesdk_app_id": "1:1089402463760:android:562f245122353587088c95",
         "android_client_info": {
           "package_name": "com.example.vesta.debug"
         }
@@ -34,7 +34,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyC0xcAfL4dp3s50u6tWNb41ZrMdOESFBL4"
+          "current_key": "AIzaSyAfPTW8al_dnzClUKa17rJ1QlsjunbQQNs"
         }
       ],
       "services": {

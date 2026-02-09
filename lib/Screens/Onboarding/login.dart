@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:frontend_vesta/Helpers/api_calls.dart';
+import 'package:frontend_vesta/Helpers/biometric_service.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Onboarding/register.dart';
 import 'package:frontend_vesta/Screens/pages/main_screen.dart';
@@ -16,9 +17,29 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final TextEditingController identifierController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final BiometricService _biometricService = BiometricService();
 
   bool _loading = false;
   bool _obscurePassword = true;
+  bool _biometricAvailable = false;
+  bool _biometricEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometricAvailability();
+  }
+
+  Future<void> _checkBiometricAvailability() async {
+    final canCheck = await _biometricService.canCheckBiometrics();
+    final isEnabled = await _biometricService.isBiometricLoginEnabled();
+    if (mounted) {
+      setState(() {
+        _biometricAvailable = canCheck;
+        _biometricEnabled = isEnabled;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -80,8 +101,9 @@ class _LoginState extends State<Login> {
                       }
 
                       // Validate email format
-                      final emailRegex =
-                          RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                      final emailRegex = RegExp(
+                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                      );
                       if (!emailRegex.hasMatch(email)) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -113,17 +135,28 @@ class _LoginState extends State<Login> {
                         }
                       } on FirebaseAuthException catch (e) {
                         setDialogState(() => isLoading = false);
+                        debugPrint('Password reset Firebase error: ${e.code}');
+                        // Show user-friendly message without exposing internal details
+                        String message =
+                            'Failed to send reset email. Please try again.';
+                        if (e.code == 'too-many-requests') {
+                          message =
+                              'Too many attempts. Please try again later.';
+                        }
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(e.message ?? 'Failed to send reset email'),
+                            content: Text(message),
                             backgroundColor: Colors.red,
                           ),
                         );
                       } catch (e) {
                         setDialogState(() => isLoading = false);
+                        debugPrint('Password reset error: $e');
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Error: $e'),
+                          const SnackBar(
+                            content: Text(
+                              'An error occurred. Please try again later.',
+                            ),
                             backgroundColor: Colors.red,
                           ),
                         );
@@ -163,8 +196,8 @@ class _LoginState extends State<Login> {
 
         if (snapshot.docs.isEmpty) {
           throw FirebaseAuthException(
-            code: "user-not-found",
-            message: "No user found with that username",
+            code: "invalid-credentials",
+            message: "Invalid username or password",
           );
         }
 
@@ -172,17 +205,23 @@ class _LoginState extends State<Login> {
         if (snapshot.docs.length > 1) {
           throw FirebaseAuthException(
             code: "duplicate-username",
-            message: "Critical error: Multiple accounts with this username detected. Please contact support.",
+            message:
+                "Critical error: Multiple accounts with this username detected. Please contact support.",
           );
         }
 
         email = snapshot.docs.first["email"];
       }
 
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      // Enable biometric login if device supports it
+      if (_biometricAvailable && userCredential.user != null) {
+        await _biometricService.enableBiometricLogin(userCredential.user!.uid);
+      }
 
       handleBudgetCycleOnLogin();
 
@@ -193,12 +232,96 @@ class _LoginState extends State<Login> {
         );
       }
     } on FirebaseAuthException catch (e) {
+      debugPrint('Login error: ${e.code}');
+      // Use generic message to prevent account enumeration (V09)
+      String message = 'Invalid username or password';
+      if (e.code == 'too-many-requests') {
+        message = 'Too many attempts. Please try again later.';
+      } else if (e.code == 'network-request-failed') {
+        message = 'Network error. Please check your connection.';
+      } else if (e.code == 'duplicate-username') {
+        message = 'Account error. Please contact support.';
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message ?? "Login failed"),
-          backgroundColor: Colors.red,
+        SnackBar(content: Text(message), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _biometricLogin() async {
+    if (!_biometricAvailable || !_biometricEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Biometric login is not available or not enabled'),
+          backgroundColor: Colors.orange,
         ),
       );
+      return;
+    }
+
+    setState(() => _loading = true);
+
+    try {
+      final authenticated = await _biometricService.authenticate();
+      if (!authenticated) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Biometric authentication failed'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
+      // Get stored user ID and sign in
+      final userId = await _biometricService.getLastUserId();
+      if (userId == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No stored credentials. Please login with password first.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+
+      // Verify user still exists in Firebase
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null && currentUser.uid == userId) {
+        handleBudgetCycleOnLogin();
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+          );
+        }
+      } else {
+        // Try to restore session - user needs to login with password
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Session expired. Please login with password.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Biometric login error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('An error occurred. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -314,11 +437,31 @@ class _LoginState extends State<Login> {
                     const SizedBox(height: 16),
                     _loading
                         ? const CircularProgressIndicator()
-                        : largeButton(
-                            context,
-                            "Login",
-                            Theme.of(context).colorScheme.secondary,
-                            _login,
+                        : Row(
+                            children: [
+                              Expanded(
+                                child: largeButton(
+                                  context,
+                                  "Login",
+                                  Theme.of(context).colorScheme.secondary,
+                                  _login,
+                                ),
+                              ),
+                              if (_biometricAvailable)
+                                IconButton(
+                                  onPressed: _biometricEnabled ? _biometricLogin : null,
+                                  icon: Icon(
+                                    Icons.fingerprint,
+                                    color: _biometricEnabled
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Colors.grey,
+                                    size: 32,
+                                  ),
+                                  tooltip: _biometricEnabled
+                                      ? 'Login with biometrics'
+                                      : 'Enable biometrics in settings after login',
+                                ),
+                            ],
                           ),
                     const SizedBox(height: 20),
                     Row(

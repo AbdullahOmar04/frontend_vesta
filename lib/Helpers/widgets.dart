@@ -265,7 +265,6 @@ Widget largeButton(
 ) {
   return SizedBox(
     height: 50,
-    width: double.infinity,
     child: ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(

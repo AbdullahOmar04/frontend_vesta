@@ -36,6 +36,10 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
   final _otpController = TextEditingController();
   bool _loading = false;
 
+  // Store these in state so they can be updated on resend
+  late String _currentVerificationId;
+  int? _currentResendToken;
+
   Timer? _countdownTimer;
   int _remainingSeconds = otpValidityDurationSeconds;
   bool _otpExpired = false;
@@ -47,6 +51,8 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
   @override
   void initState() {
     super.initState();
+    _currentVerificationId = widget.verificationId;
+    _currentResendToken = widget.resendToken;
     _startCountdownTimer();
     _startResendCooldown();
   }
@@ -185,6 +191,16 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
   Future<void> _finishSignup() async {
     final smsCode = _otpController.text.trim();
 
+    if (_otpExpired) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("OTP has expired. Please request a new code."),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     if (smsCode.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -199,7 +215,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
 
     try {
       final phoneCred = PhoneAuthProvider.credential(
-        verificationId: widget.verificationId,
+        verificationId: _currentVerificationId,
         smsCode: smsCode,
       );
 
@@ -339,7 +355,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: widget.phoneNumber,
         timeout: const Duration(seconds: 60),
-        forceResendingToken: widget.resendToken,
+        forceResendingToken: _currentResendToken,
         verificationCompleted: (PhoneAuthCredential credential) async {},
         verificationFailed: (FirebaseAuthException e) {
           setState(() => _loading = false);
@@ -355,23 +371,30 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
           }
         },
         codeSent: (String verificationId, int? resendToken) {
-          // Just update the verificationId used for next attempt
+          // Update state with new verification credentials
           setState(() {
             _loading = false;
-            // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-            (widget as dynamic).verificationId = verificationId;
-            (widget as dynamic).resendToken = resendToken;
+            _currentVerificationId = verificationId;
+            _currentResendToken = resendToken;
           });
+          // Clear the old OTP input
+          _otpController.clear();
+          // Reset timers for the new OTP
           _startCountdownTimer();
           _startResendCooldown();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("OTP resent"),
+              content: Text("New OTP sent successfully"),
               backgroundColor: Colors.green,
             ),
           );
         },
-        codeAutoRetrievalTimeout: (String verificationId) {},
+        codeAutoRetrievalTimeout: (String verificationId) {
+          // Update verification ID on timeout as well
+          setState(() {
+            _currentVerificationId = verificationId;
+          });
+        },
       );
     } catch (e) {
       setState(() => _loading = false);

@@ -1307,6 +1307,8 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     final status = (sosp["SOSPStatus"] ?? "unknown").toString();
     final type = (sosp["SOSPType"] ?? "departure").toString();
     final remaining = sosp["paymentSchedule"]?["remainingPayments"];
+    final frequency =
+        sosp["paymentSchedule"]?["frequencyInfo"]?["frequency"] as String?;
 
     final nextPaymentDateStr = sosp["paymentSchedule"]?["nextPaymentDateTime"];
     String formattedDate = "No date";
@@ -1336,6 +1338,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
       status: status,
       nextPaymentDate: formattedDate,
       remainingPayments: remaining as int?,
+      frequency: frequency,
       icon: icon,
       color: color,
     );
@@ -1350,6 +1353,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     required String status,
     required String nextPaymentDate,
     int? remainingPayments,
+    String? frequency,
     required IconData icon,
     required Color color,
   }) {
@@ -1409,6 +1413,13 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
+                if (frequency != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    "Frequency: ${frequency[0].toUpperCase()}${frequency.substring(1)}",
+                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                  ),
+                ],
               ],
             ),
           ),

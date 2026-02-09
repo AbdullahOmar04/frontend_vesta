@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/widgets.dart';
 
 class CreateHousehold extends StatefulWidget {
   const CreateHousehold({super.key});
@@ -99,24 +100,15 @@ class _CreateHouseholdState extends State<CreateHousehold> {
               decoration: const InputDecoration(labelText: 'Household Name'),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-              ),
-              onPressed: _isCreating ? null : _createHousehold,
-              child: _isCreating
-                  ? const SizedBox(
-                      height: 16,
-                      width: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(
-                      'Create',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.surface,
-                      ),
-                    ),
+            largeButton(
+              context,
+              'Create',
+              Theme.of(context).colorScheme.secondary,
+              () {
+                if (!_isCreating) {
+                  _createHousehold();
+                }
+              },
             ),
           ],
         ),

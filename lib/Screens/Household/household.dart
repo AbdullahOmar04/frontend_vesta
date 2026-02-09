@@ -52,6 +52,64 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
     _loadHouseholdBudget();
   }
 
+  Future<void> _editHouseholdName(String currentName) async {
+    final controller = TextEditingController(text: currentName);
+    final formKey = GlobalKey<FormState>();
+
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Household Name'),
+        content: Form(
+          key: formKey,
+          child: TextFormField(
+            controller: controller,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'Household Name',
+              border: OutlineInputBorder(),
+            ),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Please enter a name';
+              }
+              return null;
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(context, controller.text.trim());
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (newName != null && newName != currentName) {
+      await _db.collection('households').doc(widget.householdId).update({
+        'householdName': newName,
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Household name updated'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _loadHouseholdBudget() async {
     final doc = await FirebaseFirestore.instance
         .collection("households")
@@ -222,11 +280,24 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
           appBar: AppBar(
             backgroundColor: scheme.primary,
             iconTheme: IconThemeData(color: scheme.surface),
-            title: Text(
-              householdName,
-              style: TextStyle(
-                color: scheme.surface,
-                fontWeight: FontWeight.bold,
+            title: GestureDetector(
+              onTap: () => _editHouseholdName(householdName),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      householdName,
+                      style: TextStyle(
+                        color: scheme.surface,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(Icons.edit, size: 16, color: scheme.surface),
+                ],
               ),
             ),
             actions: [
@@ -1184,12 +1255,11 @@ class _HouseholdPageState extends State<HouseholdPage> {
                       ),
                       TextButton(
                         onPressed: () async {
-                          // Remove household reference from user document
-                          final currentUser = _auth.currentUser;
-                          if (currentUser != null) {
+                          // Remove household reference from ALL members
+                          for (final memberUid in members) {
                             final userDocRef = _db
                                 .collection('users')
-                                .doc(currentUser.uid);
+                                .doc(memberUid);
                             await userDocRef.update({
                               'householdIds': FieldValue.arrayRemove([
                                 householdId,
@@ -1197,7 +1267,7 @@ class _HouseholdPageState extends State<HouseholdPage> {
                             });
                           }
 
-                          // Optionally, delete the household document itself
+                          // Delete the household document itself
                           await _db
                               .collection('households')
                               .doc(householdId)

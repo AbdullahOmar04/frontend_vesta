@@ -3,9 +3,10 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
-const String baseUrl = "https://backend-vesta.onrender.com";
+final String baseUrl = dotenv.env['API_URL'] ?? '';
 
 Future<void> syncAccounts([String? username]) async {
   final user = FirebaseAuth.instance.currentUser;

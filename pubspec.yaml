@@ -8,16 +8,20 @@ environment:
 
 dependencies:
   flutter:
-    sdk: flutter  
-  firebase_auth: ^6.0.2
+    sdk: flutter
+  firebase_auth: ^6.1.4
   firebase_core: ^4.1.0
-  cloud_firestore: ^6.0.1
+  cloud_firestore: ^6.1.2
   fl_chart: ^1.1.1
-  http: ^1.5.0
+  http: ^1.6.0
   intl: ^0.20.2
   async: ^2.13.0
   share_plus: ^12.0.1
-  app_links: ^6.4.1
+  app_links: ^7.0.0
+  freerasp: ^7.3.0
+  flutter_secure_storage: ^10.0.0
+  local_auth: ^3.0.0
+  flutter_dotenv: ^5.1.0
 
 dev_dependencies:
   flutter_test:
@@ -29,6 +33,7 @@ flutter:
 
 
   assets:
+    - .env
     - assets/images/vesta_logo.png
     - assets/images/LOGO_APP-ICON.png
     - assets/images/Dark.png
