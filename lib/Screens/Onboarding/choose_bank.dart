@@ -5,7 +5,9 @@ import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/pages/accounts.dart';
 import 'package:frontend_vesta/Screens/pages/main_screen.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class ChooseBank extends StatefulWidget {
   const ChooseBank({super.key});
@@ -52,6 +54,21 @@ class _ChooseBankState extends State<ChooseBank> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const Jopacc()),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 4),
+                  BankCard(
+                    context,
+                    'Ahli Bank',
+                    'assets/images/ahli.jpeg',
+                    Colors.white,
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AhliLinkScreen(),
+                        ),
                       );
                     },
                   ),
@@ -775,6 +792,576 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ─── Ahli Bank (Comply / finX) ───
+
+class AhliLinkScreen extends StatefulWidget {
+  const AhliLinkScreen({super.key});
+
+  @override
+  State<AhliLinkScreen> createState() => _AhliLinkScreenState();
+}
+
+class _AhliLinkScreenState extends State<AhliLinkScreen> {
+  bool _loading = true;
+  bool _oauthComplete = false;
+  bool _syncing = false;
+  String? _error;
+  String? _authUrl;
+  WebViewController? _webViewController;
+  final Set<String> _selected = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _startLink();
+  }
+
+  String _fmt(num amount, String currency) {
+    final f = NumberFormat.currency(
+      locale: 'en_US',
+      symbol: "$currency ",
+      decimalDigits: 2,
+    );
+    return f.format(amount);
+  }
+
+  Future<void> _startLink() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      setState(() {
+        _error = 'Not logged in';
+        _loading = false;
+      });
+      return;
+    }
+
+    final result = await startAhliLink();
+    if (result == null || result['authUrl'] == null) {
+      setState(() {
+        _error = 'Failed to start Ahli link. Please try again.';
+        _loading = false;
+      });
+      return;
+    }
+
+    final authUrl = result['authUrl'] as String;
+
+    final backendHost = Uri.parse(baseUrl).host; 
+
+    late final WebViewController controller;
+
+    controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..addJavaScriptChannel(
+        'Print',
+        onMessageReceived: (JavaScriptMessage msg) {
+          print("JS: ${msg.message}");
+        },
+      )
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onNavigationRequest: (req) {
+            final uri = Uri.tryParse(req.url);
+            if (uri == null) return NavigationDecision.navigate;
+
+            print("WebView nav: ${req.url}");
+
+            // Detect ANY callback to our backend (success or error)
+            final isCallback =
+                uri.host == backendHost &&
+                uri.path == '/banks/ahli/callback';
+
+            if (isCallback) {
+              // Prevent WebView from navigating — we'll call the
+              // backend ourselves so the code exchange happens
+              // without showing the HTML response page.
+              _handleCallback(req.url);
+              return NavigationDecision.prevent;
+            }
+
+            return NavigationDecision.navigate;
+          },
+
+          // ✅ ADD THIS HERE
+          onPageFinished: (url) async {
+            print("WebView finished: $url");
+
+            try {
+              final title = await controller.getTitle();
+              print("WebView title: $title");
+
+              await controller.runJavaScript("""
+            (function() {
+              try {
+                Print.postMessage("href=" + window.location.href);
+                Print.postMessage("title=" + document.title);
+                Print.postMessage("text=" + document.body.innerText.slice(0, 400));
+              } catch(e) {
+                Print.postMessage("js_error=" + e.toString());
+              }
+            })();
+          """);
+            } catch (e) {
+              print("onPageFinished error: $e");
+            }
+          },
+
+          onWebResourceError: (error) {
+            if (!mounted) return;
+            setState(() => _error = 'WebView error: ${error.description}');
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse(authUrl));
+
+    setState(() {
+      _authUrl = authUrl;
+      _webViewController = controller;
+      _loading = false;
+    });
+  }
+
+  Future<void> _handleCallback(String callbackUrl) async {
+    if (_oauthComplete) return;
+    setState(() {
+      _oauthComplete = true;
+      _syncing = true;
+    });
+
+    try {
+      // Call the backend callback ourselves so it can exchange the
+      // authorization code for tokens and sync accounts.
+      final resp = await http.get(Uri.parse(callbackUrl));
+      print("Callback response: ${resp.statusCode}");
+
+      if (resp.statusCode != 200) {
+        if (mounted) {
+          setState(() {
+            _error = 'Ahli link failed. Please try again.';
+            _syncing = false;
+          });
+        }
+        return;
+      }
+
+      // Backend processed the code — now poll for synced accounts
+      await _pollAhliAccounts();
+    } catch (e) {
+      print("Error during callback: $e");
+      if (mounted) {
+        setState(() {
+          _error = 'Error linking Ahli: $e';
+          _syncing = false;
+        });
+      }
+      return;
+    }
+
+    if (mounted) {
+      setState(() => _syncing = false);
+    }
+  }
+
+  Future<void> _pollAhliAccounts() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    for (int i = 0; i < 20; i++) {
+      // 1) Check if Ahli tokens exist (link succeeded)
+      final userSnap = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+      final data = userSnap.data() ?? {};
+      final providers = (data['providers'] as Map?) ?? {};
+      final ahli = (providers['ahli'] as Map?) ?? {};
+      final tokens = (ahli['tokens'] as Map?) ?? {};
+      final hasToken =
+          (tokens['access_token']?.toString().trim().isNotEmpty ?? false);
+
+      if (hasToken) {
+        // Now wait for accounts to appear (usually quick)
+        final qs = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .collection('accounts')
+            .where('provider', isEqualTo: 'Ahli')
+            .limit(1)
+            .get();
+        if (qs.docs.isNotEmpty) return;
+      }
+
+      // 2) Fallback: accounts check
+      final qs = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .collection('accounts')
+          .where('provider', isEqualTo: 'Ahli')
+          .limit(1)
+          .get();
+      if (qs.docs.isNotEmpty) return;
+
+      await Future.delayed(const Duration(seconds: 1));
+    }
+  }
+
+  Future<void> _resync() async {
+    setState(() => _syncing = true);
+    try {
+      await syncAhliAccounts();
+      await _pollAhliAccounts();
+    } finally {
+      if (mounted) setState(() => _syncing = false);
+    }
+  }
+
+  Future<void> _linkSelected() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || _selected.isEmpty) return;
+
+    final batch = FirebaseFirestore.instance.batch();
+    final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
+    final col = userRef.collection('accounts');
+
+    for (final id in _selected) {
+      batch.set(col.doc(id), {
+        'linked': true,
+        'linkedAt': FieldValue.serverTimestamp(),
+        'provider': 'Ahli',
+      }, SetOptions(merge: true));
+    }
+
+    batch.set(userRef, {
+      'linkedAccountIds': FieldValue.arrayUnion(_selected.toList()),
+    }, SetOptions(merge: true));
+
+    await batch.commit();
+    await calcTotalBalance();
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Ahli accounts linked')));
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const MainScreen()),
+      (_) => false,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Scaffold(
+      backgroundColor: scheme.primary,
+      appBar: AppBar(
+        backgroundColor: scheme.primary,
+        title: Text('Ahli Bank', style: TextStyle(color: scheme.surface)),
+        iconTheme: IconThemeData(color: scheme.surface),
+        actions: [
+          if (_oauthComplete)
+            IconButton(
+              onPressed: _syncing ? null : _resync,
+              icon: Icon(Icons.sync, color: scheme.surface),
+              tooltip: 'Re-sync',
+            ),
+        ],
+      ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
+          ),
+        ),
+        child: _buildBody(),
+      ),
+      floatingActionButton: _oauthComplete
+          ? FloatingActionButton.extended(
+              onPressed: _selected.isEmpty ? null : _linkSelected,
+              backgroundColor: _selected.isEmpty ? Colors.grey : scheme.primary,
+              icon: const Icon(Icons.link, color: Colors.white),
+              label: const Text(
+                'Link Selected',
+                style: TextStyle(color: Colors.white),
+              ),
+            )
+          : null,
+    );
+  }
+
+  Widget _buildBody() {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _error = null;
+                    _loading = true;
+                  });
+                  _startLink();
+                },
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_oauthComplete) {
+      return _buildAccountSelection();
+    }
+
+    // Show WebView for OAuth
+    if (_webViewController != null) {
+      return ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
+        ),
+        child: WebViewWidget(controller: _webViewController!),
+      );
+    }
+
+    return const Center(child: Text('Something went wrong'));
+  }
+
+  Widget _buildAccountSelection() {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final scheme = Theme.of(context).colorScheme;
+    if (uid == null) return const Center(child: Text('Not logged in'));
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_syncing) const LinearProgressIndicator(),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.account_balance),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Select accounts to link',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const MainScreen()),
+                    (_) => false,
+                  );
+                },
+                child: Text('Skip', style: TextStyle(color: scheme.primary)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(uid)
+                  .collection('accounts')
+                  .where('provider', isEqualTo: 'Ahli')
+                  .snapshots(),
+              builder: (context, snap) {
+                if (snap.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snap.hasData || snap.data!.docs.isEmpty) {
+                  return const Center(child: Text('No accounts available'));
+                }
+
+                final docs = snap.data!.docs;
+                return ListView.separated(
+                  padding: const EdgeInsets.only(bottom: 96),
+                  itemCount: docs.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
+                  itemBuilder: (context, i) {
+                    final doc = docs[i];
+                    final id = doc.id;
+                    final acc = doc.data() as Map<String, dynamic>? ?? {};
+                    final linked = (acc['linked'] ?? false) == true;
+
+                    final bankName =
+                        (acc["bankName"]?.toString().trim().isNotEmpty ?? false)
+                        ? acc["bankName"].toString()
+                        : "Ahli Bank";
+                    final accountType =
+                        acc["accountTypeName"]?.toString() ?? "Account";
+
+                    num balance = 0;
+                    final dynamic balRaw = acc["balanceAmount"];
+                    if (balRaw is num) {
+                      balance = balRaw;
+                    } else if (balRaw is String) {
+                      balance = num.tryParse(balRaw) ?? 0;
+                    }
+                    final currency =
+                        acc["currency"]?.toString().trim().isNotEmpty == true
+                        ? acc["currency"].toString()
+                        : "JOD";
+                    final iban =
+                        acc["iban"]?.toString().trim().isNotEmpty == true
+                        ? acc["iban"].toString()
+                        : "No IBAN available";
+
+                    final checked = _selected.contains(id) || linked;
+
+                    return InkWell(
+                      onTap: linked
+                          ? null
+                          : () {
+                              setState(() {
+                                if (checked) {
+                                  _selected.remove(id);
+                                } else {
+                                  _selected.add(id);
+                                }
+                              });
+                            },
+                      child: Card(
+                        color: Colors.white,
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Checkbox(
+                                value: checked,
+                                onChanged: linked
+                                    ? null
+                                    : (v) {
+                                        setState(() {
+                                          if (v == true) {
+                                            _selected.add(id);
+                                          } else {
+                                            _selected.remove(id);
+                                          }
+                                        });
+                                      },
+                                fillColor:
+                                    WidgetStateProperty.resolveWith<Color>((
+                                      Set<WidgetState> states,
+                                    ) {
+                                      if (states.contains(
+                                        WidgetState.disabled,
+                                      )) {
+                                        return Colors.green;
+                                      }
+                                      return Colors.white;
+                                    }),
+                                checkColor: Colors.black,
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            bankName,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                        Text(
+                                          _fmt(balance, currency),
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.green[700],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      accountType,
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      "IBAN: $iban",
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                    if (linked) ...[
+                                      const SizedBox(height: 6),
+                                      const Row(
+                                        children: [
+                                          Icon(
+                                            Icons.check_circle,
+                                            color: Colors.green,
+                                            size: 16,
+                                          ),
+                                          SizedBox(width: 6),
+                                          Text(
+                                            'Linked',
+                                            style: TextStyle(
+                                              color: Colors.green,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

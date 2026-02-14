@@ -71,9 +71,17 @@ Future<void> getTransactions() async {
     }
 
     // Step 2: Loop through each account and fetch transactions
+    //         Route to the correct backend endpoint based on provider
     for (var doc in accountsSnap.docs) {
       final accountId = doc.id;
-      final url = Uri.parse("$baseUrl/get_transactions/$uid/$accountId");
+      final provider = (doc.data()['provider'] ?? '').toString();
+
+      final Uri url;
+      if (provider == 'Ahli') {
+        url = Uri.parse("$baseUrl/banks/ahli/get_transactions/$uid/$accountId");
+      } else {
+        url = Uri.parse("$baseUrl/get_transactions/$uid/$accountId");
+      }
 
       try {
         final response = await http.get(url);
@@ -308,6 +316,78 @@ Future<_CycleTotals> _computeCycleTotals(
   }
 
   return _CycleTotals(spending: totalSpending, savings: totalSavings);
+}
+
+// ─── Ahli Bank (Comply / finX) ───
+
+/// Initiates the Ahli OAuth link flow.
+/// Returns a Map with { "authUrl": "...", "consentId": "..." } on success,
+/// or null on failure.
+Future<Map<String, dynamic>?> startAhliLink() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return null;
+
+  final url = Uri.parse("$baseUrl/banks/ahli/start_link/${user.uid}");
+  try {
+    final resp = await http.get(url);
+    if (resp.statusCode == 200) {
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    }
+  } catch (e) {
+    print("Error starting Ahli link: $e");
+  }
+  return null;
+}
+
+/// Re-syncs Ahli accounts from the bank into Firestore.
+Future<void> syncAhliAccounts() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+
+  final url = Uri.parse("$baseUrl/banks/ahli/sync_accounts/${user.uid}");
+  try {
+    final resp = await http.get(url);
+    if (resp.statusCode == 200) {
+      final data = jsonDecode(resp.body);
+      print("Synced Ahli accounts: $data");
+    }
+  } catch (e) {
+    print("Error syncing Ahli accounts: $e");
+  }
+}
+
+/// Fetches transactions for all linked Ahli accounts.
+Future<void> getAhliTransactions() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+
+  final uid = user.uid;
+
+  try {
+    final accountsSnap = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(uid)
+        .collection("accounts")
+        .where('linked', isEqualTo: true)
+        .where('provider', isEqualTo: 'Ahli')
+        .get();
+
+    for (var doc in accountsSnap.docs) {
+      final accountId = doc.id;
+      final url = Uri.parse("$baseUrl/banks/ahli/get_transactions/$uid/$accountId");
+      try {
+        final response = await http.get(url);
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          print("Synced Ahli transactions for $accountId: $data");
+        }
+      } catch (e) {
+        print("Error fetching Ahli transactions for $accountId: $e");
+      }
+    }
+  } catch (e) {
+    print("Error getting Ahli accounts from Firestore: $e");
+  }
 }
 
 Future<void> getSOSPs() async {
