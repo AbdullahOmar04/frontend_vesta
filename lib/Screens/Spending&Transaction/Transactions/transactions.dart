@@ -504,7 +504,10 @@ class _TransactionsState extends State<Transactions> {
       itemCount: _filteredTransactions.length,
       separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, i) {
-        return TransactionCard(transaction: _filteredTransactions[i]);
+        return TransactionCard(
+          transaction: _filteredTransactions[i],
+          onDeleted: _loadTransactions,
+        );
       },
     );
   }

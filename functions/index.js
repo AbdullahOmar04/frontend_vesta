@@ -8,7 +8,10 @@ admin.initializeApp();
  * Triggered when an /invites document is updated.
  * This function securely joins a user to a household using v2 syntax.
  */
-exports.onInviteAccepted = onDocumentUpdated("invites/{inviteId}", async (event) => {
+exports.onInviteAccepted = onDocumentUpdated({
+    region: "me-central1",
+    document: "invites/{inviteId}",
+  }, async (event) => {
   // Get the data *before* and *after* the change
   const beforeData = event.data.before.data();
   const afterData = event.data.after.data();

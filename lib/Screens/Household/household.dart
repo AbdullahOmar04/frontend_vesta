@@ -2,6 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Household/create_household.dart';
@@ -1010,6 +1011,10 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
                   _loadData(widget.householdId);
                   _fetchHouseholdCycleData(widget.householdId);
                 },
+                onDeleted: () {
+                  _loadData(widget.householdId);
+                  _fetchHouseholdCycleData(widget.householdId);
+                },
               );
             },
           ),
@@ -1068,6 +1073,8 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
             itemBuilder: (context, index) {
               final userData = userDocs[index].data();
               final username = userData['username'] ?? 'No Name';
+              final profileImageUrl =
+                  userData['profileImageUrl'] as String?;
               final color = Colors.primaries[index % Colors.primaries.length];
 
               return Padding(
@@ -1077,13 +1084,20 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
                     CircleAvatar(
                       radius: 30,
                       backgroundColor: color.withOpacity(0.8),
-                      child: Text(
-                        username.isNotEmpty ? username[0].toUpperCase() : '?',
-                        style: const TextStyle(
-                          fontSize: 24,
-                          color: Colors.white,
-                        ),
-                      ),
+                      backgroundImage: profileImageUrl != null
+                          ? NetworkImage(profileImageUrl)
+                          : null,
+                      child: profileImageUrl == null
+                          ? Text(
+                              username.isNotEmpty
+                                  ? username[0].toUpperCase()
+                                  : '?',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                color: Colors.white,
+                              ),
+                            )
+                          : null,
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -1196,7 +1210,9 @@ class _HouseholdPageState extends State<HouseholdPage> {
           return Center(child: CircularProgressIndicator());
         }
         if (householdSnapshot.hasError) {
-          return Center(child: Text("Error: ${householdSnapshot.error}"));
+          return Center(child: Text(kDebugMode
+              ? "Error: ${householdSnapshot.error}"
+              : "Something went wrong. Please try again later."));
         }
         if (!householdSnapshot.hasData ||
             householdSnapshot.data!.docs.isEmpty) {

@@ -645,13 +645,19 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
                   } else if (balRaw is String) {
                     balance = num.tryParse(balRaw) ?? 0;
                   }
+
                   final currency =
                       acc["currency"]?.toString().trim().isNotEmpty == true
                       ? acc["currency"].toString()
                       : "JOD";
+
                   final iban = acc["iban"]?.toString().trim().isNotEmpty == true
                       ? acc["iban"].toString()
                       : "No IBAN available";
+                      
+                  final ibanDisplay = iban.length > 16
+                      ? "${iban.substring(0, 6)}...${iban.substring(iban.length - 4)}"
+                      : iban;
 
                   final checked = _selected.contains(id) || linked;
 
@@ -735,7 +741,7 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
                                   ),
                                   const SizedBox(height: 6),
                                   Text(
-                                    "IBAN: $iban",
+                                    "IBAN: $ibanDisplay",
                                     style: const TextStyle(
                                       fontSize: 12,
                                       color: Colors.black54,

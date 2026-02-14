@@ -4,9 +4,10 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
+import 'package:frontend_vesta/Helpers/pinned_http_client.dart';
 
 final String baseUrl = dotenv.env['API_URL'] ?? '';
+
 
 Future<void> syncAccounts([String? username]) async {
   final user = FirebaseAuth.instance.currentUser;
@@ -38,7 +39,7 @@ Future<void> syncAccounts([String? username]) async {
   );
 
   try {
-    final resp = await http.get(url);
+    final resp = await getPinnedHttpClient().get(url);
     if (resp.statusCode == 200) {
       final data = jsonDecode(resp.body);
       print("✅ Synced accounts: $data");
@@ -76,7 +77,7 @@ Future<void> getTransactions() async {
       final url = Uri.parse("$baseUrl/get_transactions/$uid/$accountId");
 
       try {
-        final response = await http.get(url);
+        final response = await getPinnedHttpClient().get(url);
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           print("✅ Synced transactions for account $accountId: $data");
@@ -335,7 +336,7 @@ Future<void> getSOSPs() async {
       final url = Uri.parse("$baseUrl/get_sosps/$uid/$accountId");
 
       try {
-        final response = await http.get(url);
+        final response = await getPinnedHttpClient().get(url);
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           print("✅ Synced SOSPs for account $accountId: $data");

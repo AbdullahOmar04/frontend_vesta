@@ -16,15 +16,15 @@ Future<void> fetchCurrentCycleData() async {
   final userRef = fire.collection('users').doc(uid);
 
   final String monthId =
-          "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}";
+      "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}";
 
   // 1. Fetch budget data
   final budgetDoc = await fire
-            .collection("users")
-            .doc(uid)
-            .collection("budget")
-            .doc(monthId)
-            .get();  
+      .collection("users")
+      .doc(uid)
+      .collection("budget")
+      .doc(monthId)
+      .get();
 
   final budgetData = budgetDoc.data() ?? {};
   final budgetResetDay = (budgetData['budgetResetDay'] ?? 28) as int;
@@ -1744,10 +1744,12 @@ class TransactionCard extends StatefulWidget {
     super.key,
     required this.transaction,
     this.onCategoryChanged,
+    this.onDeleted,
   });
 
   final TransactionModel transaction;
   final VoidCallback? onCategoryChanged;
+  final VoidCallback? onDeleted;
 
   @override
   State<TransactionCard> createState() => _TransactionCardState();
@@ -2059,26 +2061,38 @@ class _TransactionCardState extends State<TransactionCard> {
             if (widget.transaction.description?.isNotEmpty == true)
               _info("Description", widget.transaction.description!),
             _info("Date", _formatDateInDetails(widget.transaction.date)),
-            largeButton(context, 'Delete Transaction', Colors.red, () {
-              _deleteTransaction()
-                  .then((_) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Transaction deleted"),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  })
-                  .catchError((e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Error deleting transaction: $e"),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  });
-            }),
+            Row(
+              children: [
+                Expanded(
+                  child: largeButton(
+                    context,
+                    'Delete Transaction',
+                    Colors.red,
+                    () {
+                      _deleteTransaction()
+                          .then((_) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Transaction deleted"),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                            widget.onDeleted?.call();
+                          })
+                          .catchError((e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Error deleting transaction: $e"),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          });
+                    },
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -2259,11 +2273,13 @@ class HouseholdTransactionCard extends StatefulWidget {
     required this.transaction,
     required this.householdId,
     this.onCategoryChanged,
+    this.onDeleted,
   });
 
   final HouseholdTransactionModel transaction;
   final String householdId;
   final VoidCallback? onCategoryChanged;
+  final VoidCallback? onDeleted;
 
   @override
   State<HouseholdTransactionCard> createState() =>
@@ -2474,6 +2490,15 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
   }
 
   /// 📋 Transaction Details Sheet
+  Future<void> _deleteTransaction() async {
+    await FirebaseFirestore.instance
+        .collection('households')
+        .doc(widget.householdId)
+        .collection('transactions')
+        .doc(widget.transaction.id)
+        .delete();
+  }
+
   void _showDetailsSheet(BuildContext context) {
     final isDebit = widget.transaction.isDebit;
     final typeLabel = isDebit ? "Debit" : "Credit";
@@ -2522,6 +2547,38 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
               _info("Description", widget.transaction.description!),
             if (_addedByName != null) _info("Added by", _addedByName!),
             _info("Date", _formatDateInDetails(widget.transaction.date)),
+            Row(
+              children: [
+                Expanded(
+                  child: largeButton(
+                    context,
+                    'Delete Transaction',
+                    Colors.red,
+                    () {
+                      _deleteTransaction()
+                          .then((_) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Transaction deleted"),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                            widget.onDeleted?.call();
+                          })
+                          .catchError((e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Error deleting transaction: $e"),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          });
+                    },
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -2967,7 +3024,9 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
                     onTap: () async {
                       final picked = await showDatePicker(
                         context: context,
-                        initialDate: _date.isAfter(DateTime.now()) ? DateTime.now() : _date,
+                        initialDate: _date.isAfter(DateTime.now())
+                            ? DateTime.now()
+                            : _date,
                         firstDate: DateTime(2020),
                         lastDate: DateTime.now(),
                       );
@@ -3037,18 +3096,15 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
                   ),
                   const SizedBox(height: 16),
 
-                  SizedBox(
-                    width: double.infinity,
-                    child: largeButton(
-                      context,
-                      'Add Transaction',
-                      Theme.of(context).colorScheme.secondary,
-                      () {
-                        if (!_saving) {
-                          _save();
-                        }
-                      },
-                    ),
+                  largeButton(
+                    context,
+                    'Add Transaction',
+                    Theme.of(context).colorScheme.secondary,
+                    () {
+                      if (!_saving) {
+                        _save();
+                      }
+                    },
                   ),
                 ],
               ),

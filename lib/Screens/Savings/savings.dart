@@ -72,169 +72,148 @@ class _SavingsPageState extends State<SavingsPage> {
 
     if (!mounted) return;
 
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (sheetContext) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
-            left: 16,
-            right: 16,
-            top: 16,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        title: Text(
+          'Allocate to $goalTitle',
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[400],
-                  borderRadius: BorderRadius.circular(999),
-                ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(32, 162, 0, 255),
+                borderRadius: BorderRadius.circular(12),
               ),
-              Text(
-                'Allocate to $goalTitle',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(32, 162, 0, 255),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Available: JOD ${available.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Current in goal: JOD ${currentAmount.toStringAsFixed(2)}',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                    ),
-                    Text(
-                      'Remaining to reach goal: JOD ${remaining.toStringAsFixed(2)}',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: amountController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: InputDecoration(
-                  labelText: 'Amount to Allocate',
-                  prefixText: 'JOD ',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                autofocus: true,
-              ),
-              const SizedBox(height: 12),
-              Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextButton(
-                    onPressed: currentAmount > 0
-                        ? () {
-                            Navigator.pop(sheetContext);
-                            _showDeallocateDialog(goalId, goal);
-                          }
-                        : null,
-                    child: Text(
-                      'Remove from goal',
-                      style: TextStyle(
-                        color: currentAmount > 0 ? Colors.red : Colors.grey,
-                      ),
+                  Text(
+                    'Available: JOD ${available.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
                   ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () => Navigator.pop(sheetContext),
-                    child: const Text('Cancel'),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Current in goal: JOD ${currentAmount.toStringAsFixed(2)}',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
                   ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      final amount = double.tryParse(amountController.text);
-                      if (amount == null || amount <= 0) {
-                        parentScaffoldMessenger.clearSnackBars();
-                        parentScaffoldMessenger.showSnackBar(
-                          const SnackBar(
-                            content: Text('Please enter a valid amount'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                        return;
-                      }
-
-                      if (amount > available) {
-                        parentScaffoldMessenger.clearSnackBars();
-                        parentScaffoldMessenger.showSnackBar(
-                          const SnackBar(
-                            content: Text('Insufficient available balance'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                        return;
-                      }
-
-                      if (remaining <= 0) {
-                        parentScaffoldMessenger.clearSnackBars();
-                        parentScaffoldMessenger.showSnackBar(
-                          const SnackBar(
-                            content: Text('This goal is already fully funded'),
-                            backgroundColor: Colors.orange,
-                          ),
-                        );
-                        return;
-                      }
-
-                      // Cap the amount to remaining if user tries to allocate more
-                      final actualAmount = amount > remaining ? remaining : amount;
-
-                      if (amount > remaining) {
-                        parentScaffoldMessenger.clearSnackBars();
-                        parentScaffoldMessenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Allocating JOD ${actualAmount.toStringAsFixed(2)} (capped to remaining goal amount)',
-                            ),
-                            backgroundColor: Colors.orange,
-                          ),
-                        );
-                      }
-
-                      Navigator.pop(sheetContext);
-                      _allocateToGoal(goalId, goal, actualAmount);
-                    },
-                    child: const Text('Allocate'),
+                  Text(
+                    'Remaining to reach goal: JOD ${remaining.toStringAsFixed(2)}',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-            ],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: amountController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: InputDecoration(
+                labelText: 'Amount to Allocate',
+                prefixText: 'JOD ',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              autofocus: true,
+            ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: currentAmount > 0
+                    ? () {
+                        Navigator.pop(dialogContext);
+                        _showDeallocateDialog(goalId, goal);
+                      }
+                    : null,
+                child: Text(
+                  'Remove from goal',
+                  style: TextStyle(
+                    color: currentAmount > 0 ? Colors.red : Colors.grey,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
           ),
-        );
-      },
+          ElevatedButton(
+            onPressed: () {
+              final amount = double.tryParse(amountController.text);
+              if (amount == null || amount <= 0) {
+                parentScaffoldMessenger.clearSnackBars();
+                parentScaffoldMessenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Please enter a valid amount'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              if (amount > available) {
+                parentScaffoldMessenger.clearSnackBars();
+                parentScaffoldMessenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Insufficient available balance'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              if (remaining <= 0) {
+                parentScaffoldMessenger.clearSnackBars();
+                parentScaffoldMessenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('This goal is already fully funded'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+                return;
+              }
+
+              // Cap the amount to remaining if user tries to allocate more
+              final actualAmount = amount > remaining ? remaining : amount;
+
+              if (amount > remaining) {
+                parentScaffoldMessenger.clearSnackBars();
+                parentScaffoldMessenger.showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Allocating JOD ${actualAmount.toStringAsFixed(2)} (capped to remaining goal amount)',
+                    ),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+              }
+
+              Navigator.pop(dialogContext);
+              _allocateToGoal(goalId, goal, actualAmount);
+            },
+            child: const Text('Allocate'),
+          ),
+        ],
+      ),
     );
   }
 
