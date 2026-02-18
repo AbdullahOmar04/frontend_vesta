@@ -42,6 +42,7 @@ flutter:
     - assets/images/jopacc.png
     - assets/images/budgeting.png
     - assets/images/ahli.jpeg
+    - assets/images/cboj.png
 
   fonts:
     - family: Poppins

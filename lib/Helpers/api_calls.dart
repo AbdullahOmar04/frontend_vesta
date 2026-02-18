@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print, no_leading_underscores_for_local_identifiers
 
 import 'dart:convert';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -79,6 +80,8 @@ Future<void> getTransactions() async {
       final Uri url;
       if (provider == 'Ahli') {
         url = Uri.parse("$baseUrl/banks/ahli/get_transactions/$uid/$accountId");
+      } else if (provider == 'Capital') {
+        url = Uri.parse("$baseUrl/banks/capital/get_transactions/$uid/$accountId");
       } else {
         url = Uri.parse("$baseUrl/get_transactions/$uid/$accountId");
       }
@@ -328,13 +331,18 @@ Future<Map<String, dynamic>?> startAhliLink() async {
   if (user == null) return null;
 
   final url = Uri.parse("$baseUrl/banks/ahli/start_link/${user.uid}");
+  final client = HttpClient();
   try {
-    final resp = await http.get(url);
-    if (resp.statusCode == 200) {
-      return jsonDecode(resp.body) as Map<String, dynamic>;
+    final request = await client.getUrl(url);
+    final response = await request.close();
+    final body = await response.transform(utf8.decoder).join();
+    if (response.statusCode == 200) {
+      return jsonDecode(body) as Map<String, dynamic>;
     }
   } catch (e) {
     print("Error starting Ahli link: $e");
+  } finally {
+    client.close();
   }
   return null;
 }
@@ -387,6 +395,84 @@ Future<void> getAhliTransactions() async {
     }
   } catch (e) {
     print("Error getting Ahli accounts from Firestore: $e");
+  }
+}
+
+// ─── Capital Bank (CBOJ) ───
+
+/// Initiates the Capital Bank OAuth link flow.
+/// Returns a Map with { "authUrl": "...", "consentRef": "..." } on success,
+/// or null on failure.
+Future<Map<String, dynamic>?> startCapitalLink() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return null;
+
+  final url = Uri.parse("$baseUrl/banks/capital/start_link/${user.uid}");
+  final client = HttpClient()
+    ..connectionTimeout = const Duration(seconds: 60);
+  try {
+    final request = await client.getUrl(url);
+    final response = await request.close().timeout(const Duration(seconds: 120));
+    final body = await response.transform(utf8.decoder).join();
+    if (response.statusCode == 200) {
+      return jsonDecode(body) as Map<String, dynamic>;
+    }
+  } catch (e) {
+    print("Error starting Capital link: $e");
+  } finally {
+    client.close();
+  }
+  return null;
+}
+
+/// Re-syncs Capital Bank accounts from the bank into Firestore.
+Future<void> syncCapitalAccounts() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+
+  final url = Uri.parse("$baseUrl/banks/capital/sync_accounts/${user.uid}");
+  try {
+    final resp = await http.get(url);
+    if (resp.statusCode == 200) {
+      final data = jsonDecode(resp.body);
+      print("Synced Capital accounts: $data");
+    }
+  } catch (e) {
+    print("Error syncing Capital accounts: $e");
+  }
+}
+
+/// Fetches transactions for all linked Capital Bank accounts.
+Future<void> getCapitalTransactions() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+
+  final uid = user.uid;
+
+  try {
+    final accountsSnap = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(uid)
+        .collection("accounts")
+        .where('linked', isEqualTo: true)
+        .where('provider', isEqualTo: 'Capital')
+        .get();
+
+    for (var doc in accountsSnap.docs) {
+      final accountId = doc.id;
+      final url = Uri.parse("$baseUrl/banks/capital/get_transactions/$uid/$accountId");
+      try {
+        final response = await http.get(url);
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          print("Synced Capital transactions for $accountId: $data");
+        }
+      } catch (e) {
+        print("Error fetching Capital transactions for $accountId: $e");
+      }
+    }
+  } catch (e) {
+    print("Error getting Capital accounts from Firestore: $e");
   }
 }
 
