@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:0 20px;font-size:13px;color:#222;line-height:1.6}
+h1{font-size:22px;text-align:center;border-bottom:2px solid #333;padding-bottom:10px}
+h2{font-size:18px;border-bottom:1px solid #aaa;margin-top:32px;padding-bottom:4px}
+h3{font-size:15px;margin-top:20px;color:#333}
+h4{font-size:13px;margin-top:15px;font-style:italic}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+th,td{border:1px solid #ccc;padding:6px 10px;text-align:left;vertical-align:top}
+th{background:#f0f0f0;font-weight:bold}
+code{background:#f5f5f5;padding:1px 5px;border-radius:3px;font-family:monospace;font-size:12px}
+pre{background:#f5f5f5;padding:12px;border-radius:4px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all}
+blockquote{border-left:4px solid #888;margin-left:0;padding-left:16px;color:#555;font-style:italic}
+ul,ol{margin:6px 0;padding-left:26px}
+li{margin:4px 0}
+hr{border:none;border-top:1px solid #ddd;margin:28px 0}
+p{margin:6px 0}
+</style></head><body><h1>Vesta – Functionality Test Scope &amp; Feature Overview</h1>
+<p><strong>Version:</strong> 3.0</p>
+<p><strong>Date:</strong> February 2026</p>
+<p><strong>Platform:</strong> Android (Flutter/Dart client, Python backend)</p>
+<p><strong>Backend API:</strong> https://backend-vesta.onrender.com</p>
+<p><strong>Deep Link Domain:</strong> https://vestaapp.co</p>
+<hr>
+<h2>Test Credentials</h2>
+<table><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>
+<tr><td>Username</td><td>JOIN</td></tr>
+<tr><td>Password</td><td>Uu1111</td></tr>
+<tr><td>Test Phone 1</td><td>+962 7 1234 5678</td></tr>
+<tr><td>Test Phone 2</td><td>+962 7 1111 1111</td></tr>
+<tr><td>OTP (test numbers)</td><td>000000</td></tr>
+</tbody></table>
+<blockquote><strong>Note:</strong> These are Firebase test phone numbers. Real phone numbers receive actual SMS.</blockquote>
+<hr>
+<h2>1. App Summary</h2>
+<p><strong>Name:</strong> Vesta</p>
+<p><strong>Purpose:</strong> Personal Financial Management (PFM) app enabled by open banking.</p>
+<p><strong>Data Sources:</strong> JOPACC Open Banking sandbox (test banks &amp; test customers) + Firebase (auth &amp; app data).</p>
+<h3>Core Capabilities</h3>
+<ol>
+<li>Onboard and create an account with phone verification</li>
+<li>Link bank accounts via the JOPACC sandbox</li>
+<li>View consolidated balances and transactions</li>
+<li>Categorize spending</li>
+<li>Create a personal budget plan with customizable cycles</li>
+<li>Track spending vs budget with visual analytics</li>
+<li>Create a shared Household and track a joint budget</li>
+<li>Set and track savings goals</li>
+</ol>
+<hr>
+<h2>2. Onboarding &amp; Authentication Flow</h2>
+<h3>2.1 Sign Up (New User Journey)</h3>
+<p><strong>Step 1: Fill Registration Form</strong></p>
+<p>Screen title: "Join Us Today"</p>
+<p>Fields:</p>
+<ul>
+<li><strong>Username</strong> – alphanumeric and underscores only (<code>^[a-zA-Z0-9_]+$</code>)</li>
+<li><strong>Email</strong> – standard format (<code>^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$</code>)</li>
+<li><strong>Password</strong> – text field with show/hide toggle</li>
+<li><strong>Repeat Password</strong> – text field with show/hide toggle</li>
+</ul>
+<p>Password requirements are shown live below the password field as the user types, with a checkmark (green) or circle (grey) for each:</p>
+<ul>
+<li>At least 6 characters</li>
+<li>At least one uppercase letter (A–Z)</li>
+<li>At least one lowercase letter (a–z)</li>
+<li>At least one number (0–9)</li>
+</ul>
+<p>Validation (in order):</p>
+<ol>
+<li>All fields must be filled → "Please fill all fields"</li>
+<li>Passwords must match → "Passwords do not match"</li>
+<li>Password must meet all requirements → "Please ensure your password meets all requirements"</li>
+<li>Username format check → "Username can only contain letters, numbers, and underscores"</li>
+<li>Email format check → "Please enter a valid email address"</li>
+<li>Username uniqueness check against <code>usernames</code> collection (fallback: <code>users</code> collection) → "Username already taken. Please choose another one."</li>
+<li>Email uniqueness check against <code>emails</code> collection (fallback: <code>users</code> collection) → "Email already registered. Please use another email or login."</li>
+</ol>
+<p>Button: <strong>Continue</strong> (navigates to phone number step if all checks pass)</p>
+<hr>
+<p><strong>Step 2: Phone Number Entry</strong></p>
+<p>Screen title: "Enter your phone number"</p>
+<ul>
+<li>Country code <code>+962</code> shown as fixed prefix</li>
+<li>User enters Jordan number: 9 digits starting with 7 (<code>^7\d{8}$</code>)</li>
+<li>Invalid format → "Enter a valid Jordan number starting with 7 (e.g. 79xxxxxxx)"</li>
+<li>Button: <strong>Send</strong> → triggers Firebase phone verification (sends SMS)</li>
+<li>On blocked/too-many-requests → shows "Phone Number Blocked" dialog: Block Duration: 30 minutes</li>
+</ul>
+<hr>
+<p><strong>Step 3: OTP Verification</strong></p>
+<p>Screen title: "Enter OTP"</p>
+<ul>
+<li>6-digit input field</li>
+<li>Button: <strong>Verify &amp; Create Account</strong></li>
+<li>OTP validity: <strong>2 minutes</strong> (120 seconds), shown as live countdown "Code expires in MM:SS"</li>
+<li>Turns orange when ≤ 30 seconds remaining</li>
+<li>On expiry: "OTP has expired. Please request a new code."</li>
+<li>Resend cooldown: <strong>60 seconds</strong> — "Resend code in Xs" countdown</li>
+<li>After 60s: "Resend OTP" link appears</li>
+<li>Resending resets both the 2-minute validity timer and the 60-second cooldown</li>
+<li>Validation: must be exactly 6 digits → "Please enter a 6-digit OTP"</li>
+<li>On too many failed attempts: "Phone Number Blocked" dialog (30-minute block)</li>
+</ul>
+<p>On successful OTP verification:</p>
+<ul>
+<li>Performs final uniqueness check for username and email</li>
+<li>Atomically creates (Firestore batch write):</li>
+<li><code>usernames/{username.toLowerCase()}</code> document</li>
+<li><code>emails/{email.toLowerCase()}</code> document</li>
+<li><code>users/{uid}</code> document with fields:</li>
+</ul>
+<pre>
+    username, email, phoneNumber,
+    currency: "JOD",
+    totalBalance: 0.0,
+    totalIncome: 0.0,
+    totalExpense: 0.0,
+    dayOfMonth: 28,
+    householdIds: [],
+    createdAt: serverTimestamp
+</pre>
+<ul>
+<li>Creates 4 default spending categories in <code>users/{uid}/categories/</code>:</li>
+<li>Food And Drinks (expense)</li>
+<li>Groceries (expense)</li>
+<li>Entertainment (expense)</li>
+<li>Others (expense)</li>
+<li>Navigates to the Bank Linking screen (ChooseBankSplash)</li>
+</ul>
+<hr>
+<h3>2.2 Login (Returning User)</h3>
+<p>Screen title: "Welcome Back"</p>
+<p>Subtitle: "Login with your username or email"</p>
+<p>Fields:</p>
+<ul>
+<li><strong>Username or Email</strong> – accepts either format</li>
+<li><strong>Password</strong> – with show/hide toggle</li>
+</ul>
+<p>Logic:</p>
+<ul>
+<li>If identifier contains <code>@</code> → treats as email directly</li>
+<li>Otherwise → looks up username in <code>users</code> collection to get email, then authenticates</li>
+</ul>
+<p>Buttons:</p>
+<ul>
+<li><strong>Login</strong> – submits credentials</li>
+<li><strong>Fingerprint icon</strong> – appears if device supports biometrics AND biometric login is enabled in Settings; grayed out if not enabled</li>
+</ul>
+<p>Links:</p>
+<ul>
+<li><strong>Forgot Password?</strong> → opens a dialog where user enters email → sends Firebase password reset email → "Password reset email sent. Please check your inbox."</li>
+<li><strong>Sign Up</strong> → navigates to Register screen</li>
+</ul>
+<p>Error messages:</p>
+<ul>
+<li>Wrong credentials → "Invalid username or password" (generic, no account enumeration)</li>
+<li>Too many attempts → "Too many attempts. Please try again later."</li>
+<li>Network error → "Network error. Please check your connection."</li>
+</ul>
+<p>On successful login:</p>
+<ul>
+<li><code>handleBudgetCycleOnLogin()</code> is called (background process — finalizes previous budget cycle, initializes current cycle if needed)</li>
+<li>Navigates to Main Screen</li>
+</ul>
+<hr>
+<h3>2.3 Validation Rules Summary</h3>
+<table><thead><tr><th>Field</th><th>Rule</th><th>Error Message</th></tr></thead><tbody>
+<tr><td>Username</td><td>Alphanumeric + underscore only</td><td>"Username can only contain letters, numbers, and underscores"</td></tr>
+<tr><td>Username</td><td>Must be unique</td><td>"Username already taken. Please choose another one."</td></tr>
+<tr><td>Email</td><td>Valid email format</td><td>"Please enter a valid email address"</td></tr>
+<tr><td>Email</td><td>Must be unique</td><td>"Email already registered. Please use another email or login."</td></tr>
+<tr><td>Password</td><td>Must match repeat</td><td>"Passwords do not match"</td></tr>
+<tr><td>Password</td><td>≥6 chars, uppercase, lowercase, number</td><td>"Please ensure your password meets all requirements"</td></tr>
+<tr><td>Phone</td><td>Jordanian format (7XXXXXXXX)</td><td>"Enter a valid Jordan number starting with 7 (e.g. 79xxxxxxx)"</td></tr>
+<tr><td>OTP</td><td>Exactly 6 digits</td><td>"Please enter a 6-digit OTP"</td></tr>
+</tbody></table>
+<hr>
+<h2>3. Home Screen</h2>
+<p>Accessed after login. Shows:</p>
+<ul>
+<li><strong>App bar:</strong> "Welcome {username}"</li>
+<li><strong>Side drawer</strong> (hamburger menu): navigation to all main sections</li>
+</ul>
+<h3>Total Balance Card</h3>
+<ul>
+<li>Displays <code>JOD {totalBalance}</code> (sum of all linked active accounts)</li>
+<li>Tapping navigates to the Accounts page</li>
+</ul>
+<h3>Income &amp; Expense Row</h3>
+<ul>
+<li><strong>Total Income</strong> (green, arrow-up icon) – tappable → opens income input dialog to update income</li>
+<li><strong>Total Expense</strong> (red, arrow-down icon) – read-only display</li>
+</ul>
+<h3>Quick-Action Buttons (2×2 grid)</h3>
+<table><thead><tr><th>Button</th><th>Destination</th></tr></thead><tbody>
+<tr><td>Budgeting</td><td>Personal Budget Screen</td></tr>
+<tr><td>Spendings</td><td>Spending Analysis Screen</td></tr>
+<tr><td>Savings</td><td>Savings Goals Screen</td></tr>
+<tr><td>Household</td><td>Household List Screen</td></tr>
+</tbody></table>
+<hr>
+<h2>4. Accounts &amp; Transactions</h2>
+<h3>4.1 Accounts Screen</h3>
+<p>Accessible from: Profile → Linked Accounts, or Home → Total Balance card</p>
+<p>Displays all accounts where <code>linked: true</code>.</p>
+<p>Each account card shows:</p>
+<ul>
+<li>Bank name (e.g., "Bank of JoPACC")</li>
+<li>Account type (savings / current / salary / checking / payroll / merchant / operating)</li>
+<li>Masked IBAN — first 6 characters + <code>...</code> + last 4 digits (e.g., <code>JO94AB...3234</code>)</li>
+<li>Balance (JOD)</li>
+<li>Status flags: active / suspended / closed; credit locked; debit locked (shown when applicable)</li>
+</ul>
+<p><strong>FAB (+):</strong> navigates to bank linking flow</p>
+<hr>
+<h3>4.2 Bank Account Linking (JOPACC Sandbox)</h3>
+<p>From Accounts screen, tap FAB → <strong>ChooseBankSplash</strong> → select <strong>Bank of JoPACC</strong></p>
+<p><strong>JopaccLinkScreen – 3-step process:</strong></p>
+<p><strong>Step 1: Login</strong></p>
+<ul>
+<li>Enter JoPACC sandbox username and password</li>
+<li>Credentials stored in <code>providers.jopacc.username</code> field</li>
+</ul>
+<p><strong>Step 2: Consent</strong></p>
+<ul>
+<li>User reviews and accepts data access permissions:</li>
+<li>Read account details and balances</li>
+<li>Read transactions</li>
+<li>Read standing orders</li>
+</ul>
+<p><strong>Step 3: Account Selection</strong></p>
+<ul>
+<li>Backend fetches accounts from JOPACC API</li>
+<li>User selects which accounts to link (checkboxes)</li>
+<li>Linked accounts stored in <code>users/{uid}/accounts</code> with <code>linked: true</code></li>
+</ul>
+<p>Backend endpoint: <code>GET /sync_accounts/{uid}/{username}</code></p>
+<hr>
+<h3>4.3 Transaction Sync</h3>
+<ul>
+<li>User taps "Sync" from Accounts or Transactions screen</li>
+<li>App calls <code>GET /get_transactions/{uid}/{accountId}</code> for each linked account</li>
+<li>Backend fetches from JOPACC API and stores in Firestore</li>
+<li>Idempotent: re-syncing updates fields but <strong>preserves user-assigned categories</strong></li>
+</ul>
+<hr>
+<h3>4.4 Standing Orders / Upcoming Payments Sync</h3>
+<ul>
+<li>App calls <code>GET /get_sosps/{uid}/{accountId}</code> for each linked account</li>
+<li>Standing orders stored under account sub-collection</li>
+<li>Data includes: beneficiary, amount, currency, next payment date, status, frequency</li>
+</ul>
+<hr>
+<h3>4.5 Transactions Screen</h3>
+<p><strong>Main View:</strong></p>
+<ul>
+<li>All transactions from all linked accounts</li>
+<li>Sorted by date, newest first</li>
+</ul>
+<p><strong>Filters (chips/dropdowns):</strong></p>
+<ul>
+<li>Account: "All Accounts" or specific account</li>
+<li>Category: "All Categories" or specific category</li>
+<li>Time period: All / Today / Last 7 Days / Last 30 Days / Month / Cycle</li>
+</ul>
+<p><strong>Transaction Card shows:</strong></p>
+<ul>
+<li>Amount: green for credit (incoming), red for debit (outgoing), in JOD</li>
+<li>Masked account label (e.g., <code>•••• 3234</code>)</li>
+<li>Date</li>
+<li>Merchant name</li>
+<li>Category dropdown (user can assign/change)</li>
+<li><strong>Assign button</strong> — visible only if user is a member of at least one household; opens bottom sheet to select which household to assign the transaction to</li>
+</ul>
+<p><strong>Tap on transaction → full details:</strong></p>
+<ul>
+<li>Full description</li>
+<li>Merchant information</li>
+<li>Transaction ID</li>
+<li>Account details</li>
+<li>Source: Open Banking / SMS / Manual</li>
+</ul>
+<p><strong>Transaction Sources:</strong></p>
+<ol>
+<li><code>openBanking</code> — synced from JOPACC API</li>
+<li><code>sms</code> — user pastes a bank SMS, app parses amount, merchant, date, type</li>
+<li><code>manual</code> — user manually creates transaction</li>
+</ol>
+<hr>
+<h3>4.6 Add Transaction (Manual Entry)</h3>
+<p>Access: "+" button on Transactions screen</p>
+<p>Fields:</p>
+<ul>
+<li><strong>Amount</strong> — numeric (must be &gt; 0)</li>
+<li><strong>Type</strong> — Debit or Credit toggle</li>
+<li><strong>Merchant</strong> — text input</li>
+<li><strong>Notes</strong> — text area</li>
+<li><strong>Date</strong> — date picker (past dates only; <code>lastDate: DateTime.now()</code>)</li>
+<li><strong>Account</strong> — dropdown of linked accounts (required)</li>
+<li><strong>Category</strong> — category dropdown</li>
+</ul>
+<p>Validation:</p>
+<ul>
+<li>Amount must be &gt; 0</li>
+<li>Account must be selected</li>
+<li>Date cannot be in the future</li>
+</ul>
+<hr>
+<h2>5. Budgeting &amp; Spending Analysis</h2>
+<h3>5.1 Plan Budget (Setup Screen)</h3>
+<p>Access: from Personal Budget Screen</p>
+<p><strong>Purpose:</strong> Define monthly budget using percentage allocations.</p>
+<p><strong>Fields:</strong></p>
+<ul>
+<li><strong>Total Monthly Income</strong> (JOD) — note: this is planned/expected income</li>
+<li><strong>Savings %</strong> — portion for savings goals</li>
+<li><strong>Essential Spending %</strong> — necessities (rent, groceries, bills, food)</li>
+<li><strong>Luxuries &amp; Entertainment %</strong> — non-essential spending</li>
+</ul>
+<p><strong>Validation:</strong></p>
+<ul>
+<li>Each field: 0–100%</li>
+<li>Sum of all three cannot exceed 100%</li>
+<li>Sum &lt; 100% is allowed (unallocated buffer)</li>
+</ul>
+<p><strong>On save:</strong> Stores budget document at <code>users/{uid}/budget/{YYYY-MM}</code> and updates <code>users/{uid}.totalIncome</code></p>
+<hr>
+<h3>5.2 Personal Budget Screen</h3>
+<p><strong>Spending Budget Bar (top of screen):</strong></p>
+<ul>
+<li>Top value: current cycle spending (JOD) = essential + luxury transactions</li>
+<li>Bottom value: budget amount = (income × spending%) + (income × luxuries%)</li>
+<li>Progress bar color: green (&lt; 80%), yellow (80–100%), red (&gt; 100%)</li>
+<li>Only counts transactions with assigned categories</li>
+<li>Only counts debit transactions within current cycle dates</li>
+</ul>
+<p><strong>6-Month Line Chart:</strong></p>
+<ul>
+<li>Blue solid line: total spending per cycle</li>
+<li>Grey dashed line: budget plan per cycle</li>
+<li>Green solid line: actual savings transfers</li>
+<li>X-axis: last 6 budget cycles; Y-axis: JOD amounts</li>
+</ul>
+<p><strong>Budget Plan Card:</strong></p>
+<ul>
+<li>Savings allocation: income × saving%</li>
+<li>Essential Spending allocation: income × spending%</li>
+<li>Luxuries allocation: income × luxuries%</li>
+</ul>
+<p><strong>Upcoming Payments:</strong></p>
+<ul>
+<li>Lists active standing orders (SOSPs) showing:</li>
+<li>Beneficiary name</li>
+<li>Next payment date</li>
+<li>Amount (JOD)</li>
+<li>Frequency (e.g., Monthly, Weekly)</li>
+<li>Status indicator (active/inactive)</li>
+</ul>
+<p><strong>Spending Categories:</strong></p>
+<ul>
+<li>Top 5 categories by absolute amount</li>
+<li>Each row: category icon &amp; name, transaction count (current cycle), net amount (red for debit, green for credit)</li>
+<li>"See All" → full category breakdown</li>
+</ul>
+<p><strong>Latest Transactions:</strong></p>
+<ul>
+<li>5 most recent transactions (same card format as Transactions screen)</li>
+<li>Changing category on a transaction immediately recalculates spending bar</li>
+</ul>
+<p><strong>Time Period Filters:</strong></p>
+<ul>
+<li>Day (today only)</li>
+<li>Week (last 7 days)</li>
+<li>Month (current calendar month)</li>
+<li>Year (current calendar year)</li>
+<li>Cycle (current budget cycle — default)</li>
+</ul>
+<hr>
+<h3>5.3 Budget Cycle Logic</h3>
+<p>The app uses a <strong>customizable budget cycle</strong> defined by a reset day (default: 28th).</p>
+<p><strong>Stored in:</strong> <code>users/{uid}.dayOfMonth</code> (default: 28)</p>
+<p><strong>Cycle calculation:</strong></p>
+<ul>
+<li>If today's day ≥ reset day: cycle runs from {current month, reset day} → {next month, reset day − 1}</li>
+<li>Example (reset = 28): Jan 28 → Feb 27</li>
+<li>If today's day &lt; reset day: cycle runs from {previous month, reset day} → {current month, reset day − 1}</li>
+<li>Example (reset = 28, today = Jan 15): Dec 28 → Jan 27</li>
+</ul>
+<p><strong>Label month:</strong> The month the cycle ends in (e.g., Dec 28 → Jan 27 = "2026-01")</p>
+<p><strong>Category-to-Bucket Mapping:</strong></p>
+<table><thead><tr><th>Category</th><th>Bucket</th><th>Counted in Spending</th></tr></thead><tbody>
+<tr><td>Groceries</td><td>Essential</td><td>Yes</td></tr>
+<tr><td>Food And Drinks</td><td>Essential</td><td>Yes</td></tr>
+<tr><td>Entertainment</td><td>Luxury</td><td>Yes</td></tr>
+<tr><td>Others</td><td>Luxury</td><td>Yes</td></tr>
+<tr><td>Savings</td><td>Savings</td><td>No (separate tracker)</td></tr>
+<tr><td>(uncategorized)</td><td>—</td><td>No</td></tr>
+</tbody></table>
+<hr>
+<h2>6. Savings Goals</h2>
+<h3>6.1 Savings Page</h3>
+<p><strong>Header card:</strong></p>
+<ul>
+<li>Total Savings (JOD) — from <code>users/{uid}.totalSavings</code></li>
+<li>Available to Allocate: Total Savings minus sum of all <code>currentAmount</code> across goals</li>
+</ul>
+<p><strong>Goals list:</strong> ordered by creation date (newest first)</p>
+<p><strong>Each goal card shows:</strong></p>
+<ul>
+<li>Emoji icon, goal title, duration</li>
+<li>Progress bar: current / target amount</li>
+<li>Percentage achieved</li>
+<li>Monthly savings amount</li>
+<li>Remaining amount (floored at 0)</li>
+<li>"Completed" badge when fully funded</li>
+</ul>
+<p><strong>Interactions:</strong></p>
+<ul>
+<li><strong>Tap</strong> → Allocate dialog</li>
+<li><strong>Long press</strong> → Delete confirmation dialog</li>
+<li><strong>FAB (+)</strong> → Create savings goal</li>
+</ul>
+<hr>
+<h3>6.2 Allocate Dialog</h3>
+<p>Shown when tapping a goal card.</p>
+<p>Displays:</p>
+<ul>
+<li>Available balance (totalSavings − already allocated)</li>
+<li>Current amount in goal</li>
+<li>Remaining amount to reach target</li>
+</ul>
+<p>Input: amount to allocate (JOD)</p>
+<p>Behaviour:</p>
+<ul>
+<li>Amount capped to remaining (if user enters more, it allocates only what's needed with a warning)</li>
+<li>Cannot exceed available balance → "Insufficient available balance"</li>
+<li>Cannot allocate to a fully funded goal → "This goal is already fully funded"</li>
+<li>"Remove from goal" link (visible if current amount &gt; 0) → opens deallocate dialog</li>
+</ul>
+<p><strong>Deallocate dialog:</strong></p>
+<ul>
+<li>Shows current amount in goal</li>
+<li>Input: amount to remove</li>
+<li>"Remove all" shortcut button</li>
+<li>Cannot remove more than current amount</li>
+</ul>
+<hr>
+<h3>6.3 Create Savings Goal</h3>
+<p><strong>Step 1 – Choose Goal Type:</strong></p>
+<p>Preset options:</p>
+<ul>
+<li>New Car 🚗</li>
+<li>Vacation 🏝️</li>
+<li>House 🏠</li>
+<li>Emergency Fund 🆘</li>
+</ul>
+<p>Button: <strong>"Add New Saving Goal"</strong> → Custom Goal dialog</p>
+<p><strong>Custom Goal dialog:</strong></p>
+<ul>
+<li>Goal Title (free text)</li>
+<li>Emoji picker: 16 options (💰 🎓 💍 🎮 📱 💻 🎸 ⚽ 🎨 📚 🏖️ ✈️ 🏥 👶 🐕 🎁)</li>
+<li>Color picker: 8 pastel color options</li>
+</ul>
+<p><strong>Step 2 – Goal Details:</strong></p>
+<p>Fields:</p>
+<ul>
+<li>Target Amount (JOD)</li>
+<li>Calculate by: <strong>Duration</strong> or <strong>Monthly Amount</strong> (toggle chips)</li>
+<li>Duration mode: enter months → monthly amount auto-calculated</li>
+<li>Monthly mode: enter monthly amount → duration auto-calculated</li>
+<li>Duration field (months) — displays human-readable format (e.g., "1 year and 3 months")</li>
+<li>Monthly Savings field (JOD)</li>
+</ul>
+<p>Summary card shown when all fields are filled.</p>
+<p>Validation:</p>
+<ul>
+<li>Target amount must be &gt; 0</li>
+<li>Duration must be &gt; 0</li>
+<li>Monthly amount must be &gt; 0</li>
+</ul>
+<p>Button: <strong>Create Savings Goal</strong> → saves to <code>users/{uid}/savings/</code> collection</p>
+<hr>
+<h2>7. Household Shared Budget</h2>
+<h3>7.1 Household List Screen</h3>
+<p>Access: Home → Household button or side drawer</p>
+<p><strong>If no households:</strong> empty state with "Create Household" button</p>
+<p><strong>If households exist:</strong> list of cards</p>
+<p>Each card shows:</p>
+<ul>
+<li>Household name</li>
+<li>Member count</li>
+<li>Tap → Household Detail page</li>
+<li>Long press → delete confirmation dialog (irreversible; removes from <code>users/{uid}.householdIds</code> and deletes <code>households/{householdId}</code>)</li>
+</ul>
+<p><strong>FAB (+) / "Create Household" button:</strong> opens Create Household flow</p>
+<hr>
+<h3>7.2 Create Household</h3>
+<p>Field: <strong>Household Name</strong> (required)</p>
+<p>On submit (atomic batch write):</p>
+<ul>
+<li>Creates <code>households/{householdId}</code> document:</li>
+</ul>
+<pre>
+  householdName: string,
+  createdBy: uid,
+  members: [uid],
+  budget: 0,
+  budgetResetDay: (user's dayOfMonth),
+  createdAt: serverTimestamp
+</pre>
+<ul>
+<li>Adds household ID to <code>users/{uid}.householdIds</code> array</li>
+</ul>
+<p>Navigates to Household Detail page.</p>
+<hr>
+<h3>7.3 Household Detail Screen</h3>
+<p><strong>Header:</strong></p>
+<ul>
+<li>Household name (tapping the edit icon opens rename dialog)</li>
+<li>Horizontal scrollable member avatars: profile picture (if set) or first letter of username in colored circle, with username below</li>
+</ul>
+<p><strong>Spending Overview Chart:</strong></p>
+<ul>
+<li>6-cycle line chart</li>
+<li>Blue solid: total household spending per cycle (essential + luxury)</li>
+<li>Grey dashed: household budget per cycle</li>
+<li>Data from <code>households/{householdId}/transactions</code></li>
+</ul>
+<p><strong>Budget Tracker Bar:</strong></p>
+<ul>
+<li>Shows current cycle spending vs household budget amount</li>
+<li>Tap → input dialog to set flat JOD budget amount (saved to <code>households/{householdId}.budget</code>)</li>
+<li>Color coding same as personal budget bar (green/yellow/red)</li>
+</ul>
+<p><strong>Spending Categories:</strong></p>
+<ul>
+<li>Top 5 categories by net amount (scoped to household transactions only)</li>
+<li>Shows: icon, name, transaction count (current cycle), net amount</li>
+<li>"See All" → full breakdown</li>
+</ul>
+<p><strong>Latest Transactions:</strong></p>
+<ul>
+<li>5 most recent transactions assigned to this household</li>
+<li>Shows: merchant, amount (red/green), date, category, "Assigned by: {username}"</li>
+<li>Tap "All Transactions" → Transactions screen filtered by this household</li>
+</ul>
+<p><strong>App bar actions:</strong></p>
+<ul>
+<li><strong>Invite Member</strong> (person_add icon) → generates invite link → share dialog</li>
+</ul>
+<hr>
+<h3>7.4 Inviting Members</h3>
+<p><strong>Flow:</strong></p>
+<ol>
+<li>Tap invite icon in household detail app bar</li>
+<li>App creates <code>invites/{inviteId}</code> document:</li>
+</ol>
+<pre>
+   householdId, inviterUid, inviterName, householdName,
+   status: "pending", createdAt: serverTimestamp
+</pre>
+<ol>
+<li>Deep link generated: <code>https://vestaapp.co/join?inviteId={inviteId}</code></li>
+<li>System share dialog opens (share via WhatsApp, SMS, Email, etc.)</li>
+</ol>
+<ul>
+<li>Message: "Join my household '{householdName}' on Vesta! Click here: {inviteLink}"</li>
+</ul>
+<p><strong>Receiver flow – not logged in:</strong></p>
+<ol>
+<li>Taps deep link → app opens</li>
+<li>Link stored internally in <code>_pendingInviteLink</code></li>
+<li>User goes through login/signup</li>
+<li>After login: "You're Invited!" dialog appears automatically</li>
+</ol>
+<p><strong>Receiver flow – already logged in:</strong></p>
+<ol>
+<li>Taps deep link → app opens</li>
+<li>"You're Invited!" dialog appears immediately</li>
+</ol>
+<p><strong>Invite dialog:</strong></p>
+<ul>
+<li>Title: "You're Invited!"</li>
+<li>Message: "{InviterName} has invited you to join {HouseholdName}"</li>
+<li>Buttons: <strong>Decline</strong> | <strong>Accept</strong></li>
+</ul>
+<p><strong>On Accept:</strong></p>
+<ul>
+<li>Updates invite: <code>status: "accepted"</code>, <code>acceptedByUid: currentUserUid</code></li>
+<li>Cloud Function adds user to household members array and adds household to user's <code>householdIds</code></li>
+<li>Success message: "Invite accepted! Joining household..."</li>
+</ul>
+<p><strong>Edge cases:</strong></p>
+<ul>
+<li>Self-invite → "You can't accept your own invite."</li>
+<li>Invalid invite ID → "Invite link is invalid or expired."</li>
+<li>Invites do not expire (no expiration logic currently)</li>
+</ul>
+<hr>
+<h3>7.5 Assigning Transactions to a Household</h3>
+<p>From the Transactions screen, if user is a member of at least one household:</p>
+<ul>
+<li>Each transaction card shows an <strong>Assign</strong> button</li>
+<li>Tap → bottom sheet lists user's households</li>
+<li>Select household → transaction is copied to <code>households/{householdId}/transactions/{transactionId}</code> with <code>assignedBy</code> and <code>assignedAt</code> fields</li>
+<li>Transaction now appears in the household's latest transactions, categories, and budget calculations</li>
+</ul>
+<hr>
+<h2>8. Profile Page</h2>
+<p><strong>Avatar:</strong> Shows profile picture (if set) or initials (first letter of each name part). Small camera icon badge at bottom-right.</p>
+<p><strong>Tap avatar:</strong></p>
+<ul>
+<li>Dialog: "Update Profile Picture"</li>
+<li>Options: "Choose from Gallery" or "Take a Photo"</li>
+<li>Image compressed to 50% quality, max 512×512px</li>
+<li>Uploaded to Firebase Storage at <code>profile_pictures/{uid}.jpg</code></li>
+<li>Download URL saved to <code>users/{uid}.profileImageUrl</code></li>
+<li>Loading spinner overlay shown during upload</li>
+</ul>
+<p><strong>Displayed info:</strong></p>
+<ul>
+<li>Username</li>
+<li>Email</li>
+<li>Phone number</li>
+<li>"Member since {Month Year}"</li>
+</ul>
+<p><strong>Stats row:</strong></p>
+<ul>
+<li>Linked Accounts count (only <code>linked: true</code>)</li>
+<li>Households count</li>
+<li>Savings Goals count</li>
+</ul>
+<p><strong>Menu items:</strong></p>
+<ul>
+<li><strong>Linked Accounts</strong> → Accounts screen</li>
+<li><strong>Budget Reset Day</strong> → dialog to enter day of month (1–31)</li>
+<li><strong>Settings</strong> → Settings screen</li>
+</ul>
+<p><strong>Logout:</strong></p>
+<ul>
+<li>Confirmation dialog: "Are you sure you want to logout?"</li>
+<li>On confirm: clears secure storage (tokens), signs out Firebase, navigates to login screen</li>
+</ul>
+<hr>
+<h2>9. Settings Screen</h2>
+<p><strong>Security section:</strong></p>
+<ul>
+<li><strong>Biometric Login</strong> toggle (only shown if device supports biometrics)</li>
+<li>Enabling: prompts biometric auth first to confirm ("Authenticate to enable biometric login")</li>
+<li>If biometrics not available: shows "Not available on this device"</li>
+<li>If enabled: fingerprint icon on login screen becomes active</li>
+</ul>
+<hr>
+<h2>10. Navigation Structure</h2>
+<p><strong>Bottom navigation bar (MainScreen):</strong></p>
+<table><thead><tr><th>Tab</th><th>Screen</th></tr></thead><tbody>
+<tr><td>Home</td><td>Home page</td></tr>
+<tr><td>Transactions</td><td>Transactions list</td></tr>
+<tr><td>(center)</td><td>—</td></tr>
+<tr><td>Spending</td><td>Spending Analysis</td></tr>
+<tr><td>Profile</td><td>Profile page</td></tr>
+</tbody></table>
+<p><strong>Side drawer:</strong> accessible from Home screen hamburger menu</p>
+<hr>
+<h2>11. Deep Link Handling</h2>
+<p><strong>Domain:</strong> vestaapp.co</p>
+<p><strong>Path:</strong> /join</p>
+<p><strong>Query parameter:</strong> inviteId</p>
+<p><strong>Handled by:</strong> <code>DeepLinkService</code> (singleton, initialized once in main app widget)</p>
+<p><strong>Scenarios:</strong></p>
+<ul>
+<li><strong>Cold start (app terminated):</strong> app opens → user is not logged in → link stored → shown after login</li>
+<li><strong>Warm link (app running):</strong> dialog shown immediately if user is logged in; stored for after-login if not</li>
+</ul>
+<hr>
+<h2>12. Budget Cycle Finalization (Automated)</h2>
+<p>Triggered automatically on every login via <code>handleBudgetCycleOnLogin()</code>.</p>
+<p>Process:</p>
+<ol>
+<li>Determine current and previous cycle dates based on <code>dayOfMonth</code></li>
+<li>If previous cycle budget document exists:</li>
+</ol>
+<ul>
+<li>Query all transactions within previous cycle date range</li>
+<li>Calculate actual spending per category-to-bucket mapping</li>
+<li>Calculate actual savings</li>
+<li>Update previous cycle document with <code>actualSpending</code> and <code>actualSavings</code></li>
+</ul>
+<ol>
+<li>If current cycle document doesn't exist:</li>
+</ol>
+<ul>
+<li>Copy percentages from last known plan</li>
+<li>Use current <code>totalIncome</code></li>
+<li>Create new cycle document with expected values and date timestamps</li>
+</ul>
+<p>This is a background process — user sees no UI for it.</p>
+<hr>
+<h2>13. Known Limitations (Not Yet Implemented)</h2>
+<ul>
+<li>No Arabic language support</li>
+<li>No in-app "Change Password" feature (forgot password via email works)</li>
+<li>Spending budget bar does not open a detailed view on tap</li>
+<li>Total savings amount cannot be manually edited by the user</li>
+<li>Invite links do not expire</li>
+<li>SMS transaction parsing has no format validation (any pasted text is attempted)</li>
+<li>Account label masking is inconsistent between Open Banking transactions (masked) and manually entered transactions (not masked)</li>
+</ul></body></html>
