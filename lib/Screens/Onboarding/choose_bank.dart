@@ -934,20 +934,18 @@ class _CapitalLinkScreenState extends State<CapitalLinkScreen> {
     });
 
     try {
-      final resp = await http.get(Uri.parse(callbackUrl));
-      print("Capital callback response: ${resp.statusCode}");
-
-      if (resp.statusCode != 200) {
-        if (mounted) {
-          setState(() {
-            _error = 'Capital Bank link failed. Please try again.';
-            _syncing = false;
-          });
-        }
-        return;
-      }
-
-      await _pollCapitalAccounts();
+      // Race: backend callback (slow — does token exchange + account sync)
+      // vs Firestore poll (fast — returns as soon as accounts appear).
+      // Whichever finishes first unblocks the UI.
+      await Future.any([
+        http.get(Uri.parse(callbackUrl)).then((resp) {
+          print("Capital callback response: ${resp.statusCode}");
+          if (resp.statusCode != 200) {
+            throw Exception('Capital Bank link failed (${resp.statusCode})');
+          }
+        }),
+        _pollCapitalAccounts(),
+      ]);
     } catch (e) {
       print("Error during Capital callback: $e");
       if (mounted) {

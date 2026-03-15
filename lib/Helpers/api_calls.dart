@@ -9,6 +9,12 @@ import 'package:http/http.dart' as http;
 
 final String baseUrl = dotenv.env['API_URL'] ?? '';
 
+Future<Map<String, String>> _authHeaders() async {
+  final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+  if (token == null) throw Exception('Not authenticated');
+  return {'Authorization': 'Bearer $token'};
+}
+
 Future<void> syncAccounts([String? username]) async {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) return;
@@ -39,7 +45,7 @@ Future<void> syncAccounts([String? username]) async {
   );
 
   try {
-    final resp = await http.get(url);
+    final resp = await http.get(url, headers: await _authHeaders());
     if (resp.statusCode == 200) {
       final data = jsonDecode(resp.body);
       print("✅ Synced accounts: $data");
@@ -87,12 +93,12 @@ Future<void> getTransactions() async {
       }
 
       try {
-        final response = await http.get(url);
+        final response = await http.get(url, headers: await _authHeaders());
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           print("✅ Synced transactions for account $accountId: $data");
         } else {
-          print("❌ Failed for $accountId: ${response.body}");
+          print("❌ Failed for $accountId: ${response.statusCode} ${response.body}");
         }
       } catch (e) {
         print("⚠️ Error fetching transactions for $accountId: $e");
@@ -334,6 +340,8 @@ Future<Map<String, dynamic>?> startAhliLink() async {
   final client = HttpClient();
   try {
     final request = await client.getUrl(url);
+    final headers = await _authHeaders();
+    headers.forEach((k, v) => request.headers.set(k, v));
     final response = await request.close();
     final body = await response.transform(utf8.decoder).join();
     if (response.statusCode == 200) {
@@ -354,7 +362,7 @@ Future<void> syncAhliAccounts() async {
 
   final url = Uri.parse("$baseUrl/banks/ahli/sync_accounts/${user.uid}");
   try {
-    final resp = await http.get(url);
+    final resp = await http.get(url, headers: await _authHeaders());
     if (resp.statusCode == 200) {
       final data = jsonDecode(resp.body);
       print("Synced Ahli accounts: $data");
@@ -384,7 +392,7 @@ Future<void> getAhliTransactions() async {
       final accountId = doc.id;
       final url = Uri.parse("$baseUrl/banks/ahli/get_transactions/$uid/$accountId");
       try {
-        final response = await http.get(url);
+        final response = await http.get(url, headers: await _authHeaders());
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           print("Synced Ahli transactions for $accountId: $data");
@@ -412,6 +420,8 @@ Future<Map<String, dynamic>?> startCapitalLink() async {
     ..connectionTimeout = const Duration(seconds: 60);
   try {
     final request = await client.getUrl(url);
+    final headers = await _authHeaders();
+    headers.forEach((k, v) => request.headers.set(k, v));
     final response = await request.close().timeout(const Duration(seconds: 120));
     final body = await response.transform(utf8.decoder).join();
     if (response.statusCode == 200) {
@@ -432,7 +442,7 @@ Future<void> syncCapitalAccounts() async {
 
   final url = Uri.parse("$baseUrl/banks/capital/sync_accounts/${user.uid}");
   try {
-    final resp = await http.get(url);
+    final resp = await http.get(url, headers: await _authHeaders());
     if (resp.statusCode == 200) {
       final data = jsonDecode(resp.body);
       print("Synced Capital accounts: $data");
@@ -462,7 +472,7 @@ Future<void> getCapitalTransactions() async {
       final accountId = doc.id;
       final url = Uri.parse("$baseUrl/banks/capital/get_transactions/$uid/$accountId");
       try {
-        final response = await http.get(url);
+        final response = await http.get(url, headers: await _authHeaders());
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           print("Synced Capital transactions for $accountId: $data");
@@ -501,7 +511,7 @@ Future<void> getSOSPs() async {
       final url = Uri.parse("$baseUrl/get_sosps/$uid/$accountId");
 
       try {
-        final response = await http.get(url);
+        final response = await http.get(url, headers: await _authHeaders());
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           print("✅ Synced SOSPs for account $accountId: $data");
