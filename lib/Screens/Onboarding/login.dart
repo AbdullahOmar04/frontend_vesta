@@ -389,6 +389,9 @@ class _LoginState extends State<Login> {
                     const SizedBox(height: 16),
                     TextField(
                       controller: identifierController,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      textCapitalization: TextCapitalization.none,
                       decoration: InputDecoration(
                         labelText: 'Username or Email',
                         border: OutlineInputBorder(

@@ -12,7 +12,20 @@
           "package_name": "com.example.vesta"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1089402463760-on07qmhv0u0ms9ubhitmi8qqq6a6duh7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.vesta",
+            "certificate_hash": "7126bec370c52a87e38bb74168748474480f9b30"
+          }
+        },
+        {
+          "client_id": "1089402463760-er0rh7hgr7r8551jdo7uaea1298pp69e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAfPTW8al_dnzClUKa17rJ1QlsjunbQQNs"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1089402463760-er0rh7hgr7r8551jdo7uaea1298pp69e.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1089402463760-v0m1stsojh9ke27n4gvhrsm1lib7g4nb.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.frontendVesta"
+              }
+            }
+          ]
         }
       }
     },
@@ -31,7 +56,20 @@
           "package_name": "com.example.vesta.debug"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1089402463760-bdoco5jbt1lj02ohp06v0edlj5g6jael.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.vesta.debug",
+            "certificate_hash": "87659e328c347f11f980d64bac657680c4c0e6a7"
+          }
+        },
+        {
+          "client_id": "1089402463760-er0rh7hgr7r8551jdo7uaea1298pp69e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAfPTW8al_dnzClUKa17rJ1QlsjunbQQNs"
@@ -39,7 +77,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1089402463760-er0rh7hgr7r8551jdo7uaea1298pp69e.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1089402463760-v0m1stsojh9ke27n4gvhrsm1lib7g4nb.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.frontendVesta"
+              }
+            }
+          ]
         }
       }
     }
