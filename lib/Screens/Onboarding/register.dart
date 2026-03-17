@@ -282,6 +282,9 @@ class _RegisterState extends State<Register> {
 
                     TextField(
                       controller: _username,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      textCapitalization: TextCapitalization.none,
                       decoration: InputDecoration(
                         labelText: 'Username',
                         border: OutlineInputBorder(

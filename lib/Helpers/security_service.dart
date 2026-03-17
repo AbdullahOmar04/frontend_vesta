@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:freerasp/freerasp.dart';
@@ -15,6 +17,12 @@ class SecurityService {
     // Skip in debug mode for development
     if (kDebugMode) {
       debugPrint('SecurityService: Skipped in debug mode');
+      _isInitialized = true;
+      return;
+    }
+
+    // Skip on iOS until Apple Team ID is configured
+    if (Platform.isIOS) {
       _isInitialized = true;
       return;
     }
