@@ -43,6 +43,7 @@ flutter:
     - assets/images/budgeting.png
     - assets/images/ahli.jpeg
     - assets/images/cboj.png
+    - assets/images/etihad.jpg
 
   fonts:
     - family: Poppins

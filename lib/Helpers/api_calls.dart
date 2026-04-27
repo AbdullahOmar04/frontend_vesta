@@ -88,6 +88,18 @@ Future<void> getTransactions() async {
         url = Uri.parse("$baseUrl/banks/ahli/get_transactions/$uid/$accountId");
       } else if (provider == 'Capital') {
         url = Uri.parse("$baseUrl/banks/capital/get_transactions/$uid/$accountId");
+      } else if (provider == 'Etihad') {
+        // Etihad transactions are synced via sync_transactions endpoint;
+        // get_transactions requires customer_id + account_number, so we
+        // read them from the Firestore account doc.
+        final accData = doc.data();
+        final customerId = accData['customerId']?.toString() ?? '';
+        final accountNumber = accData['accountNumber']?.toString() ?? '';
+        if (customerId.isEmpty || accountNumber.isEmpty) {
+          print("Skipping Etihad account $accountId: missing customerId or accountNumber");
+          continue;
+        }
+        url = Uri.parse("$baseUrl/banks/etihad/get_transactions/$uid/$customerId/$accountNumber");
       } else {
         url = Uri.parse("$baseUrl/get_transactions/$uid/$accountId");
       }
@@ -484,6 +496,184 @@ Future<void> getCapitalTransactions() async {
   } catch (e) {
     print("Error getting Capital accounts from Firestore: $e");
   }
+}
+
+// ─── Etihad Bank (Bank Al Etihad) ───
+
+/// Creates a sandbox test user on the Finto platform.
+/// Returns {"status": "success", "data": {...}} on success.
+Future<Map<String, dynamic>?> etihadCreateUser({
+  required String username,
+  required String password,
+  required String email,
+  required String firstName,
+  required String lastName,
+  required String phoneNumber,
+}) async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return null;
+
+  final url = Uri.parse("$baseUrl/banks/etihad/create_user");
+  try {
+    final resp = await http.post(
+      url,
+      headers: {
+        ...await _authHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'username': username,
+        'password': password,
+        'email': email,
+        'first_name': firstName,
+        'last_name': lastName,
+        'phone_number': phoneNumber,
+      }),
+    );
+    if (resp.statusCode == 200) {
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    }
+    print("Etihad create_user failed: ${resp.statusCode} ${resp.body}");
+    return {'error': resp.statusCode, 'detail': resp.body};
+  } catch (e) {
+    print("Error in etihadCreateUser: $e");
+  }
+  return null;
+}
+
+/// Step 1: Send username + password to backend → triggers OTP to user's phone.
+/// Returns {"status": "otp_sent"} or {"status": "authenticated"} (no 2FA).
+Future<Map<String, dynamic>?> etihadLoginInit(String username, String password) async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return null;
+
+  final url = Uri.parse("$baseUrl/banks/etihad/login_init/${user.uid}");
+  try {
+    final resp = await http.post(
+      url,
+      headers: {
+        ...await _authHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'username': username, 'password': password}),
+    );
+    if (resp.statusCode == 200) {
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    }
+    print("Etihad login_init failed: ${resp.statusCode} ${resp.body}");
+  } catch (e) {
+    print("Error in etihadLoginInit: $e");
+  }
+  return null;
+}
+
+/// Step 2: Verify OTP code → completes login and links the bank.
+/// Returns {"status": "success"} on success.
+Future<Map<String, dynamic>?> etihadLoginComplete(String otp) async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return null;
+
+  final url = Uri.parse("$baseUrl/banks/etihad/login_complete/${user.uid}");
+  try {
+    final resp = await http.post(
+      url,
+      headers: {
+        ...await _authHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'otp': otp}),
+    );
+    if (resp.statusCode == 200) {
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    }
+    print("Etihad login_complete failed: ${resp.statusCode} ${resp.body}");
+  } catch (e) {
+    print("Error in etihadLoginComplete: $e");
+  }
+  return null;
+}
+
+/// Get all customers linked to this Etihad account.
+/// Returns {"status": "success", "data": [...]} on success.
+Future<Map<String, dynamic>?> etihadGetCustomers() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return null;
+
+  final url = Uri.parse("$baseUrl/banks/etihad/get_customers/${user.uid}");
+  try {
+    final resp = await http.get(url, headers: await _authHeaders());
+    if (resp.statusCode == 200) {
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    }
+    print("Etihad get_customers failed: ${resp.statusCode} ${resp.body}");
+  } catch (e) {
+    print("Error in etihadGetCustomers: $e");
+  }
+  return null;
+}
+
+/// Sync all accounts for a given customer into Firestore.
+/// Creates a new account for a customer on the Etihad sandbox.
+/// [currency] defaults to "JOD". Returns {"status": "success", "data": {...}}.
+Future<Map<String, dynamic>?> etihadCreateAccount(
+    String customerId, String name, {String currency = 'JOD'}) async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return null;
+
+  final url = Uri.parse("$baseUrl/banks/etihad/create_account/${user.uid}/$customerId");
+  try {
+    final resp = await http.post(
+      url,
+      headers: {
+        ...await _authHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'currency': currency, 'name': name}),
+    );
+    if (resp.statusCode == 200) {
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    }
+    print("Etihad create_account failed: ${resp.statusCode} ${resp.body}");
+    return {'error': resp.statusCode, 'detail': resp.body};
+  } catch (e) {
+    print("Error in etihadCreateAccount: $e");
+  }
+  return null;
+}
+
+Future<Map<String, dynamic>?> etihadSyncAccounts(String customerId) async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return null;
+
+  final url = Uri.parse("$baseUrl/banks/etihad/sync_accounts/${user.uid}/$customerId");
+  try {
+    final resp = await http.post(url, headers: await _authHeaders());
+    if (resp.statusCode == 200) {
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    }
+    print("Etihad sync_accounts failed: ${resp.statusCode} ${resp.body}");
+  } catch (e) {
+    print("Error in etihadSyncAccounts: $e");
+  }
+  return null;
+}
+
+/// Sync transactions for a specific account into Firestore.
+Future<Map<String, dynamic>?> etihadSyncTransactions(String customerId, String accountNumber) async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return null;
+
+  final url = Uri.parse("$baseUrl/banks/etihad/sync_transactions/${user.uid}/$customerId/$accountNumber");
+  try {
+    final resp = await http.post(url, headers: await _authHeaders());
+    if (resp.statusCode == 200) {
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    }
+    print("Etihad sync_transactions failed: ${resp.statusCode} ${resp.body}");
+  } catch (e) {
+    print("Error in etihadSyncTransactions: $e");
+  }
+  return null;
 }
 
 Future<void> getSOSPs() async {
