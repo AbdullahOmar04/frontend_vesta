@@ -348,6 +348,7 @@ Widget BankCard(
 }
 
 Widget drawer(BuildContext context, String username) {
+  final user = FirebaseAuth.instance.currentUser;
   return Drawer(
     child: ListView(
       padding: EdgeInsets.zero,
@@ -384,6 +385,13 @@ Widget drawer(BuildContext context, String username) {
           onTap: () async {
             await FirebaseAuth.instance.signOut();
             Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.developer_mode),
+          title: const Text('GET UID'),
+          onTap: () {
+            print(user?.uid);
           },
         ),
       ],
