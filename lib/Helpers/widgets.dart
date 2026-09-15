@@ -348,6 +348,7 @@ Widget BankCard(
 }
 
 Widget drawer(BuildContext context, String username) {
+  final user = FirebaseAuth.instance.currentUser;
   return Drawer(
     child: ListView(
       padding: EdgeInsets.zero,
@@ -386,11 +387,24 @@ Widget drawer(BuildContext context, String username) {
             Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
           },
         ),
+        ListTile(
+          leading: const Icon(Icons.developer_mode),
+          title: const Text('GET UID'),
+          onTap: () {
+            print(user?.uid);
+            print( _authHeaders());
+          },
+        ),
       ],
     ),
-  );
+  ); 
 }
 
+Future<Map<String, String>> _authHeaders() async {
+  final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+  if (token == null) throw Exception('Not authenticated');
+  return {'Authorization': 'Bearer $token'};
+}
 Widget squareButton(
   BuildContext context,
   String text,

@@ -9,8 +9,8 @@ import 'package:http/http.dart' as http;
 
 final String baseUrl = dotenv.env['API_URL'] ?? '';
 
-Future<Map<String, String>> _authHeaders() async {
-  final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+Future<Map<String, String>> _authHeaders([bool forceRefresh = false]) async {
+  final token = await FirebaseAuth.instance.currentUser?.getIdToken(forceRefresh);
   if (token == null) throw Exception('Not authenticated');
   return {'Authorization': 'Bearer $token'};
 }
@@ -82,6 +82,22 @@ Future<void> getTransactions() async {
     for (var doc in accountsSnap.docs) {
       final accountId = doc.id;
       final provider = (doc.data()['provider'] ?? '').toString();
+
+      if (provider == hbtfProviderLabel) {
+        // Housing Bank syncs by the bank's raw account number, not the doc id
+        final accountNumber = doc.data()['accountNumber']?.toString() ?? '';
+        if (accountNumber.isEmpty) {
+          print("Skipping Housing Bank account $accountId: missing accountNumber");
+          continue;
+        }
+        try {
+          final synced = await hbtfSyncTransactions(accountNumber);
+          print("Synced $synced Housing Bank transactions for $accountId");
+        } on HbtfException catch (e) {
+          print("Housing Bank transaction sync failed for $accountId: $e");
+        }
+        continue;
+      }
 
       final Uri url;
       if (provider == 'Ahli') {
@@ -674,6 +690,274 @@ Future<Map<String, dynamic>?> etihadSyncTransactions(String customerId, String a
     print("Error in etihadSyncTransactions: $e");
   }
   return null;
+}
+
+// ─── Housing Bank (HBTF) ───
+
+/// `provider` value the backend writes on Housing Bank account and transaction docs.
+const String hbtfProviderLabel = 'Housing Bank';
+
+/// The app has no business-account concept, so every consent is a retail one.
+const String _hbtfCustomerType = 'RETAIL';
+
+enum HbtfErrorKind {
+  /// Customer hasn't approved the consent in Iskan yet. Keep waiting.
+  pendingApproval,
+
+  /// consent/token was called before consent/initiate for this uid.
+  noConsent,
+
+  /// No consent token on file. Show the "Link Housing Bank" call to action.
+  notLinked,
+
+  /// Consent token expired. HBTF has no refresh; the customer must re-link.
+  consentExpired,
+
+  /// Housing Bank (or our backend) is down or unreachable.
+  unavailable,
+
+  unknown,
+}
+
+/// A failed Housing Bank call. Holds only the classification, never the raw
+/// backend `detail`, so nothing from the bank can leak into the UI.
+class HbtfException implements Exception {
+  final HbtfErrorKind kind;
+  final int? statusCode;
+
+  HbtfException(this.kind, [this.statusCode]);
+
+  String get userMessage {
+    switch (kind) {
+      case HbtfErrorKind.pendingApproval:
+        return "Housing Bank hasn't confirmed your approval yet. Approve the request in the Iskan app, then try again.";
+      case HbtfErrorKind.noConsent:
+      case HbtfErrorKind.notLinked:
+        return 'Housing Bank is not linked yet. Link your account to continue.';
+      case HbtfErrorKind.consentExpired:
+        return 'Your Housing Bank access has expired. Reconnect to continue.';
+      case HbtfErrorKind.unavailable:
+        return 'Housing Bank is unavailable right now. Please try again later.';
+      case HbtfErrorKind.unknown:
+        return 'Something went wrong with Housing Bank. Please try again.';
+    }
+  }
+
+  @override
+  String toString() => 'HbtfException($kind, status: $statusCode)';
+}
+
+enum HbtfLinkState { notLinked, connected, expired }
+
+/// Reads the link state from the `users/{uid}` doc. Only `linked` and
+/// `tokens.expires_at` are looked at; the consent token itself is never read.
+HbtfLinkState hbtfLinkState(Map<String, dynamic>? userData) {
+  final providers = userData?['providers'];
+  final hbtf = providers is Map ? providers['hbtf'] : null;
+  if (hbtf is! Map || hbtf['linked'] != true) return HbtfLinkState.notLinked;
+
+  final tokens = hbtf['tokens'];
+  final expiresAt = tokens is Map
+      ? DateTime.tryParse(tokens['expires_at']?.toString() ?? '')
+      : null;
+  if (expiresAt != null && !expiresAt.isAfter(DateTime.now())) {
+    return HbtfLinkState.expired;
+  }
+  return HbtfLinkState.connected;
+}
+
+String _hbtfDetail(http.Response resp) {
+  try {
+    final decoded = jsonDecode(resp.body);
+    if (decoded is Map && decoded['detail'] != null) {
+      return decoded['detail'].toString();
+    }
+  } catch (_) {
+    // Non-JSON body, e.g. a gateway HTML error page
+  }
+  return '';
+}
+
+HbtfErrorKind _hbtfClassify(int status, String detail) {
+  // A 5xx here means Housing Bank is down, even on the consent-token call
+  if (status >= 500) return HbtfErrorKind.unavailable;
+  if (detail.startsWith(
+    'HBTF consent token failed (customer may not have approved yet)',
+  )) {
+    return HbtfErrorKind.pendingApproval;
+  }
+  if (detail.startsWith('No HBTF consent on file')) {
+    return HbtfErrorKind.noConsent;
+  }
+  if (detail.startsWith('Housing Bank not linked yet')) {
+    return HbtfErrorKind.notLinked;
+  }
+  if (status == 401 && detail.startsWith('Housing Bank consent expired')) {
+    return HbtfErrorKind.consentExpired;
+  }
+  if (detail.startsWith('HBTF ')) return HbtfErrorKind.unavailable;
+  return HbtfErrorKind.unknown;
+}
+
+/// POSTs to /banks/hbtf/{endpoint}/{uid}[/{accountNumber}] for the signed-in user.
+/// Retries once with a force-refreshed ID token if the backend rejects the
+/// Firebase token. Throws [HbtfException] on any failure.
+Future<Map<String, dynamic>> _hbtfPost(
+  String endpoint, {
+  String? accountNumber,
+  Map<String, dynamic>? body,
+  Map<String, String>? query,
+}) async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) throw HbtfException(HbtfErrorKind.unknown);
+
+  var path = "$baseUrl/banks/hbtf/$endpoint/${user.uid}";
+  if (accountNumber != null) path += "/${Uri.encodeComponent(accountNumber)}";
+  var url = Uri.parse(path);
+  if (query != null && query.isNotEmpty) {
+    url = url.replace(queryParameters: query);
+  }
+
+  Future<http.Response> send(bool forceRefresh) async {
+    return http
+        .post(
+          url,
+          headers: {
+            ...await _authHeaders(forceRefresh),
+            if (body != null) 'Content-Type': 'application/json',
+          },
+          body: body == null ? null : jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 120));
+  }
+
+  http.Response resp;
+  try {
+    resp = await send(false);
+    if (resp.statusCode == 401 &&
+        _hbtfDetail(resp) == 'Invalid or expired Firebase token') {
+      resp = await send(true);
+    }
+  } on HbtfException {
+    rethrow;
+  } catch (e) {
+    print("Housing Bank $endpoint request error: $e");
+    throw HbtfException(HbtfErrorKind.unavailable);
+  }
+
+  if (resp.statusCode >= 200 && resp.statusCode < 300) {
+    try {
+      final decoded = jsonDecode(resp.body);
+      if (decoded is Map<String, dynamic>) return decoded;
+    } catch (_) {}
+    print("Housing Bank $endpoint returned an unreadable success body");
+    throw HbtfException(HbtfErrorKind.unknown, resp.statusCode);
+  }
+
+  final detail = _hbtfDetail(resp);
+  if (resp.statusCode == 403 && detail == 'Not authenticated') {
+    print("BUG: Housing Bank $endpoint sent without an Authorization header");
+  }
+  final kind = _hbtfClassify(resp.statusCode, detail);
+  final preview = detail.length > 200 ? detail.substring(0, 200) : detail;
+  print("Housing Bank $endpoint failed: ${resp.statusCode} $kind $preview");
+  throw HbtfException(kind, resp.statusCode);
+}
+
+/// Step 1: start a consent. Returns the backend response
+/// ({consent_id, consent_status, links, data}).
+Future<Map<String, dynamic>> hbtfInitiateConsent() {
+  return _hbtfPost(
+    'consent/initiate',
+    body: {
+      'customer_type': _hbtfCustomerType,
+      'device_type': Platform.isIOS ? 'IOS' : 'Android',
+    },
+  );
+}
+
+/// Picks the approval link for this platform and customer type,
+/// falling back to the web link.
+String? hbtfConsentLink(dynamic links) {
+  if (links is! List) return null;
+  final platform = Platform.isIOS ? 'ios' : 'android';
+  final wanted = '$platform-${_hbtfCustomerType.toLowerCase()}';
+
+  String? urlFor(String deviceType) {
+    for (final link in links) {
+      if (link is Map && link['deviceType'] == deviceType) {
+        final url = link['url']?.toString() ?? '';
+        if (url.isNotEmpty) return url;
+      }
+    }
+    return null;
+  }
+
+  return urlFor(wanted) ?? urlFor('web');
+}
+
+/// Step 3: exchange the approved consent for a consent token.
+/// Throws [HbtfException] with [HbtfErrorKind.pendingApproval] until the
+/// customer approves in Iskan. Returns `expires_at`.
+Future<String?> hbtfExchangeConsentToken() async {
+  final resp = await _hbtfPost('consent/token');
+  return resp['expires_at']?.toString();
+}
+
+Future<int> hbtfSyncAccounts() async {
+  final resp = await _hbtfPost('sync_accounts');
+  return (resp['accounts_synced'] as num?)?.toInt() ?? 0;
+}
+
+/// [accountNumber] is the bank's raw number (the account doc's `accountNumber`),
+/// not the `hbtf_` Firestore doc id. Dates are RFC 3339.
+Future<int> hbtfSyncTransactions(
+  String accountNumber, {
+  String? settlementDateFrom,
+  String? settlementDateTo,
+}) async {
+  final resp = await _hbtfPost(
+    'sync_transactions',
+    accountNumber: accountNumber,
+    query: {
+      if (settlementDateFrom != null) 'settlement_date_from': settlementDateFrom,
+      if (settlementDateTo != null) 'settlement_date_to': settlementDateTo,
+    },
+  );
+  return (resp['transactions_synced'] as num?)?.toInt() ?? 0;
+}
+
+/// Syncs every Housing Bank account, then each account's transactions.
+/// Returns how many accounts' transactions failed to sync. Account sync
+/// failures and consent problems are thrown.
+Future<int> hbtfSyncAll() async {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) throw HbtfException(HbtfErrorKind.unknown);
+
+  await hbtfSyncAccounts();
+
+  final accountsSnap = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(uid)
+      .collection('accounts')
+      .where('provider', isEqualTo: hbtfProviderLabel)
+      .get();
+
+  var failed = 0;
+  for (final doc in accountsSnap.docs) {
+    final accountNumber = doc.data()['accountNumber']?.toString() ?? '';
+    if (accountNumber.isEmpty) continue;
+    try {
+      await hbtfSyncTransactions(accountNumber);
+    } on HbtfException catch (e) {
+      if (e.kind == HbtfErrorKind.consentExpired ||
+          e.kind == HbtfErrorKind.notLinked) {
+        rethrow;
+      }
+      failed++;
+    }
+  }
+  return failed;
 }
 
 Future<void> getSOSPs() async {

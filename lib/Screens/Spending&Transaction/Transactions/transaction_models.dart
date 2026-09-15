@@ -55,6 +55,14 @@ class TransactionModel {
       date = DateTime.tryParse(dateString) ?? date;
     }
 
+    String? description = data['description'] as String?;
+    // Housing Bank often has no narrative at all, so give the row a readable label
+    if (data['provider'] == 'Housing Bank' &&
+        (description == null || description.trim().isEmpty)) {
+      description =
+          "Housing Bank ${typeString == 'debit' ? 'debit' : 'credit'}";
+    }
+
     return TransactionModel(
       id: docId,
       accountId: data['accountId'] as String,
@@ -65,7 +73,7 @@ class TransactionModel {
           : TransactionType.credit,
       date: date,
       merchantName: data['merchantName'] as String?,
-      description: data['description'] as String?,
+      description: description,
       accountLabel: data['accountLabel'] as String?,
       category: data['category'] as String?,
       source: TransactionSource.values.firstWhere(

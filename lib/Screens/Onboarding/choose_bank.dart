@@ -7,6 +7,7 @@ import 'package:frontend_vesta/Screens/pages/accounts.dart';
 import 'package:frontend_vesta/Screens/pages/main_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class ChooseBank extends StatefulWidget {
@@ -41,71 +42,87 @@ class _ChooseBankState extends State<ChooseBank> {
         ),
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  BankCard(
-                    context,
-                    'Bank of JoPACC LTD.',
-                    'assets/images/jopacc.png',
-                    Colors.white,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const Jopacc()),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 4),
-                  BankCard(
-                    context,
-                    'Ahli Bank',
-                    'assets/images/ahli.jpeg',
-                    Colors.white,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AhliLinkScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 4),
-                  BankCard(
-                    context,
-                    'Capital Bank',
-                    'assets/images/cboj.png',
-                    Colors.white,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CapitalLinkScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 4),
-                  BankCard(
-                    context,
-                    'Bank Al Etihad',
-                    'assets/images/etihad.jpg',
-                    Colors.white,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const EtihadLinkScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    BankCard(
+                      context,
+                      'Bank of JoPACC LTD.',
+                      'assets/images/jopacc.png',
+                      Colors.white,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const Jopacc()),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 4),
+                    BankCard(
+                      context,
+                      'Ahli Bank',
+                      'assets/images/ahli.jpeg',
+                      Colors.white,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AhliLinkScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 4),
+                    BankCard(
+                      context,
+                      'Capital Bank',
+                      'assets/images/cboj.png',
+                      Colors.white,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CapitalLinkScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 4),
+                    BankCard(
+                      context,
+                      'Bank Al Etihad',
+                      'assets/images/etihad.jpg',
+                      Colors.white,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const EtihadLinkScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 4),
+                    BankCard(
+                      context,
+                      'Housing Bank',
+                      'assets/images/hbtf.png',
+                      Colors.white,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HbtfLinkScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
-            Spacer(),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: largeButton(
@@ -1246,7 +1263,7 @@ class _CapitalLinkScreenState extends State<CapitalLinkScreen> {
                 return ListView.separated(
                   padding: const EdgeInsets.only(bottom: 96),
                   itemCount: docs.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
                   itemBuilder: (context, i) {
                     final doc = docs[i];
                     final id = doc.id;
@@ -2250,7 +2267,7 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
                 return ListView.separated(
                   padding: const EdgeInsets.only(bottom: 96),
                   itemCount: docs.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
                   itemBuilder: (context, i) {
                     final doc = docs[i];
                     final id = doc.id;
@@ -2372,6 +2389,866 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
                                         color: Colors.black54,
                                       ),
                                     ),
+                                    if (linked) ...[
+                                      const SizedBox(height: 6),
+                                      const Row(
+                                        children: [
+                                          Icon(
+                                            Icons.check_circle,
+                                            color: Colors.green,
+                                            size: 16,
+                                          ),
+                                          SizedBox(width: 6),
+                                          Text(
+                                            'Linked',
+                                            style: TextStyle(
+                                              color: Colors.green,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Housing Bank (HBTF) ───
+
+/// Loan accounts carry an amount owed, not spendable money.
+bool hbtfIsLoan(Map<String, dynamic> acc) {
+  final code = acc['accountTypeCode']?.toString().toUpperCase();
+  final name = acc['accountTypeName']?.toString().toUpperCase();
+  return code == 'LAA' || name == 'LOAN';
+}
+
+/// The account status to call out (DORMANT, CLOSED, ...), or null when active.
+String? hbtfInactiveStatus(Map<String, dynamic> acc) {
+  final status = acc['accountStatus']?.toString().trim().toUpperCase() ?? '';
+  return (status.isEmpty || status == 'ACTIVE') ? null : status;
+}
+
+/// "IBAN: ..." when the bank gave one, otherwise the masked account number.
+String hbtfAccountRef(Map<String, dynamic> acc) {
+  final iban = acc['iban']?.toString().trim() ?? '';
+  if (iban.isNotEmpty) return 'IBAN: $iban';
+  final number = acc['accountNumber']?.toString().trim() ?? '';
+  if (number.length > 4) {
+    return 'Account •••• ${number.substring(number.length - 4)}';
+  }
+  return number.isEmpty ? 'No IBAN available' : 'Account $number';
+}
+
+/// Loan and non-active status chips for a Housing Bank account card.
+class HbtfAccountTags extends StatelessWidget {
+  const HbtfAccountTags({super.key, required this.account});
+
+  final Map<String, dynamic> account;
+
+  Widget _chip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final status = hbtfInactiveStatus(account);
+    final isLoan = hbtfIsLoan(account);
+    if (status == null && !isLoan) return const SizedBox.shrink();
+
+    return Wrap(
+      spacing: 6,
+      runSpacing: 4,
+      children: [
+        if (isLoan) _chip('Loan · not counted in total balance', Colors.blueGrey),
+        if (status == 'DORMANT') _chip('Dormant', Colors.orange.shade800),
+        if (status != null && status != 'DORMANT')
+          _chip(
+            '${status[0]}${status.substring(1).toLowerCase()}',
+            Colors.grey.shade700,
+          ),
+      ],
+    );
+  }
+}
+
+/// "Connected" / "Access expired" line driven by `providers.hbtf` on the user doc.
+class HbtfConnectionStatus extends StatelessWidget {
+  const HbtfConnectionStatus({super.key, this.onReconnect});
+
+  /// Defaults to opening [HbtfLinkScreen].
+  final VoidCallback? onReconnect;
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return const SizedBox.shrink();
+
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
+      builder: (context, snap) {
+        if (!snap.hasData) return const SizedBox.shrink();
+        final userData = snap.data!.data();
+        final state = hbtfLinkState(userData);
+
+        if (state == HbtfLinkState.connected) {
+          final expiresAt = DateTime.tryParse(
+            userData?['providers']?['hbtf']?['tokens']?['expires_at']
+                    ?.toString() ??
+                '',
+          );
+          return Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.green, size: 16),
+              const SizedBox(width: 6),
+              Text(
+                expiresAt == null
+                    ? 'Connected'
+                    : 'Connected · until ${DateFormat('d MMM yyyy').format(expiresAt.toLocal())}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.green,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          );
+        }
+
+        final reconnect =
+            onReconnect ??
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const HbtfLinkScreen()),
+            );
+
+        return InkWell(
+          onTap: reconnect,
+          child: Row(
+            children: [
+              Icon(Icons.link_off, color: Colors.orange.shade800, size: 16),
+              const SizedBox(width: 6),
+              Text(
+                state == HbtfLinkState.expired
+                    ? 'Access expired · Reconnect'
+                    : 'Not connected · Link Housing Bank',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.orange.shade800,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class HbtfLinkScreen extends StatefulWidget {
+  const HbtfLinkScreen({super.key});
+
+  @override
+  State<HbtfLinkScreen> createState() => _HbtfLinkScreenState();
+}
+
+class _HbtfLinkScreenState extends State<HbtfLinkScreen>
+    with WidgetsBindingObserver {
+  bool _loading = true;
+  String _loadingMessage = 'Connecting to Housing Bank...';
+  bool _awaitingApproval = false;
+  bool _checkingApproval = false;
+  bool _tokenObtained = false;
+  bool _linked = false;
+  bool _syncing = false;
+  String? _error;
+  HbtfErrorKind? _errorKind;
+  String? _approvalUrl;
+  final Set<String> _selected = {};
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _open();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // There is no callback from Iskan, so check again whenever the user comes back
+    if (state == AppLifecycleState.resumed && _awaitingApproval) {
+      _checkApproval(fromResume: true);
+    }
+  }
+
+  String _fmt(num amount, String currency) {
+    final f = NumberFormat.currency(
+      locale: 'en_US',
+      symbol: "$currency ",
+      decimalDigits: 2,
+    );
+    return f.format(amount);
+  }
+
+  void _snack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  /// Skips a new consent while the current one is still valid, since initiating
+  /// one would mark the bank unlinked until it is approved again.
+  Future<void> _open() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      setState(() {
+        _error = 'Not logged in';
+        _loading = false;
+      });
+      return;
+    }
+
+    HbtfLinkState state = HbtfLinkState.notLinked;
+    try {
+      final userSnap = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+      state = hbtfLinkState(userSnap.data());
+    } catch (e) {
+      print("Error reading Housing Bank link state: $e");
+    }
+    if (!mounted) return;
+
+    if (state == HbtfLinkState.connected) {
+      _tokenObtained = true;
+      await _syncAccounts();
+    } else {
+      await _startLink();
+    }
+  }
+
+  /// Step 1: start a consent, then either exchange it right away or send the
+  /// customer to Iskan to approve it.
+  Future<void> _startLink() async {
+    setState(() {
+      _loading = true;
+      _loadingMessage = 'Connecting to Housing Bank...';
+      _error = null;
+      _errorKind = null;
+      _awaitingApproval = false;
+      _tokenObtained = false;
+      _linked = false;
+      _approvalUrl = null;
+    });
+
+    try {
+      final consent = await hbtfInitiateConsent();
+      if (!mounted) return;
+      _approvalUrl = hbtfConsentLink(consent['links']);
+
+      if (consent['consent_status'] == 'Authorised') {
+        await _checkApproval();
+        return;
+      }
+
+      if (_approvalUrl == null) {
+        setState(() {
+          _error =
+              'Housing Bank did not return an approval link. Please try again later.';
+          _loading = false;
+        });
+        return;
+      }
+
+      setState(() {
+        _awaitingApproval = true;
+        _loading = false;
+      });
+      await _openApprovalLink();
+    } on HbtfException catch (e) {
+      _showError(e);
+    }
+  }
+
+  Future<void> _openApprovalLink() async {
+    final url = _approvalUrl;
+    if (url == null) return;
+    bool opened = false;
+    try {
+      opened = await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
+    } catch (e) {
+      print("Error opening Housing Bank approval link: $e");
+    }
+    if (!opened) {
+      _snack("Couldn't open the Iskan app or your browser. Please try again.");
+    }
+  }
+
+  /// Step 3. HBTF has no consent-status endpoint, so the token exchange is
+  /// also how we find out whether the customer has approved.
+  Future<void> _checkApproval({bool fromResume = false}) async {
+    if (_checkingApproval || _tokenObtained) return;
+    setState(() => _checkingApproval = true);
+
+    try {
+      await hbtfExchangeConsentToken();
+      _tokenObtained = true;
+    } on HbtfException catch (e) {
+      if (!mounted) return;
+      final keepWaiting =
+          _approvalUrl != null &&
+          (e.kind == HbtfErrorKind.pendingApproval ||
+              e.kind == HbtfErrorKind.unavailable);
+      if (keepWaiting) {
+        setState(() {
+          _awaitingApproval = true;
+          _loading = false;
+        });
+        // Returning to the app before approving is normal, so only nag on a tap
+        if (!fromResume || e.kind == HbtfErrorKind.unavailable) {
+          _snack(e.userMessage);
+        }
+      } else {
+        _showError(e);
+      }
+      return;
+    } finally {
+      if (mounted) setState(() => _checkingApproval = false);
+    }
+
+    await _syncAccounts();
+  }
+
+  /// Step 4: pull accounts and transactions into Firestore.
+  Future<void> _syncAccounts() async {
+    if (!mounted) return;
+    setState(() {
+      _awaitingApproval = false;
+      _error = null;
+      _errorKind = null;
+      _loading = true;
+      _loadingMessage = 'Retrieving your accounts...';
+    });
+
+    try {
+      final failed = await hbtfSyncAll();
+      if (!mounted) return;
+      setState(() {
+        _linked = true;
+        _loading = false;
+      });
+      if (failed > 0) {
+        _snack(
+          "Some Housing Bank transactions couldn't be synced. Tap re-sync to try again.",
+        );
+      }
+    } on HbtfException catch (e) {
+      _showError(e);
+    }
+  }
+
+  Future<void> _resync() async {
+    setState(() => _syncing = true);
+    try {
+      final failed = await hbtfSyncAll();
+      if (failed > 0) {
+        _snack("Some Housing Bank transactions couldn't be synced.");
+      }
+    } on HbtfException catch (e) {
+      if (e.kind == HbtfErrorKind.unavailable ||
+          e.kind == HbtfErrorKind.unknown) {
+        _snack(e.userMessage);
+      } else {
+        _showError(e);
+      }
+    } finally {
+      if (mounted) setState(() => _syncing = false);
+    }
+  }
+
+  void _showError(HbtfException e) {
+    if (!mounted) return;
+    // Outages can be retried in place; anything else needs a fresh consent
+    if (e.kind != HbtfErrorKind.unavailable &&
+        e.kind != HbtfErrorKind.unknown) {
+      _tokenObtained = false;
+    }
+    setState(() {
+      _error = e.userMessage;
+      _errorKind = e.kind;
+      _loading = false;
+      _awaitingApproval = false;
+      _linked = false;
+    });
+  }
+
+  void _retry() {
+    if (_tokenObtained) {
+      _syncAccounts();
+    } else {
+      _startLink();
+    }
+  }
+
+  Future<void> _linkSelected() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || _selected.isEmpty) return;
+
+    final batch = FirebaseFirestore.instance.batch();
+    final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
+    final col = userRef.collection('accounts');
+
+    for (final id in _selected) {
+      batch.set(col.doc(id), {
+        'linked': true,
+        'linkedAt': FieldValue.serverTimestamp(),
+        'provider': hbtfProviderLabel,
+      }, SetOptions(merge: true));
+    }
+
+    batch.set(userRef, {
+      'linkedAccountIds': FieldValue.arrayUnion(_selected.toList()),
+    }, SetOptions(merge: true));
+
+    await batch.commit();
+    await calcTotalBalance();
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Housing Bank accounts linked')),
+    );
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const MainScreen()),
+      (_) => false,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Scaffold(
+      backgroundColor: scheme.primary,
+      appBar: AppBar(
+        backgroundColor: scheme.primary,
+        title: Text('Housing Bank', style: TextStyle(color: scheme.surface)),
+        iconTheme: IconThemeData(color: scheme.surface),
+        actions: [
+          if (_linked)
+            IconButton(
+              onPressed: _syncing ? null : _resync,
+              icon: Icon(Icons.sync, color: scheme.surface),
+              tooltip: 'Re-sync',
+            ),
+        ],
+      ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
+          ),
+        ),
+        child: _buildBody(),
+      ),
+      floatingActionButton: _linked
+          ? FloatingActionButton.extended(
+              onPressed: _selected.isEmpty ? null : _linkSelected,
+              backgroundColor: _selected.isEmpty ? Colors.grey : scheme.primary,
+              icon: const Icon(Icons.link, color: Colors.white),
+              label: const Text(
+                'Link Selected',
+                style: TextStyle(color: Colors.white),
+              ),
+            )
+          : null,
+    );
+  }
+
+  Widget _buildBody() {
+    if (_loading) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text(_loadingMessage),
+          ],
+        ),
+      );
+    }
+
+    if (_error != null) {
+      final reconnect =
+          _errorKind == HbtfErrorKind.consentExpired ||
+          _errorKind == HbtfErrorKind.notLinked ||
+          _errorKind == HbtfErrorKind.noConsent;
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                reconnect ? Icons.link_off : Icons.error_outline,
+                size: 48,
+                color: reconnect ? Colors.orange.shade800 : Colors.red,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _retry,
+                child: Text(reconnect ? 'Link Housing Bank' : 'Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_linked) {
+      return _buildAccountSelection();
+    }
+
+    if (_awaitingApproval) {
+      return _buildAwaitingApproval();
+    }
+
+    return const Center(child: Text('Something went wrong'));
+  }
+
+  Widget _buildAwaitingApproval() {
+    final scheme = Theme.of(context).colorScheme;
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Card(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            elevation: 4,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.verified_user_outlined, size: 28),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Approve in the Iskan app',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: scheme.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    "We've opened Housing Bank's Iskan app (or your browser). "
+                    'Approve the request to share your accounts with Vesta, then come back here.',
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Access is read-only.',
+                    style: TextStyle(fontSize: 12, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _checkingApproval ? null : _checkApproval,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: scheme.primary,
+                        foregroundColor: scheme.surface,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: _checkingApproval
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              "I've approved it",
+                              style: TextStyle(fontSize: 16),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: _checkingApproval ? null : _startLink,
+                          child: const Text('Start over'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextButton(
+                          onPressed: _checkingApproval
+                              ? null
+                              : _openApprovalLink,
+                          child: const Text('Open Iskan again'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAccountSelection() {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final scheme = Theme.of(context).colorScheme;
+    if (uid == null) return const Center(child: Text('Not logged in'));
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_syncing) const LinearProgressIndicator(),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.account_balance),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Select accounts to link',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const MainScreen()),
+                    (_) => false,
+                  );
+                },
+                child: Text('Skip', style: TextStyle(color: scheme.primary)),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 32, bottom: 8),
+            child: HbtfConnectionStatus(onReconnect: _startLink),
+          ),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(uid)
+                  .collection('accounts')
+                  .where('provider', isEqualTo: hbtfProviderLabel)
+                  .snapshots(),
+              builder: (context, snap) {
+                if (snap.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snap.hasData || snap.data!.docs.isEmpty) {
+                  return const Center(
+                    child: Text('No Housing Bank accounts found'),
+                  );
+                }
+
+                final docs = snap.data!.docs;
+                return ListView.separated(
+                  padding: const EdgeInsets.only(bottom: 96),
+                  itemCount: docs.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
+                  itemBuilder: (context, i) {
+                    final doc = docs[i];
+                    final id = doc.id;
+                    final acc = doc.data() as Map<String, dynamic>? ?? {};
+                    final linked = (acc['linked'] ?? false) == true;
+                    final isLoan = hbtfIsLoan(acc);
+
+                    final accountType =
+                        acc["accountTypeName"]?.toString().trim().isNotEmpty ==
+                            true
+                        ? acc["accountTypeName"].toString()
+                        : "Account";
+
+                    num balance = 0;
+                    final dynamic balRaw = acc["balanceAmount"];
+                    if (balRaw is num) {
+                      balance = balRaw;
+                    } else if (balRaw is String) {
+                      balance = num.tryParse(balRaw) ?? 0;
+                    }
+                    final currency =
+                        acc["currency"]?.toString().trim().isNotEmpty == true
+                        ? acc["currency"].toString()
+                        : "JOD";
+
+                    final checked = _selected.contains(id) || linked;
+
+                    return InkWell(
+                      onTap: linked
+                          ? null
+                          : () {
+                              setState(() {
+                                if (checked) {
+                                  _selected.remove(id);
+                                } else {
+                                  _selected.add(id);
+                                }
+                              });
+                            },
+                      child: Card(
+                        color: Colors.white,
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Checkbox(
+                                value: checked,
+                                onChanged: linked
+                                    ? null
+                                    : (v) {
+                                        setState(() {
+                                          if (v == true) {
+                                            _selected.add(id);
+                                          } else {
+                                            _selected.remove(id);
+                                          }
+                                        });
+                                      },
+                                fillColor:
+                                    WidgetStateProperty.resolveWith<Color>((
+                                      Set<WidgetState> states,
+                                    ) {
+                                      if (states.contains(
+                                        WidgetState.disabled,
+                                      )) {
+                                        return Colors.green;
+                                      }
+                                      return Colors.white;
+                                    }),
+                                checkColor: Colors.black,
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Expanded(
+                                          child: Text(
+                                            hbtfProviderLabel,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                        Text(
+                                          _fmt(balance, currency),
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            color: isLoan
+                                                ? Colors.black87
+                                                : Colors.green[700],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      accountType,
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      hbtfAccountRef(acc),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    HbtfAccountTags(account: acc),
                                     if (linked) ...[
                                       const SizedBox(height: 6),
                                       const Row(
