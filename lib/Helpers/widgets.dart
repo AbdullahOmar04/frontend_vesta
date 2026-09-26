@@ -394,13 +394,19 @@ Widget drawer(BuildContext context, String username) {
           title: const Text('GET UID'),
           onTap: () {
             print(user?.uid);
+            print( _authHeaders());
           },
         ),
       ],
     ),
-  );
+  ); 
 }
 
+Future<Map<String, String>> _authHeaders() async {
+  final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+  if (token == null) throw Exception('Not authenticated');
+  return {'Authorization': 'Bearer $token'};
+}
 Widget squareButton(
   BuildContext context,
   String text,

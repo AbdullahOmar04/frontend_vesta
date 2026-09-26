@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/account_balance.dart';
+import 'package:frontend_vesta/Helpers/api_calls.dart';
+import 'package:frontend_vesta/Screens/Onboarding/choose_bank.dart';
 import 'package:frontend_vesta/Screens/pages/add_account.dart';
 import 'package:intl/intl.dart';
 
@@ -109,6 +111,21 @@ class _AccountsPageState extends State<AccountsPage> {
         ),
         iconTheme: IconThemeData(color: Theme.of(context).colorScheme.surface),
         centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ChooseBank()),
+              );
+            },
+            tooltip: 'Link a bank',
+            icon: Icon(
+              Icons.account_balance,
+              color: Theme.of(context).colorScheme.surface,
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -132,7 +149,17 @@ class _AccountsPageState extends State<AccountsPage> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Container(
+                    height: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30),
+                      ),
+                    ),
+                    child: const Center(child: CircularProgressIndicator()),
+                  );
                 }
 
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
@@ -199,8 +226,12 @@ class _AccountsPageState extends State<AccountsPage> {
                         balance = num.tryParse(balRaw) ?? 0;
                       }
 
+                      // No unlink/revoke endpoint exists for Housing Bank yet
+                      final isHbtf = acc["provider"] == hbtfProviderLabel;
+                      final isLoan = isHbtf && hbtfIsLoan(acc);
+
                       return GestureDetector(
-                        onLongPress: _unlinking
+                        onLongPress: _unlinking || isHbtf
                             ? null
                             : () => _showDeleteDialog(accountId, bankName),
                         child: Card(
@@ -238,10 +269,12 @@ class _AccountsPageState extends State<AccountsPage> {
                                     ),
                                     Text(
                                       _formatCurrency(balance, currency),
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.green,
+                                        color: isLoan
+                                            ? Colors.black87
+                                            : Colors.green,
                                       ),
                                     ),
                                   ],
@@ -254,10 +287,12 @@ class _AccountsPageState extends State<AccountsPage> {
                                     color: Colors.grey,
                                   ),
                                 ),
-                                if (iban.isNotEmpty) ...[
+                                if (isHbtf || iban.isNotEmpty) ...[
                                   const SizedBox(height: 8),
                                   Text(
-                                    "IBAN: $ibanDisplay",
+                                    isHbtf
+                                        ? hbtfAccountRef(acc)
+                                        : "IBAN: $ibanDisplay",
                                     style: const TextStyle(
                                       fontSize: 12,
                                       color: Colors.black54,
@@ -265,14 +300,19 @@ class _AccountsPageState extends State<AccountsPage> {
                                   ),
                                 ],
                                 const SizedBox(height: 8),
-                                Text(
-                                  "Hold to delete",
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.grey.shade400,
-                                    fontStyle: FontStyle.italic,
+                                if (isHbtf) ...[
+                                  HbtfAccountTags(account: acc),
+                                  const SizedBox(height: 8),
+                                  const HbtfConnectionStatus(),
+                                ] else
+                                  Text(
+                                    "Hold to delete",
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey.shade400,
+                                      fontStyle: FontStyle.italic,
+                                    ),
                                   ),
-                                ),
                               ],
                             ),
                           ),
@@ -302,6 +342,9 @@ Future<void> calcTotalBalance() async {
 
   for (final doc in accountsSnap.docs) {
     final acc = doc.data();
+    // A Housing Bank loan balance is money owed, not money the user has
+    if (acc['provider'] == hbtfProviderLabel && hbtfIsLoan(acc)) continue;
+
     final dynamic balanceRaw = acc['balanceAmount'] ?? 0;
 
     if (balanceRaw is num) {
