@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Budgeting/plan_budget.dart';
 
@@ -58,7 +57,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     }
 
     // Fire off API call (non-blocking)
-    getSOSPs();
 
     // Load budget and user settings first
     await _fetchBudget();

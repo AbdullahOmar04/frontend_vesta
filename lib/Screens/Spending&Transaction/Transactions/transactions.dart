@@ -2,7 +2,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/new_spending.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/add_transaction.dart';
@@ -41,11 +40,9 @@ class _TransactionsState extends State<Transactions> {
   @override
   void initState() {
     super.initState();
-    getTransactions().then((_) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _checkForCategoryFilter();
-        _loadTransactions();
-      });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForCategoryFilter();
+      _loadTransactions();
     });
   }
 

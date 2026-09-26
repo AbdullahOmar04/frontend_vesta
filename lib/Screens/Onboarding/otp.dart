@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
-import 'package:frontend_vesta/Screens/Onboarding/choose_bank.dart';
+import 'package:frontend_vesta/Screens/pages/main_screen.dart';
 
 const int otpValidityDurationSeconds = 120; // 2 minutes
 const int resendCooldownSeconds = 60; // 60 seconds cooldown before resend
@@ -318,7 +318,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
 
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const ChooseBankSplash()),
+        MaterialPageRoute(builder: (_) => const MainScreen()),
         (route) => false,
       );
     } on FirebaseAuthException catch (e) {

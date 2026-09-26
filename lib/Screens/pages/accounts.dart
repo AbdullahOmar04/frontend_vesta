@@ -3,7 +3,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend_vesta/Screens/Onboarding/choose_bank.dart';
 import 'package:intl/intl.dart';
 
 class AccountsPage extends StatefulWidget {
@@ -130,17 +129,6 @@ class _AccountsPageState extends State<AccountsPage> {
         ),
         iconTheme: IconThemeData(color: Theme.of(context).colorScheme.surface),
         centerTitle: true,
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ChooseBank()),
-          );
-        },
-        tooltip: 'Add Account',
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        child: Icon(Icons.add, color: Theme.of(context).colorScheme.surface),
       ),
       body: uid == null
           ? const Center(child: Text("Not logged in"))
