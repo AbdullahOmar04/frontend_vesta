@@ -110,6 +110,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
         verificationCompleted: (PhoneAuthCredential credential) async {
         },
         verificationFailed: (FirebaseAuthException e) {
+          if (!mounted) return;
           setState(() => _loading = false);
           if (_isBlockedError(e)) {
             _showBlockedDialog();
@@ -123,6 +124,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
           }
         },
         codeSent: (String verificationId, int? resendToken) {
+          if (!mounted) return;
           setState(() => _loading = false);
           Navigator.push(
             context,
@@ -141,6 +143,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
         codeAutoRetrievalTimeout: (String verificationId) {},
       );
     } catch (e) {
+      if (!mounted) return;
       setState(() => _loading = false);
       if (_isBlockedError(e)) {
         _showBlockedDialog();

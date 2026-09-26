@@ -24,6 +24,8 @@ dependencies:
   flutter_dotenv: ^5.1.0
   image_picker: ^1.2.1
   firebase_storage: ^13.0.6
+  webview_flutter: ^4.10.0
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
@@ -42,6 +44,10 @@ flutter:
     - assets/images/choose_bank.png
     - assets/images/jopacc.png
     - assets/images/budgeting.png
+    - assets/images/ahli.jpeg
+    - assets/images/cboj.png
+    - assets/images/etihad.jpg
+    - assets/images/hbtf.png
 
   fonts:
     - family: Poppins
