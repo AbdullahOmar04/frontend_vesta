@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
+import 'package:frontend_vesta/Helpers/account_balance.dart';
+import 'package:frontend_vesta/Screens/pages/accounts.dart';
 import 'package:frontend_vesta/Screens/pages/settings.dart' as app_settings;
 
 import 'dart:async';
@@ -2011,15 +2013,14 @@ class _TransactionCardState extends State<TransactionCard> {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
-    final txnRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .collection('accounts')
-        .doc(widget.transaction.accountId)
-        .collection('transactions')
-        .doc(widget.transaction.id);
-
-    await txnRef.delete();
+    await deleteTransactionAndRevertBalance(
+      uid: uid,
+      accountId: widget.transaction.accountId,
+      transactionId: widget.transaction.id,
+      type: widget.transaction.type,
+      amount: widget.transaction.amount,
+    );
+    await calcTotalBalance();
   }
 
   void _showDetailsSheet(BuildContext context) {

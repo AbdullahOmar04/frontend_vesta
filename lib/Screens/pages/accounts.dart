@@ -3,6 +3,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/account_balance.dart';
+import 'package:frontend_vesta/Screens/pages/add_account.dart';
 import 'package:intl/intl.dart';
 
 class AccountsPage extends StatefulWidget {
@@ -24,16 +26,16 @@ class _AccountsPageState extends State<AccountsPage> {
     return formatter.format(amount);
   }
 
-  Future<void> _showUnlinkDialog(String accountId, String bankName) async {
+  Future<void> _showDeleteDialog(String accountId, String bankName) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Unlink Account'),
+        title: const Text('Delete Account'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Are you sure you want to unlink "$bankName"?'),
+            Text('Are you sure you want to delete "$bankName"?'),
             const SizedBox(height: 12),
             const Text(
               'This will also delete all transactions associated with this account.',
@@ -49,54 +51,32 @@ class _AccountsPageState extends State<AccountsPage> {
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Unlink'),
+            child: const Text('Delete'),
           ),
         ],
       ),
     );
 
     if (confirmed == true) {
-      await _unlinkAccount(accountId);
+      await _deleteAccount(accountId);
     }
   }
 
-  Future<void> _unlinkAccount(String accountId) async {
+  Future<void> _deleteAccount(String accountId) async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
     setState(() => _unlinking = true);
 
     try {
-      final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
-      final accountRef = userRef.collection('accounts').doc(accountId);
-
-      // Delete all transactions for this account
-      final txSnap = await accountRef.collection('transactions').get();
-      final batch = FirebaseFirestore.instance.batch();
-
-      for (final doc in txSnap.docs) {
-        batch.delete(doc.reference);
-      }
-
-      // Remove from linkedAccountIds array (if you still use it)
-      batch.set(userRef, {
-        'linkedAccountIds': FieldValue.arrayRemove([accountId]),
-      }, SetOptions(merge: true));
-
-      // Mark account unlinked
-      batch.set(accountRef, {
-        'linked': false,
-        'unlinkedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-
-      await batch.commit();
+      await deleteAccountAndTransactions(uid: uid, accountId: accountId);
 
       await calcTotalBalance();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Account unlinked successfully'),
+            content: Text('Account deleted'),
             backgroundColor: Colors.green,
           ),
         );
@@ -105,7 +85,7 @@ class _AccountsPageState extends State<AccountsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to unlink account: $e'),
+            content: Text('Failed to delete account: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -129,6 +109,17 @@ class _AccountsPageState extends State<AccountsPage> {
         ),
         iconTheme: IconThemeData(color: Theme.of(context).colorScheme.surface),
         centerTitle: true,
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddAccountPage()),
+          );
+        },
+        tooltip: 'Add Account',
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        child: Icon(Icons.add, color: Theme.of(context).colorScheme.surface),
       ),
       body: uid == null
           ? const Center(child: Text("Not logged in"))
@@ -193,9 +184,8 @@ class _AccountsPageState extends State<AccountsPage> {
                               ? acc["currency"].toString()
                               : "JOD";
 
-                      final iban = acc["iban"]?.toString().trim().isNotEmpty == true
-                          ? acc["iban"].toString()
-                          : "No IBAN available";
+                      // Manually added accounts have no IBAN, so the line is hidden
+                      final iban = acc["iban"]?.toString().trim() ?? "";
 
                       final ibanDisplay = iban.length > 16
                           ? "${iban.substring(0, 6)}...${iban.substring(iban.length - 4)}"
@@ -212,7 +202,7 @@ class _AccountsPageState extends State<AccountsPage> {
                       return GestureDetector(
                         onLongPress: _unlinking
                             ? null
-                            : () => _showUnlinkDialog(accountId, bankName),
+                            : () => _showDeleteDialog(accountId, bankName),
                         child: Card(
                           color: Colors.white,
                           shape: RoundedRectangleBorder(
@@ -264,17 +254,19 @@ class _AccountsPageState extends State<AccountsPage> {
                                     color: Colors.grey,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  "IBAN: $ibanDisplay",
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.black54,
+                                if (iban.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    "IBAN: $ibanDisplay",
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.black54,
+                                    ),
                                   ),
-                                ),
+                                ],
                                 const SizedBox(height: 8),
                                 Text(
-                                  "Hold to unlink",
+                                  "Hold to delete",
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: Colors.grey.shade400,

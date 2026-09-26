@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/account_balance.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
+import 'package:frontend_vesta/Screens/pages/accounts.dart';
 
 class AddTransaction extends StatefulWidget {
   const AddTransaction({super.key});
@@ -126,14 +128,13 @@ class AddTransactionState extends State<AddTransaction> {
     try {
       final fire = FirebaseFirestore.instance;
 
-      final txCol = fire
+      final newDoc = fire
           .collection('users')
           .doc(uid)
           .collection('accounts')
           .doc(_selectedAccountId)
-          .collection('transactions');
-
-      final newDoc = txCol.doc();
+          .collection('transactions')
+          .doc();
 
       final txn = TransactionModel.manual(
         firestoreAccountId: _selectedAccountId!,
@@ -152,7 +153,12 @@ class AddTransactionState extends State<AddTransaction> {
         category: _selectedCategory,
       );
 
-      await newDoc.set(txn.toMap());
+      await saveTransactionAndApplyBalance(
+        uid: uid,
+        accountId: _selectedAccountId!,
+        txn: txn,
+      );
+      await calcTotalBalance();
 
       if (mounted) {
         Navigator.pop(context);
