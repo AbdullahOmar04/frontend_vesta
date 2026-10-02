@@ -311,8 +311,8 @@ Future<void> calcTotalBalance() async {
     }
   }
 
-  await FirebaseFirestore.instance.collection('users').doc(uid).set({
+  await updateIfChanged(FirebaseFirestore.instance.collection('users').doc(uid), {
     'totalBalance': totalBalance,
     'totalBalanceUpdatedAt': FieldValue.serverTimestamp(),
-  }, SetOptions(merge: true));
+  });
 }
