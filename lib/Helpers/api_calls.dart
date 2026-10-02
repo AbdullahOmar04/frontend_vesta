@@ -8,7 +8,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend_vesta/Helpers/pinned_http_client.dart';
 import 'package:http/http.dart' as http;
 
-final String baseUrl = dotenv.env['API_URL'] ?? '';
+// A trailing slash in API_URL would turn every route into //banks/..., a 404
+final String baseUrl = (dotenv.env['API_URL'] ?? '').replaceAll(RegExp(r'/+$'), '');
 
 Future<Map<String, String>> _authHeaders([bool forceRefresh = false]) async {
   final token = await FirebaseAuth.instance.currentUser?.getIdToken(forceRefresh);
