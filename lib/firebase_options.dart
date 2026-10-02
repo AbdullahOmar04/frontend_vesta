@@ -59,20 +59,20 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAYxtZNuV_FSiyIGlklUX0ZPum0YVcQslM',
-    appId: '1:579399466424:ios:53f9a564c22ef42fcee34d',
-    messagingSenderId: '579399466424',
-    projectId: 'vesta-7e96a',
-    storageBucket: 'vesta-7e96a.firebasestorage.app',
+    apiKey: 'AIzaSyCNN1B6rS7A6E6EI8MGQ6xm6mrz9gaGaPM',
+    appId: '1:1089402463760:ios:f11ebe5fe95065f3088c95',
+    messagingSenderId: '1089402463760',
+    projectId: 'vesta-83939',
+    storageBucket: 'vesta-83939.firebasestorage.app',
     iosBundleId: 'com.example.frontendVesta',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyAYxtZNuV_FSiyIGlklUX0ZPum0YVcQslM',
-    appId: '1:579399466424:ios:53f9a564c22ef42fcee34d',
-    messagingSenderId: '579399466424',
-    projectId: 'vesta-7e96a',
-    storageBucket: 'vesta-7e96a.firebasestorage.app',
+    apiKey: 'AIzaSyCNN1B6rS7A6E6EI8MGQ6xm6mrz9gaGaPM',
+    appId: '1:1089402463760:ios:f11ebe5fe95065f3088c95',
+    messagingSenderId: '1089402463760',
+    projectId: 'vesta-83939',
+    storageBucket: 'vesta-83939.firebasestorage.app',
     iosBundleId: 'com.example.frontendVesta',
   );
 
