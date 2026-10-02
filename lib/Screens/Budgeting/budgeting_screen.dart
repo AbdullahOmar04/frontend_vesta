@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:frontend_vesta/Helpers/account_balance.dart';
 import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Budgeting/plan_budget.dart';
@@ -377,7 +378,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
       }
 
       // Update Firestore with current totals
-      await userRef.update({
+      await updateIfChanged(userRef, {
         'totalExpense': essentialSpending + luxurySpending,
         'essentialSpending': essentialSpending,
         'luxurySpending': luxurySpending,

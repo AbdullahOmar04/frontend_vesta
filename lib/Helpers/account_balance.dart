@@ -75,3 +75,20 @@ Future<void> deleteAccountAndTransactions({
     'linkedAccountIds': FieldValue.arrayRemove([accountId]),
   }, SetOptions(merge: true));
 }
+
+/// Writes [values] to [ref] only when one of them differs from what is stored.
+/// Screens recompute totals every time they open, and each write to the user
+/// doc makes Firestore re-diff the views listening to it, which stalled Home and
+/// Profile for seconds at a time. [FieldValue] entries such as server
+/// timestamps are written along with a real change but never count as one.
+Future<void> updateIfChanged(
+  DocumentReference<Map<String, dynamic>> ref,
+  Map<String, Object> values,
+) async {
+  final stored = (await ref.get()).data() ?? const <String, dynamic>{};
+  final changed = values.entries.any(
+    (e) => e.value is! FieldValue && stored[e.key] != e.value,
+  );
+  if (!changed) return;
+  await ref.set(values, SetOptions(merge: true));
+}

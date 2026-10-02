@@ -121,7 +121,7 @@ Future<void> fetchCurrentCycleData() async {
   }
 
   // 5. Update Firestore with total expense and savings
-  await userRef.update({
+  await updateIfChanged(userRef, {
     'totalExpense': currentSpending,
     'totalSavings': totalSavings,
   });

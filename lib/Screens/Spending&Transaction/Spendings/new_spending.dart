@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:frontend_vesta/Helpers/account_balance.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/spending_categories.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transactions.dart';
@@ -700,7 +701,7 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
         _currentCycleSpending = currentSpending;
       });
     }
-    FirebaseFirestore.instance.collection("users").doc(uid).update({
+    updateIfChanged(FirebaseFirestore.instance.collection("users").doc(uid), {
       "totalExpense": currentSpending,
     });
   }
