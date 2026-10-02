@@ -41,12 +41,13 @@ class _TransactionsState extends State<Transactions> {
   @override
   void initState() {
     super.initState();
-    getTransactions().then((_) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _checkForCategoryFilter();
-        _loadTransactions();
-      });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForCategoryFilter();
+      _loadTransactions();
     });
+    // The bank sync can take tens of seconds, so show what's stored first and
+    // refresh quietly once it lands
+    getTransactions().then((_) => _loadTransactions(showSpinner: false));
   }
 
   void _checkForCategoryFilter() {
@@ -61,13 +62,15 @@ class _TransactionsState extends State<Transactions> {
     }
   }
 
-  Future<void> _loadTransactions() async {
+  Future<void> _loadTransactions({bool showSpinner = true}) async {
     if (!mounted) return;
 
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    if (showSpinner) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
 
     try {
       final uid = _auth.currentUser?.uid;
@@ -86,6 +89,7 @@ class _TransactionsState extends State<Transactions> {
         return AccountInfo(id: doc.id, name: data['accountName'] ?? doc.id);
       }).toList();
 
+      if (!mounted) return;
       if (accountsSnap.docs.isEmpty) {
         setState(() {
           _allTransactions = [];
@@ -119,6 +123,7 @@ class _TransactionsState extends State<Transactions> {
       // Sort by date (newest first)
       transactions.sort((a, b) => b.date.compareTo(a.date));
 
+      if (!mounted) return;
       setState(() {
         _allTransactions = transactions;
         _filteredTransactions = _applyFilters(transactions);
@@ -126,7 +131,8 @@ class _TransactionsState extends State<Transactions> {
       });
     } catch (e) {
       debugPrint("⚠️ Error loading transactions: $e");
-      if (!mounted) return;
+      // A failed background refresh keeps the list that's already on screen
+      if (!mounted || !showSpinner) return;
 
       setState(() {
         _error = e.toString();
