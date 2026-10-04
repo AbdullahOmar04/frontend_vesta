@@ -21,14 +21,14 @@ class SecurityService {
 
     final config = TalsecConfig(
       androidConfig: AndroidConfig(
-        packageName: 'com.example.vesta',
+        packageName: 'co.vestaapp.app',
         signingCertHashes: [
           '3XFYFijXYtSFYbVN0NYjPJQYubOxkmQCqJu1SZ8lFOI='
         ],
         supportedStores: ['com.android.vending'],
       ),
       iosConfig: IOSConfig(
-        bundleIds: ['com.example.frontendVesta'],
+        bundleIds: ['co.vestaapp.app'],
         teamId: 'YOUR_TEAM_ID',
       ),
       watcherMail: 'abdullah.omar@vestaapp.co',

@@ -58,7 +58,8 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>app-1-1089402463760-ios-f11ebe5fe95065f3088c95</string>
+				<string>app-1-1089402463760-ios-4616c06b59c226ad088c95</string>
+				<string>com.googleusercontent.apps.1089402463760-cjn6gv76pi9fgt1hnirp921qfnnf293d</string>
 			</array>
 		</dict>
 	</array>

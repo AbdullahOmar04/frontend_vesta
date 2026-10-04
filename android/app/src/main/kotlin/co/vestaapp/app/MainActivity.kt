@@ -1,4 +1,4 @@
-package com.example.vesta
+package co.vestaapp.app
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 
