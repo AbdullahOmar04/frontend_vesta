@@ -52,7 +52,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAfPTW8al_dnzClUKa17rJ1QlsjunbQQNs',
-    appId: '1:1089402463760:android:2c61b12e6fe0a9b7088c95',
+    appId: '1:1089402463760:android:2fbd80e731ea7378088c95',
     messagingSenderId: '1089402463760',
     projectId: 'vesta-83939',
     storageBucket: 'vesta-83939.firebasestorage.app',
@@ -60,20 +60,22 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCNN1B6rS7A6E6EI8MGQ6xm6mrz9gaGaPM',
-    appId: '1:1089402463760:ios:f11ebe5fe95065f3088c95',
+    appId: '1:1089402463760:ios:4616c06b59c226ad088c95',
     messagingSenderId: '1089402463760',
     projectId: 'vesta-83939',
     storageBucket: 'vesta-83939.firebasestorage.app',
-    iosBundleId: 'com.example.frontendVesta',
+    iosClientId: '1089402463760-cjn6gv76pi9fgt1hnirp921qfnnf293d.apps.googleusercontent.com',
+    iosBundleId: 'co.vestaapp.app',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyCNN1B6rS7A6E6EI8MGQ6xm6mrz9gaGaPM',
-    appId: '1:1089402463760:ios:f11ebe5fe95065f3088c95',
+    appId: '1:1089402463760:ios:4616c06b59c226ad088c95',
     messagingSenderId: '1089402463760',
     projectId: 'vesta-83939',
     storageBucket: 'vesta-83939.firebasestorage.app',
-    iosBundleId: 'com.example.frontendVesta',
+    iosClientId: '1089402463760-cjn6gv76pi9fgt1hnirp921qfnnf293d.apps.googleusercontent.com',
+    iosBundleId: 'co.vestaapp.app',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(

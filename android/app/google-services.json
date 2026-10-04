@@ -7,12 +7,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1089402463760:android:2c61b12e6fe0a9b7088c95",
+        "mobilesdk_app_id": "1:1089402463760:android:2fbd80e731ea7378088c95",
         "android_client_info": {
-          "package_name": "com.example.vesta"
+          "package_name": "co.vestaapp.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1089402463760-er0rh7hgr7r8551jdo7uaea1298pp69e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAfPTW8al_dnzClUKa17rJ1QlsjunbQQNs"
@@ -20,7 +25,107 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1089402463760-er0rh7hgr7r8551jdo7uaea1298pp69e.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1089402463760-cjn6gv76pi9fgt1hnirp921qfnnf293d.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "co.vestaapp.app"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1089402463760:android:efe0e0ae47163bfe088c95",
+        "android_client_info": {
+          "package_name": "co.vestaapp.app.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1089402463760-4kkm9ausv21rmogj6qk56rhkgq9vf6o3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "co.vestaapp.app.debug",
+            "certificate_hash": "411f29032505baf5d31371fad62816950bff943c"
+          }
+        },
+        {
+          "client_id": "1089402463760-er0rh7hgr7r8551jdo7uaea1298pp69e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfPTW8al_dnzClUKa17rJ1QlsjunbQQNs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1089402463760-er0rh7hgr7r8551jdo7uaea1298pp69e.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1089402463760-cjn6gv76pi9fgt1hnirp921qfnnf293d.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "co.vestaapp.app"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1089402463760:android:2c61b12e6fe0a9b7088c95",
+        "android_client_info": {
+          "package_name": "com.example.vesta"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1089402463760-on07qmhv0u0ms9ubhitmi8qqq6a6duh7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.vesta",
+            "certificate_hash": "7126bec370c52a87e38bb74168748474480f9b30"
+          }
+        },
+        {
+          "client_id": "1089402463760-er0rh7hgr7r8551jdo7uaea1298pp69e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfPTW8al_dnzClUKa17rJ1QlsjunbQQNs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1089402463760-er0rh7hgr7r8551jdo7uaea1298pp69e.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1089402463760-cjn6gv76pi9fgt1hnirp921qfnnf293d.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "co.vestaapp.app"
+              }
+            }
+          ]
         }
       }
     },
@@ -31,7 +136,20 @@
           "package_name": "com.example.vesta.debug"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1089402463760-bdoco5jbt1lj02ohp06v0edlj5g6jael.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.vesta.debug",
+            "certificate_hash": "87659e328c347f11f980d64bac657680c4c0e6a7"
+          }
+        },
+        {
+          "client_id": "1089402463760-er0rh7hgr7r8551jdo7uaea1298pp69e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAfPTW8al_dnzClUKa17rJ1QlsjunbQQNs"
@@ -39,7 +157,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1089402463760-er0rh7hgr7r8551jdo7uaea1298pp69e.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1089402463760-cjn6gv76pi9fgt1hnirp921qfnnf293d.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "co.vestaapp.app"
+              }
+            }
+          ]
         }
       }
     }

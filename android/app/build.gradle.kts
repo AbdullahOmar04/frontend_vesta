@@ -15,7 +15,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.example.vesta"
+    namespace = "co.vestaapp.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
@@ -29,7 +29,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.vesta"
+        applicationId = "co.vestaapp.app"
         minSdk = 29
         targetSdk = 34
         versionCode = flutter.versionCode
