@@ -8,7 +8,8 @@ import 'package:frontend_vesta/Screens/pages/add_account.dart';
 import 'package:intl/intl.dart';
 
 class AccountsPage extends StatefulWidget {
-  const AccountsPage({super.key});
+  final bool showBack;
+  const AccountsPage({super.key, this.showBack = true});
 
   @override
   State<AccountsPage> createState() => _AccountsPageState();
@@ -102,6 +103,7 @@ class _AccountsPageState extends State<AccountsPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.primary,
       appBar: AppBar(
+        automaticallyImplyLeading: widget.showBack,
         backgroundColor: Theme.of(context).colorScheme.primary,
         title: Text(
           "My Accounts",
