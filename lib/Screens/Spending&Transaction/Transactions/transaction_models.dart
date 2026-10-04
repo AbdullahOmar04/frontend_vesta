@@ -226,8 +226,13 @@ class TransactionModel {
 class AccountInfo {
   final String id;
   final String name;
+  final String? type;
 
-  AccountInfo({required this.id, required this.name});
+  AccountInfo({required this.id, required this.name, this.type});
+
+  /// "Arab Bank · Savings", so two accounts at the same bank can be told apart.
+  String get label =>
+      type != null && type!.isNotEmpty ? '$name · $type' : name;
 }
 
 // ---------- Household Transactions ----------

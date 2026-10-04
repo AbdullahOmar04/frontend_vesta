@@ -5,6 +5,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
 import 'package:frontend_vesta/Helpers/account_balance.dart';
+import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/pages/accounts.dart';
 import 'package:frontend_vesta/Screens/pages/settings.dart' as app_settings;
 
@@ -1599,69 +1602,17 @@ class AccountFilterDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 48,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade300),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String?>(
-          isExpanded: true,
-          value: selectedAccountId,
-          hint: Row(
-            children: [
-              Icon(Icons.filter_list, size: 18, color: Colors.grey[600]),
-              const SizedBox(width: 6),
-              Text(
-                'All Accounts',
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
-              ),
-            ],
-          ),
-          icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
-          items: [
-            const DropdownMenuItem<String?>(
-              value: null,
-              child: Row(
-                children: [
-                  Icon(Icons.clear_all, size: 18, color: Colors.grey),
-                  SizedBox(width: 6),
-                  Text('All Accounts', style: TextStyle(fontSize: 14)),
-                ],
-              ),
-            ),
-            ...accounts.map((acc) {
-              return DropdownMenuItem<String?>(
-                value: acc.id,
-                child: Row(
-                  children: [
-                    const Icon(Icons.account_balance_wallet, size: 18),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        acc.name,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ],
-          onChanged: onChanged,
+    return _FilterDropdownShell<String?>(
+      value: selectedAccountId,
+      hintIcon: PhosphorIconsRegular.wallet,
+      hintText: 'All accounts',
+      items: [
+        const _FilterItem(null, 'All accounts', PhosphorIconsRegular.wallet),
+        ...accounts.map(
+          (acc) => _FilterItem(acc.id, acc.label, PhosphorIconsRegular.bank),
         ),
-      ),
+      ],
+      onChanged: onChanged,
     );
   }
 }
@@ -1680,67 +1631,95 @@ class CategoryFilterDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return _FilterDropdownShell<String?>(
+      value: selectedCategory,
+      hintIcon: PhosphorIconsRegular.funnelSimple,
+      hintText: 'All categories',
+      items: [
+        const _FilterItem(
+          null,
+          'All categories',
+          PhosphorIconsRegular.funnelSimple,
+        ),
+        ...categories.map((cat) => _FilterItem(cat, cat, categoryIcon(cat))),
+      ],
+      onChanged: onChanged,
+    );
+  }
+}
+
+class _FilterItem<T> {
+  const _FilterItem(this.value, this.label, this.icon);
+
+  final T value;
+  final String label;
+  final IconData icon;
+}
+
+/// Outlined dropdown used by the transaction filters.
+class _FilterDropdownShell<T> extends StatelessWidget {
+  const _FilterDropdownShell({
+    required this.value,
+    required this.hintIcon,
+    required this.hintText,
+    required this.items,
+    required this.onChanged,
+  });
+
+  final T value;
+  final IconData hintIcon;
+  final String hintText;
+  final List<_FilterItem<T>> items;
+  final ValueChanged<T> onChanged;
+
+  Widget _row(BuildContext context, IconData icon, String label, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 13, color: color),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final v = context.vesta;
+    final scheme = Theme.of(context).colorScheme;
     return Container(
-      height: 48,
+      height: 44,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: scheme.surfaceContainer,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade300),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: v.divider),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: DropdownButtonHideUnderline(
-        child: DropdownButton<String?>(
+        child: DropdownButton<T>(
           isExpanded: true,
-          value: selectedCategory,
-          hint: Row(
-            children: [
-              Icon(Icons.filter_alt, size: 18, color: Colors.grey[600]),
-              const SizedBox(width: 6),
-              Text(
-                'All Categories',
-                style: TextStyle(color: Colors.grey[600], fontSize: 14),
-              ),
-            ],
-          ),
-          icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+          value: value,
+          // Wider than the half-width button so labels like
+          // "Arab Bank · Savings" aren't cut off in the open menu.
+          menuWidth: 260,
+          borderRadius: BorderRadius.circular(VestaRadius.button),
+          dropdownColor: scheme.surfaceContainer,
+          hint: _row(context, hintIcon, hintText, v.muted),
+          icon: Icon(PhosphorIconsRegular.caretDown, size: 14, color: v.muted),
           items: [
-            const DropdownMenuItem<String?>(
-              value: null,
-              child: Row(
-                children: [
-                  Icon(Icons.clear_all, size: 18, color: Colors.grey),
-                  SizedBox(width: 6),
-                  Text('All Categories', style: TextStyle(fontSize: 14)),
-                ],
+            for (final item in items)
+              DropdownMenuItem<T>(
+                value: item.value,
+                child: _row(context, item.icon, item.label, scheme.onSurface),
               ),
-            ),
-            ...categories.map(
-              (cat) => DropdownMenuItem<String?>(
-                value: cat,
-                child: Row(
-                  children: [
-                    const Icon(Icons.label, size: 18),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        cat,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ],
-          onChanged: onChanged,
+          onChanged: (picked) => onChanged(picked as T),
         ),
       ),
     );
@@ -1755,11 +1734,15 @@ class TransactionCard extends StatefulWidget {
     required this.transaction,
     this.onCategoryChanged,
     this.onDeleted,
+    this.accountName,
   });
 
   final TransactionModel transaction;
   final VoidCallback? onCategoryChanged;
   final VoidCallback? onDeleted;
+
+  /// Display name of the transaction's account, when the caller has it.
+  final String? accountName;
 
   @override
   State<TransactionCard> createState() => _TransactionCardState();
@@ -1768,168 +1751,87 @@ class TransactionCard extends StatefulWidget {
 class _TransactionCardState extends State<TransactionCard> {
   bool _isUpdating = false;
 
+  String get _title {
+    final t = widget.transaction;
+    for (final s in [t.merchantName, t.description, t.category]) {
+      if (s != null && s.trim().isNotEmpty) return s.trim();
+    }
+    return t.isDebit ? 'Expense' : 'Income';
+  }
+
+  String? get _accountText {
+    final name = widget.accountName ?? widget.transaction.accountLabel;
+    return name != null && name.isNotEmpty ? name : null;
+  }
+
+  String get _subtitle {
+    final t = widget.transaction;
+    final category = t.category != null && t.category!.isNotEmpty
+        ? t.category!
+        : 'Uncategorized';
+    return '$category · ${_shortDate(t.date)}';
+  }
+
+  num get _signedAmount =>
+      widget.transaction.isDebit ? -widget.transaction.amount : widget.transaction.amount;
+
   @override
   Widget build(BuildContext context) {
-    final isDebit = widget.transaction.isDebit;
-    final amountColor = isDebit ? Colors.red : Colors.green;
-
-    return GestureDetector(
+    final t = widget.transaction;
+    return InkWell(
       onTap: () => _showDetailsSheet(context),
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
           children: [
-            // Amount
-            Row(
-              children: [
-                Text(
-                  "${isDebit ? '- ' : '+ '}"
-                  "${widget.transaction.amount.toStringAsFixed(2)} "
-                  "${widget.transaction.currency}",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
-                    color: amountColor,
+            IconBadge(categoryIcon(t.category)),
+            const SizedBox(width: VestaSpace.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(
+                    _subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
-                ),
-                const Spacer(),
-
-                // 🔽 Check if there are households, then show a button
-                FutureBuilder<bool>(
-                  future: _checkForHouseholds(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const SizedBox.shrink();
-                    }
-
-                    final hasHouseholds = snapshot.data ?? false;
-                    if (!hasHouseholds) {
-                      return const SizedBox.shrink();
-                    }
-
-                    // ✅ Show the button
-                    return TextButton.icon(
-                      onPressed: () => _showAssignToHouseholdSheet(context),
-                      icon: const Icon(Icons.house_outlined, size: 18),
-                      label: const Text("Assign"),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.grey[800],
-                        textStyle: const TextStyle(fontSize: 14),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 4),
-
-            // Account + Date
-            Row(
-              children: [
-                Text(
-                  widget.transaction.accountLabel != null &&
-                          widget.transaction.accountLabel!.isNotEmpty
-                      ? widget.transaction.accountLabel!
-                      : "Acc • ${widget.transaction.accountId}",
-                  style: const TextStyle(fontSize: 13, color: Colors.black54),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    _formatDate(widget.transaction.date),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                const Icon(Icons.chevron_right),
-              ],
-            ),
-
-            const SizedBox(height: 10),
-
-            // Category dropdown
-            Stack(
-              children: [
-                Builder(
-                  builder: (context) {
-                    // dedupe labels
-                    final labels = categoryLabels.toSet().toList();
-
-                    final current = widget.transaction.category;
-                    final isValidValue =
-                        current != null &&
-                        current.isNotEmpty &&
-                        (current == "Unassign" || labels.contains(current));
-
-                    return DropdownButtonFormField<String>(
-                      value: isValidValue ? current : null,
-                      hint: const Text("Category"),
-                      isExpanded: true,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.grey[100],
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
+                  if (_accountText != null)
+                    Row(
+                      children: [
+                        Icon(
+                          PhosphorIconsRegular.bank,
+                          size: 12,
+                          color: context.vesta.muted,
                         ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                      items: [
-                        const DropdownMenuItem(
-                          value: "Unassign",
-                          child: Text("Unassign"),
-                        ),
-                        ...labels.map(
-                          (label) => DropdownMenuItem(
-                            value: label,
-                            child: Text(label),
+                        const SizedBox(width: VestaSpace.xs),
+                        Flexible(
+                          child: Text(
+                            _accountText!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ),
                       ],
-                      onChanged: _isUpdating ? null : _onCategoryChanged,
-                    );
-                  },
-                ),
-                if (_isUpdating)
-                  const Positioned.fill(
-                    child: Center(
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
+            const SizedBox(width: VestaSpace.sm),
+            _isUpdating
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : MoneyText(
+                    _signedAmount,
+                    currency: t.currency,
+                    showPlus: true,
+                    color: t.isDebit ? null : context.vesta.pos,
+                  ),
           ],
         ),
       ),
@@ -2002,7 +1904,10 @@ class _TransactionCardState extends State<TransactionCard> {
       widget.onCategoryChanged?.call();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text("Error: $e"),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
     } finally {
       setState(() => _isUpdating = false);
@@ -2025,99 +1930,214 @@ class _TransactionCardState extends State<TransactionCard> {
 
   void _showDetailsSheet(BuildContext context) {
     final isDebit = widget.transaction.isDebit;
-    final typeLabel = isDebit ? "Debit" : "Credit";
+    final typeLabel = isDebit ? "Expense" : "Income";
     final sourceLabel = widget.transaction.source.name;
 
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      backgroundColor: Colors.white,
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Wrap(
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(20),
-                ),
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheet) {
+          final v = sheetContext.vesta;
+          final current = widget.transaction.category;
+          final labels = categoryLabels.toSet().toList();
+
+          // Category changes go through _onCategoryChanged as before; the
+          // sheet just redraws when it starts and when it finishes.
+          Future<void> pick(String value) async {
+            final update = _onCategoryChanged(value);
+            setSheet(() {});
+            await update;
+            if (sheetContext.mounted) setSheet(() {});
+          }
+
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(
+                VestaSpace.gutter,
+                0,
+                VestaSpace.gutter,
+                VestaSpace.gutter,
               ),
-            ),
-            Text(
-              "${widget.transaction.amount.toStringAsFixed(2)} "
-              "${widget.transaction.currency}",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: isDebit ? Colors.red : Colors.green,
-              ),
-            ),
-            const SizedBox(height: 10),
-            _info("Type", typeLabel),
-            _info("Merchant", widget.transaction.merchantName ?? "—"),
-            _info(
-              "Account",
-              widget.transaction.accountLabel ??
-                  "Acc • ${widget.transaction.accountId}",
-            ),
-            _info("Source", sourceLabel),
-            if (widget.transaction.description?.isNotEmpty == true)
-              _info("Description", widget.transaction.description!),
-            _info("Date", _formatDateInDetails(widget.transaction.date)),
-            Row(
-              children: [
-                Expanded(
-                  child: largeButton(
-                    context,
-                    'Delete Transaction',
-                    Colors.red,
-                    () {
-                      _deleteTransaction()
-                          .then((_) {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Transaction deleted"),
-                                backgroundColor: Colors.green,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      IconBadge(
+                        categoryIcon(current),
+                        size: 48,
+                        circle: false,
+                      ),
+                      const SizedBox(width: VestaSpace.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: headingStyle(17),
+                            ),
+                            Text(
+                              _subtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(sheetContext).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: VestaSpace.sm),
+                      MoneyText(
+                        _signedAmount,
+                        currency: widget.transaction.currency,
+                        size: 17,
+                        showPlus: true,
+                        color: isDebit ? null : v.pos,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: VestaSpace.lg),
+                  VestaCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Category',
+                                style: Theme.of(sheetContext).textTheme.bodySmall,
                               ),
-                            );
-                            widget.onDeleted?.call();
-                          })
-                          .catchError((e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("Error deleting transaction: $e"),
-                                backgroundColor: Colors.red,
+                            ),
+                            if (_isUpdating)
+                              const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            else if (current != null && current.isNotEmpty)
+                              GestureDetector(
+                                onTap: () => pick("Unassign"),
+                                child: Text(
+                                  'Remove',
+                                  style: TextStyle(fontSize: 12, color: v.accentInk),
+                                ),
                               ),
-                            );
-                          });
+                          ],
+                        ),
+                        const SizedBox(height: VestaSpace.sm),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            for (final label in labels)
+                              ChoiceTag(
+                                label: label,
+                                icon: categoryIcon(label),
+                                selected: current == label,
+                                onTap: _isUpdating || current == label
+                                    ? null
+                                    : () => pick(label),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: VestaSpace.lg),
+                        _info(sheetContext, "Type", typeLabel),
+                        _info(
+                          sheetContext,
+                          "Merchant",
+                          widget.transaction.merchantName ?? "—",
+                        ),
+                        _info(sheetContext, "Account", _accountText ?? "—"),
+                        _info(sheetContext, "Source", sourceLabel),
+                        if (widget.transaction.description?.isNotEmpty == true)
+                          _info(
+                            sheetContext,
+                            "Description",
+                            widget.transaction.description!,
+                          ),
+                        _info(
+                          sheetContext,
+                          "Date",
+                          _formatDateInDetails(widget.transaction.date),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: VestaSpace.lg),
+                  FutureBuilder<bool>(
+                    future: _checkForHouseholds(),
+                    builder: (context, snapshot) {
+                      if (snapshot.data != true) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: OutlineButton(
+                          label: 'Assign to household',
+                          onPressed: () => _showAssignToHouseholdSheet(context),
+                        ),
+                      );
                     },
                   ),
-                ),
-              ],
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: v.neg,
+                        side: BorderSide(color: v.neg.withValues(alpha: 0.6)),
+                      ),
+                      onPressed: () {
+                        _deleteTransaction()
+                            .then((_) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Transaction deleted"),
+                                ),
+                              );
+                              widget.onDeleted?.call();
+                            })
+                            .catchError((e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "Error deleting transaction: $e",
+                                  ),
+                                  backgroundColor: Theme.of(context).colorScheme.error,
+                                ),
+                              );
+                            });
+                      },
+                      child: const Text('Delete transaction'),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _info(String title, String value) {
+  Widget _info(BuildContext context, String title, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 90, child: Text("$title:")),
+          SizedBox(
+            width: 96,
+            child: Text(title, style: Theme.of(context).textTheme.bodySmall),
+          ),
           Expanded(
             child: Text(
               value.isEmpty ? "—" : value,
-              style: const TextStyle(fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 13),
             ),
           ),
         ],
@@ -2125,8 +2145,15 @@ class _TransactionCardState extends State<TransactionCard> {
     );
   }
 
-  static String _formatDate(DateTime dt) {
+  /// "Today", "Yesterday", "Oct 19", or "Oct 19, 2025" outside this year.
+  static String _shortDate(DateTime dt) {
     if (dt.millisecondsSinceEpoch == 0) return "—";
+    final now = DateTime.now();
+    final day = DateTime(dt.year, dt.month, dt.day);
+    final today = DateTime(now.year, now.month, now.day);
+    final diff = today.difference(day).inDays;
+    if (diff == 0) return "Today";
+    if (diff == 1) return "Yesterday";
     const months = [
       "Jan",
       "Feb",
@@ -2141,7 +2168,8 @@ class _TransactionCardState extends State<TransactionCard> {
       "Nov",
       "Dec",
     ];
-    return "${months[dt.month - 1]} ${dt.day}, ${dt.year}";
+    final base = "${months[dt.month - 1]} ${dt.day}";
+    return dt.year == now.year ? base : "$base, ${dt.year}";
   }
 
   static String _formatDateInDetails(DateTime dt) {
@@ -2197,17 +2225,16 @@ class _TransactionCardState extends State<TransactionCard> {
 
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
       builder: (context) => ListView(
         shrinkWrap: true,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(
+          VestaSpace.gutter,
+          0,
+          VestaSpace.gutter,
+          VestaSpace.gutter,
+        ),
         children: [
-          const Text(
-            "Assign to Household",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+          Text("Assign to household", style: headingStyle(17)),
           const SizedBox(height: 12),
           ...householdDocs.docs.map((doc) {
             final data = doc.data();
@@ -2215,7 +2242,8 @@ class _TransactionCardState extends State<TransactionCard> {
             final householdId = doc.id;
 
             return ListTile(
-              leading: const Icon(Icons.house_rounded),
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(PhosphorIconsRegular.houseLine),
               title: Text(name),
               onTap: () async {
                 final user = FirebaseAuth.instance.currentUser;
@@ -2261,7 +2289,6 @@ class _TransactionCardState extends State<TransactionCard> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text("Assigned to '$name' successfully!"),
-                      backgroundColor: Colors.green,
                     ),
                   );
                 }
@@ -2662,28 +2689,13 @@ class ErrorView extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 12),
-            Text(
-              "Failed to load transactions",
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.black54),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text("Retry"),
-            ),
-          ],
+        child: _StateMessage(
+          icon: PhosphorIconsRegular.warningCircle,
+          iconColor: context.vesta.neg,
+          title: "Couldn't load transactions",
+          message: message,
+          actionLabel: "Retry",
+          onAction: onRetry,
         ),
       ),
     );
@@ -2698,31 +2710,12 @@ class EmptyTransactionsState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(Icons.receipt_long, size: 80, color: Colors.grey[400]),
-        const SizedBox(height: 12),
-        Text(
-          "No transactions yet",
-          style: TextStyle(
-            fontSize: 18,
-            color: Colors.grey[700],
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          "Pull down to refresh or sync with your bank.",
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey[600]),
-        ),
-        const SizedBox(height: 16),
-        OutlinedButton.icon(
-          onPressed: onSync,
-          icon: const Icon(Icons.sync),
-          label: const Text("Sync Now"),
-        ),
-      ],
+    return _StateMessage(
+      icon: PhosphorIconsRegular.receipt,
+      title: "No transactions yet",
+      message: "Tap + to add your first one.",
+      actionLabel: "Refresh",
+      onAction: onSync,
     );
   }
 }
@@ -2734,31 +2727,54 @@ class EmptyFilterState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(Icons.filter_list_off, size: 80, color: Colors.grey[400]),
-        const SizedBox(height: 12),
-        Text(
-          "No transactions found",
-          style: TextStyle(
-            fontSize: 18,
-            color: Colors.grey[700],
-            fontWeight: FontWeight.w600,
+    return _StateMessage(
+      icon: PhosphorIconsRegular.funnelSimple,
+      title: "No transactions match these filters",
+      message: "Try a different account, category or date.",
+      actionLabel: "Clear filters",
+      onAction: onClearFilter,
+    );
+  }
+}
+
+class _StateMessage extends StatelessWidget {
+  const _StateMessage({
+    required this.icon,
+    required this.title,
+    required this.message,
+    required this.actionLabel,
+    required this.onAction,
+    this.iconColor,
+  });
+
+  final IconData icon;
+  final Color? iconColor;
+  final String title;
+  final String message;
+  final String actionLabel;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final v = context.vesta;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: VestaSpace.xl),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 56, color: iconColor ?? v.muted),
+          const SizedBox(height: VestaSpace.md),
+          Text(title, textAlign: TextAlign.center, style: headingStyle(17)),
+          const SizedBox(height: VestaSpace.sm),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, color: v.muted),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          "Try selecting a different account or clear the filter.",
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey[600]),
-        ),
-        const SizedBox(height: 16),
-        OutlinedButton.icon(
-          onPressed: onClearFilter,
-          icon: const Icon(Icons.clear),
-          label: const Text("Clear Filter"),
-        ),
-      ],
+          const SizedBox(height: VestaSpace.lg),
+          OutlinedButton(onPressed: onAction, child: Text(actionLabel)),
+        ],
+      ),
     );
   }
 }

@@ -602,6 +602,138 @@ class TagChip extends StatelessWidget {
   }
 }
 
+/// Pill for picking one option (date filters, categories): tinted with an
+/// accent outline when selected, a plain outline otherwise.
+class ChoiceTag extends StatelessWidget {
+  const ChoiceTag({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.icon,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback? onTap;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final v = context.vesta;
+    final scheme = Theme.of(context).colorScheme;
+    final fg = selected ? v.tintText : scheme.onSurface;
+    final shape = StadiumBorder(
+      side: BorderSide(color: selected ? scheme.primary : v.divider),
+    );
+    return Material(
+      color: selected ? v.tint : Colors.transparent,
+      shape: shape,
+      child: InkWell(
+        customBorder: shape,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 15, color: fg),
+                const SizedBox(width: 6),
+              ],
+              Text(label, style: TextStyle(fontSize: 13, color: fg)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One slice of a card that a lazy list builds row by row: rounded corners
+/// on the first and last slices, and a hairline above every slice but the
+/// first when [divider] is set.
+class CardSegment extends StatelessWidget {
+  const CardSegment({
+    super.key,
+    required this.child,
+    this.first = false,
+    this.last = false,
+    this.divider = false,
+  });
+
+  final Widget child;
+  final bool first;
+  final bool last;
+  final bool divider;
+
+  @override
+  Widget build(BuildContext context) {
+    const r = Radius.circular(VestaRadius.card);
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.vertical(
+          top: first ? r : Radius.zero,
+          bottom: last ? r : Radius.zero,
+        ),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        VestaSpace.lg,
+        0,
+        VestaSpace.lg,
+        last ? 6 : 0,
+      ),
+      child: divider
+          ? DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border(top: BorderSide(color: context.vesta.divider)),
+              ),
+              child: child,
+            )
+          : child,
+    );
+  }
+}
+
+/// Icon for a category name, by keyword, so user-made categories get a
+/// sensible icon too.
+IconData categoryIcon(String? name) {
+  final n = (name ?? '').toLowerCase();
+  bool has(String s) => n.contains(s);
+  if (n.isEmpty) return PhosphorIconsRegular.tag;
+  if (has('grocer') || has('supermarket')) return PhosphorIconsRegular.shoppingCart;
+  if (has('food') || has('drink') || has('restaurant') || has('dining') || has('coffee')) {
+    return PhosphorIconsRegular.forkKnife;
+  }
+  if (has('entertain') || has('cinema') || has('fun') || has('game')) {
+    return PhosphorIconsRegular.popcorn;
+  }
+  if (has('saving')) return PhosphorIconsRegular.piggyBank;
+  if (has('salary') || has('income') || has('payroll') || has('wage')) {
+    return PhosphorIconsRegular.briefcase;
+  }
+  if (has('subscri') || has('netflix') || has('spotify')) return PhosphorIconsRegular.repeat;
+  if (has('transport') || has('taxi') || has('bus') || has('ride')) return PhosphorIconsRegular.bus;
+  if (has('fuel') || has('gas') || RegExp(r'\bcar\b').hasMatch(n)) {
+    return PhosphorIconsRegular.gasPump;
+  }
+  if (has('bill') || has('electric') || has('water') || has('internet') || has('utilit')) {
+    return PhosphorIconsRegular.lightning;
+  }
+  if (has('health') || has('pharm') || has('medic') || has('doctor')) {
+    return PhosphorIconsRegular.heartbeat;
+  }
+  if (has('rent') || has('home') || has('house')) return PhosphorIconsRegular.houseLine;
+  if (has('travel') || has('flight')) return PhosphorIconsRegular.airplaneTilt;
+  if (has('shop') || has('cloth')) return PhosphorIconsRegular.shoppingBag;
+  if (has('gift')) return PhosphorIconsRegular.gift;
+  if (has('educat') || has('school') || has('universit')) {
+    return PhosphorIconsRegular.graduationCap;
+  }
+  return PhosphorIconsRegular.tag;
+}
+
 /// Settings row with an icon, label, optional description and a switch.
 class ToggleRow extends StatelessWidget {
   const ToggleRow({
