@@ -734,6 +734,41 @@ IconData categoryIcon(String? name) {
   return PhosphorIconsRegular.tag;
 }
 
+/// Label and colour for a category's budget bucket, as the app stores it
+/// ('essential', 'luxury', 'savings', 'income').
+({String label, Color color}) bucketStyle(String bucket, VestaColors v) {
+  switch (bucket) {
+    case 'essential':
+      return (label: 'Necessity', color: v.bucketEssential);
+    case 'luxury':
+      return (label: 'Luxury', color: v.bucketLuxury);
+    case 'savings':
+      return (label: 'Savings', color: v.bucketSavings);
+    case 'income':
+      return (label: 'Income', color: v.pos);
+    default:
+      return (label: bucket.isEmpty ? 'Other' : bucket, color: v.muted);
+  }
+}
+
+const _monthAbbr = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+
+/// "Today", "Yesterday", "Oct 19", or "Oct 19, 2025" outside this year.
+String shortDateLabel(DateTime dt) {
+  if (dt.millisecondsSinceEpoch == 0) return '—';
+  final now = DateTime.now();
+  final day = DateTime(dt.year, dt.month, dt.day);
+  final today = DateTime(now.year, now.month, now.day);
+  final diff = today.difference(day).inDays;
+  if (diff == 0) return 'Today';
+  if (diff == 1) return 'Yesterday';
+  final base = '${_monthAbbr[dt.month - 1]} ${dt.day}';
+  return dt.year == now.year ? base : '$base, ${dt.year}';
+}
+
 /// Settings row with an icon, label, optional description and a switch.
 class ToggleRow extends StatelessWidget {
   const ToggleRow({

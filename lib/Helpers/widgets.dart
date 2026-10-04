@@ -1735,6 +1735,7 @@ class TransactionCard extends StatefulWidget {
     this.onCategoryChanged,
     this.onDeleted,
     this.accountName,
+    this.showDate = true,
   });
 
   final TransactionModel transaction;
@@ -1743,6 +1744,9 @@ class TransactionCard extends StatefulWidget {
 
   /// Display name of the transaction's account, when the caller has it.
   final String? accountName;
+
+  /// False when the list already groups transactions under date headings.
+  final bool showDate;
 
   @override
   State<TransactionCard> createState() => _TransactionCardState();
@@ -1769,7 +1773,7 @@ class _TransactionCardState extends State<TransactionCard> {
     final category = t.category != null && t.category!.isNotEmpty
         ? t.category!
         : 'Uncategorized';
-    return '$category · ${_shortDate(t.date)}';
+    return widget.showDate ? '$category · ${shortDateLabel(t.date)}' : category;
   }
 
   num get _signedAmount =>
@@ -2143,33 +2147,6 @@ class _TransactionCardState extends State<TransactionCard> {
         ],
       ),
     );
-  }
-
-  /// "Today", "Yesterday", "Oct 19", or "Oct 19, 2025" outside this year.
-  static String _shortDate(DateTime dt) {
-    if (dt.millisecondsSinceEpoch == 0) return "—";
-    final now = DateTime.now();
-    final day = DateTime(dt.year, dt.month, dt.day);
-    final today = DateTime(now.year, now.month, now.day);
-    final diff = today.difference(day).inDays;
-    if (diff == 0) return "Today";
-    if (diff == 1) return "Yesterday";
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    final base = "${months[dt.month - 1]} ${dt.day}";
-    return dt.year == now.year ? base : "$base, ${dt.year}";
   }
 
   static String _formatDateInDetails(DateTime dt) {

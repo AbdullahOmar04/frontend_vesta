@@ -51,6 +51,9 @@ class VestaColors extends ThemeExtension<VestaColors> {
     required this.pxPurple,
     required this.pxTeal,
     required this.pxInk,
+    required this.bucketSavings,
+    required this.bucketEssential,
+    required this.bucketLuxury,
   });
 
   /// Top of the page gradient and the header bars.
@@ -98,6 +101,11 @@ class VestaColors extends ThemeExtension<VestaColors> {
   final Color pxTeal;
   final Color pxInk;
 
+  /// Budget buckets: savings, necessities and luxuries.
+  final Color bucketSavings;
+  final Color bucketEssential;
+  final Color bucketLuxury;
+
   List<Color> get segments => [seg1, seg2, seg3, seg4, seg5];
 
   static const light = VestaColors(
@@ -124,6 +132,9 @@ class VestaColors extends ThemeExtension<VestaColors> {
     pxPurple: Color(0xFF6B43F7),
     pxTeal: Color(0xFF00ABA0),
     pxInk: Color(0xFF313031),
+    bucketSavings: Color(0xFF00ABA0),
+    bucketEssential: Color(0xFF4A86FF),
+    bucketLuxury: Color(0xFF6B43F7),
   );
 
   static const dark = VestaColors(
@@ -150,6 +161,9 @@ class VestaColors extends ThemeExtension<VestaColors> {
     pxPurple: Color(0xFFB4A2FF),
     pxTeal: Color(0xFF00ABA0),
     pxInk: Color(0xFF313031),
+    bucketSavings: Color(0xFF86CE8C),
+    bucketEssential: Color(0xFF92C1FF),
+    bucketLuxury: Color(0xFFFFE250),
   );
 
   @override
@@ -177,6 +191,9 @@ class VestaColors extends ThemeExtension<VestaColors> {
     Color? pxPurple,
     Color? pxTeal,
     Color? pxInk,
+    Color? bucketSavings,
+    Color? bucketEssential,
+    Color? bucketLuxury,
   }) {
     return VestaColors(
       bgTop: bgTop ?? this.bgTop,
@@ -202,6 +219,9 @@ class VestaColors extends ThemeExtension<VestaColors> {
       pxPurple: pxPurple ?? this.pxPurple,
       pxTeal: pxTeal ?? this.pxTeal,
       pxInk: pxInk ?? this.pxInk,
+      bucketSavings: bucketSavings ?? this.bucketSavings,
+      bucketEssential: bucketEssential ?? this.bucketEssential,
+      bucketLuxury: bucketLuxury ?? this.bucketLuxury,
     );
   }
 
@@ -233,6 +253,9 @@ class VestaColors extends ThemeExtension<VestaColors> {
       pxPurple: l(pxPurple, other.pxPurple),
       pxTeal: l(pxTeal, other.pxTeal),
       pxInk: l(pxInk, other.pxInk),
+      bucketSavings: l(bucketSavings, other.bucketSavings),
+      bucketEssential: l(bucketEssential, other.bucketEssential),
+      bucketLuxury: l(bucketLuxury, other.bucketLuxury),
     );
   }
 }
