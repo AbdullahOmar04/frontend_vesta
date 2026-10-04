@@ -1,10 +1,15 @@
 // ignore_for_file: deprecated_member_use, avoid_print
 
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:frontend_vesta/Helpers/account_balance.dart';
+import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Budgeting/plan_budget.dart';
 
@@ -519,46 +524,42 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
 
   // ==================== BUILD METHODS ====================
 
+  static const _monthNames = [
+    '', 'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+
+  Future<void> _openPlan() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const PlanBudgetScreen()),
+    );
+    if (result == true) {
+      _refreshBudget();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          "Personal Budget",
-          style: TextStyle(color: scheme.surface, fontWeight: FontWeight.w600),
-        ),
-        iconTheme: IconThemeData(color: scheme.surface),
-        backgroundColor: scheme.primary,
-        elevation: 0,
-        actions: [
-          TextButton.icon(
-            onPressed: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const PlanBudgetScreen()),
-              );
-              if (result == true) {
-                _refreshBudget();
-              }
-            },
-            icon: const Icon(Icons.edit, size: 18),
-            label: const Text("Manage"),
-            style: TextButton.styleFrom(foregroundColor: scheme.surface),
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: () async => _refreshBudget(),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                child: _buildContent(),
+      appBar: const VestaAppBar(title: "Budgeting"),
+      body: VestaBackground(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : RefreshIndicator(
+                onRefresh: () async => _refreshBudget(),
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(
+                    VestaSpace.gutter,
+                    VestaSpace.xs,
+                    VestaSpace.gutter,
+                    VestaSpace.xl,
+                  ),
+                  children: [_buildContent()],
+                ),
               ),
-            ),
+      ),
     );
   }
 
@@ -579,197 +580,64 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     }
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Budget tracker bar showing total spending progress
-        _buildBudgetTrackerBar(),
-        const SizedBox(height: 24),
         _buildBudgetLineChart(),
-        const SizedBox(height: 24),
+        const SizedBox(height: 14),
         _buildBudgetBreakdown(remainingAmount, totalIncome),
-        const SizedBox(height: 24),
+        const SizedBox(height: 14),
         _buildUpcomingPayments(),
       ],
     );
   }
 
   Widget _buildEmptyState() {
-    return Center(
+    final v = context.vesta;
+    return Padding(
+      padding: const EdgeInsets.only(top: 96),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 100),
-          Image.asset('assets/images/budgeting.png', width: 150, height: 150),
-          const SizedBox(height: 16),
+          const PixelIcon(PixelArt.budget, size: 72),
+          const SizedBox(height: 14),
+          Text("No budget plan yet", style: headingStyle(22)),
+          const SizedBox(height: VestaSpace.sm),
           Text(
-            "No Budget Plan Yet",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Create your first budget plan to\nstart managing your finances",
+            "Split your income into savings, necessities and luxuries, and see how each cycle tracks against it.",
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+            style: TextStyle(fontSize: 14, color: v.muted),
           ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: 250,
-            child: largeButton(
-              context,
-              'Create Budget Plan',
-              Theme.of(context).colorScheme.secondary,
-              () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const PlanBudgetScreen()),
-                );
-                if (result == true) {
-                  _refreshBudget();
-                }
-              },
-            ),
-          ),
+          const SizedBox(height: VestaSpace.xl),
+          PrimaryButton(label: 'Create budget plan', onPressed: _openPlan),
         ],
       ),
     );
   }
 
-  Widget _buildBudgetTrackerBar() {
-    final totalSpending = _essentialSpending + _luxurySpending;
-    final totalBudget = _essentialBudget + _luxuryBudget;
-    final percent = totalBudget > 0
-        ? (totalSpending / totalBudget).clamp(0.0, 1.0)
-        : 0.0;
-    final isOverBudget = totalSpending > totalBudget;
+  /// Rounds the chart's top value up to a tidy number with a tidy midpoint.
+  double _niceTop(double maxY) {
+    if (maxY <= 0) return 100;
+    final half = maxY / 2;
+    final mag = math
+        .pow(10, (math.log(half) / math.ln10).floor())
+        .toDouble();
+    for (final m in [1, 1.5, 2, 2.5, 3, 5, 10]) {
+      if (m * mag >= half) return m * mag * 2;
+    }
+    return 20 * mag;
+  }
 
-    final now = DateTime.now();
-    final monthNames = [
-      '', 'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
-    ];
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[800],
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Total Spending - ${monthNames[now.month]} ${now.year}",
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              if (isOverBudget)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    "Over Budget!",
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Progress bar
-          Container(
-            height: 10,
-            decoration: BoxDecoration(
-              color: Colors.grey[700],
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: FractionallySizedBox(
-                widthFactor: percent.isNaN ? 0.0 : percent,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isOverBudget ? Colors.red : Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Labels
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "JOD ${totalSpending.toStringAsFixed(0)}",
-                style: TextStyle(
-                  color: isOverBudget ? Colors.red[300] : Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                "JOD ${totalBudget.toStringAsFixed(0)}",
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          // Show uncategorized warning if present
-          if (_uncategorizedSpending > 0) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.warning_amber, color: Colors.amber[300], size: 16),
-                const SizedBox(width: 4),
-                Text(
-                  "JOD ${_uncategorizedSpending.toStringAsFixed(0)} uncategorized",
-                  style: TextStyle(
-                    color: Colors.amber[300],
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
+  String _compact(double value) {
+    if (value >= 1000) {
+      final k = value / 1000;
+      return '${k == k.roundToDouble() ? k.toStringAsFixed(0) : k.toStringAsFixed(1)}k';
+    }
+    return value == value.roundToDouble()
+        ? value.toStringAsFixed(0)
+        : value.toStringAsFixed(1);
   }
 
   Widget _buildBudgetLineChart() {
-    final totalBudget = _essentialBudget + _luxuryBudget;
-
-    final List<FlSpot> budgetLineData = [
-      FlSpot(0, totalBudget),
-      FlSpot(5, totalBudget),
-    ];
+    final v = context.vesta;
 
     final List<String> monthLabels = [];
     final now = DateTime.now();
@@ -782,234 +650,294 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
       monthLabels.add(monthNames[month.month - 1]);
     }
 
-    // Combine essential + luxury for total spending line
-    final List<FlSpot> totalSpendingData = [];
-    for (int i = 0; i < _essentialData.length; i++) {
-      final essential = _essentialData[i].y;
-      final luxury = i < _luxuryData.length ? _luxuryData[i].y : 0.0;
-      totalSpendingData.add(FlSpot(i.toDouble(), essential + luxury));
-    }
+    final series = [
+      (_savingsData, v.bucketSavings),
+      (_essentialData, v.bucketEssential),
+      (_luxuryData, v.bucketLuxury),
+    ];
+    final allY = [
+      for (final s in series) ...s.$1.map((p) => p.y),
+    ];
+    final bool hasData = allY.any((y) => y > 0);
+    final top = _niceTop(allY.isEmpty ? 0 : allY.reduce(math.max));
 
-    final bool hasData = totalSpendingData.isNotEmpty || _savingsData.isNotEmpty;
+    LineChartBarData line(List<FlSpot> spots, Color color) => LineChartBarData(
+      spots: spots,
+      isCurved: false,
+      color: color,
+      barWidth: 2,
+      isStrokeCapRound: true,
+      dotData: const FlDotData(show: false),
+      belowBarData: BarAreaData(show: false),
+    );
 
-    return Container(
-      height: 250,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return VestaCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Legend
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildLegendItem("Budget", Colors.grey[400]!, dashed: true),
-              const SizedBox(width: 16),
-              _buildLegendItem("Spending", Colors.blue),
-              const SizedBox(width: 16),
-              _buildLegendItem("Savings", Colors.green),
-            ],
+          Text(
+            "Spending by bucket",
+            style: TextStyle(fontSize: 12, color: v.muted),
           ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: LineChart(
-              LineChartData(
-                gridData: FlGridData(show: false),
-                titlesData: FlTitlesData(
-                  leftTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 30,
-                      interval: 1,
-                      getTitlesWidget: (value, meta) {
-                        final index = value.toInt();
-                        if (index >= 0 && index < monthLabels.length) {
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(
-                              monthLabels[index],
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                              ),
+          const SizedBox(height: VestaSpace.md),
+          SizedBox(
+            height: 170,
+            child: !hasData
+                ? Center(
+                    child: Text(
+                      "No spending in the last six months yet",
+                      style: TextStyle(fontSize: 13, color: v.muted),
+                    ),
+                  )
+                : LineChart(
+                    LineChartData(
+                      minY: 0,
+                      maxY: top,
+                      gridData: FlGridData(
+                        show: true,
+                        drawVerticalLine: false,
+                        horizontalInterval: top / 2,
+                        getDrawingHorizontalLine: (_) =>
+                            FlLine(color: v.divider, strokeWidth: 1),
+                      ),
+                      titlesData: FlTitlesData(
+                        rightTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        topTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 34,
+                            interval: top / 2,
+                            getTitlesWidget: (value, meta) => Text(
+                              _compact(value),
+                              style: TextStyle(fontSize: 10, color: v.muted),
                             ),
-                          );
-                        }
-                        return const Text('');
-                      },
+                          ),
+                        ),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 26,
+                            interval: 1,
+                            getTitlesWidget: (value, meta) {
+                              final index = value.toInt();
+                              if (index < 0 || index >= monthLabels.length) {
+                                return const SizedBox.shrink();
+                              }
+                              final current = index == monthLabels.length - 1;
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text(
+                                  monthLabels[index],
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: current
+                                        ? FontWeight.w600
+                                        : FontWeight.w400,
+                                    color: current
+                                        ? Theme.of(context).colorScheme.onSurface
+                                        : v.muted,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      borderData: FlBorderData(show: false),
+                      lineTouchData: const LineTouchData(enabled: false),
+                      lineBarsData: [
+                        for (final s in series)
+                          if (s.$1.isNotEmpty) line(s.$1, s.$2),
+                      ],
                     ),
                   ),
-                ),
-                borderData: FlBorderData(show: false),
-                lineBarsData: hasData
-                    ? [
-                        // Budget line (dashed)
-                        LineChartBarData(
-                          spots: budgetLineData,
-                          isCurved: false,
-                          color: Colors.grey[300],
-                          barWidth: 2,
-                          isStrokeCapRound: true,
-                          dotData: const FlDotData(show: false),
-                          belowBarData: BarAreaData(show: false),
-                          dashArray: [5, 5],
-                        ),
-                        // Total spending line (essential + luxury)
-                        if (totalSpendingData.isNotEmpty)
-                          LineChartBarData(
-                            spots: totalSpendingData,
-                            isCurved: true,
-                            color: Colors.blue,
-                            barWidth: 3,
-                            isStrokeCapRound: true,
-                            dotData: const FlDotData(show: false),
-                            belowBarData: BarAreaData(
-                              show: true,
-                              color: Colors.blue.withOpacity(0.1),
-                            ),
-                          ),
-                        // Savings line
-                        if (_savingsData.isNotEmpty)
-                          LineChartBarData(
-                            spots: _savingsData,
-                            isCurved: true,
-                            color: Colors.green,
-                            barWidth: 3,
-                            isStrokeCapRound: true,
-                            dotData: const FlDotData(show: false),
-                            belowBarData: BarAreaData(
-                              show: true,
-                              color: Colors.green.withOpacity(0.1),
-                            ),
-                          ),
-                      ]
-                    : [],
-              ),
-            ),
+          ),
+          const SizedBox(height: VestaSpace.md),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 16,
+            runSpacing: 6,
+            children: [
+              _buildLegendItem("Savings", v.bucketSavings),
+              _buildLegendItem("Necessities", v.bucketEssential),
+              _buildLegendItem("Luxuries", v.bucketLuxury),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildLegendItem(String label, Color color, {bool dashed = false}) {
+  Widget _buildLegendItem(String label, Color color) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 16,
+          width: 14,
           height: 3,
           decoration: BoxDecoration(
-            color: dashed ? Colors.transparent : color,
-            border: dashed
-                ? Border(
-                    bottom: BorderSide(
-                      color: color,
-                      width: 2,
-                      style: BorderStyle.solid,
-                    ),
-                  )
-                : null,
+            color: color,
+            borderRadius: BorderRadius.circular(2),
           ),
         ),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-        ),
+        const SizedBox(width: 6),
+        Text(label, style: TextStyle(fontSize: 12, color: context.vesta.muted)),
       ],
     );
   }
 
-  Widget _buildBudgetBreakdown(double remaining, double income) {
-    final currentMonth = DateTime.now().month;
-    final monthNames = [
-      '', 'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
-    ];
-
+  Widget _statTile(String label, double amount, Color color, {String? sub}) {
+    final v = context.vesta;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(VestaSpace.md),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: v.raised,
+        borderRadius: BorderRadius.circular(VestaRadius.button),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Budget Plan for ${monthNames[currentMonth]}",
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          Text(label, style: TextStyle(fontSize: 12, color: v.muted)),
+          const SizedBox(height: 2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: MoneyText(amount, size: 20, color: color),
           ),
-          Text(
-            "Based on JOD ${income.toStringAsFixed(0)} income",
-            style: const TextStyle(fontSize: 13, color: Colors.grey),
-          ),
-          const SizedBox(height: 16),
+          if (sub != null)
+            Text(sub, style: TextStyle(fontSize: 11, color: v.muted)),
+        ],
+      ),
+    );
+  }
 
-          // Savings with progress
+  Widget _buildBudgetBreakdown(double remaining, double income) {
+    final v = context.vesta;
+    final currentMonth = DateTime.now().month;
+    final totalSpending = _essentialSpending + _luxurySpending;
+    final totalBudget = _essentialBudget + _luxuryBudget;
+
+    // Each bucket's share of income, for the split bar.
+    final segments = [
+      (_savingsTransfers, v.bucketSavings),
+      (_essentialSpending, v.bucketEssential),
+      (_luxurySpending, v.bucketLuxury),
+    ];
+
+    return VestaCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SectionHeader(
+            title: "Budget plan for ${_monthNames[currentMonth]}",
+            trailing: [
+              OutlineIconButton(
+                icon: PhosphorIconsRegular.pencilSimple,
+                tooltip: "Edit budget plan",
+                onPressed: _openPlan,
+              ),
+            ],
+          ),
+          const SizedBox(height: VestaSpace.md),
+          Row(
+            children: [
+              Expanded(child: _statTile("Total income", income, v.pos)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _statTile(
+                  "Spent so far",
+                  totalSpending,
+                  totalSpending > totalBudget && totalBudget > 0
+                      ? v.neg
+                      : Theme.of(context).colorScheme.onSurface,
+                  sub: totalBudget > 0 ? "of ${formatMoney(totalBudget)}" : null,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: SizedBox(
+              height: 8,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final w = constraints.maxWidth;
+                  // Lay segments end to end, capped at the bar's width in
+                  // case spending runs past income.
+                  final parts = <Widget>[];
+                  var left = w;
+                  for (final s in segments) {
+                    if (income <= 0 || s.$1 <= 0 || left <= 0) continue;
+                    final width = math.min(w * (s.$1 / income), left);
+                    parts.add(
+                      SizedBox(width: width, child: ColoredBox(color: s.$2)),
+                    );
+                    left -= width;
+                    if (left > 2) {
+                      parts.add(const SizedBox(width: 2));
+                      left -= 2;
+                    }
+                  }
+                  return Stack(
+                    children: [
+                      Positioned.fill(child: ColoredBox(color: v.track)),
+                      Positioned.fill(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: parts,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: VestaSpace.sm),
           _buildBreakdownItemWithProgress(
             label: "Savings",
             budgetAmount: _savingsBudget,
             spentAmount: _savingsTransfers,
-            color: Colors.green,
-            icon: Icons.savings,
+            color: v.bucketSavings,
             isInverted: true, // For savings, "spent" means transferred to savings
           ),
-
-          // Essential Spending with progress
           _buildBreakdownItemWithProgress(
-            label: "Essential Spending",
+            label: "Necessities",
             budgetAmount: _essentialBudget,
             spentAmount: _essentialSpending,
-            color: Colors.blue,
-            icon: Icons.shopping_cart,
+            color: v.bucketEssential,
           ),
-
-          // Luxuries with progress
           _buildBreakdownItemWithProgress(
             label: "Luxuries",
             budgetAmount: _luxuryBudget,
             spentAmount: _luxurySpending,
-            color: Colors.orange,
-            icon: Icons.diamond,
+            color: v.bucketLuxury,
           ),
 
           // Income tracking
           if (_actualIncome > 0 || _expectedIncome > 0) _buildIncomeTracker(),
+
+          if (_uncategorizedSpending > 0)
+            _buildBreakdownItem(
+              "Uncategorized spending",
+              _uncategorizedSpending,
+              v.neg,
+              PhosphorIconsRegular.warningCircle,
+            ),
 
           // Unallocated
           if (remaining > 0)
             _buildBreakdownItem(
               "Unallocated",
               remaining,
-              Colors.grey,
-              Icons.help_outline,
+              v.muted,
+              PhosphorIconsRegular.question,
             ),
         ],
       ),
@@ -1021,106 +949,53 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     required double budgetAmount,
     required double spentAmount,
     required Color color,
-    required IconData icon,
     bool isInverted = false,
   }) {
     if (budgetAmount <= 0) return const SizedBox.shrink();
 
+    final v = context.vesta;
     final percent = (spentAmount / budgetAmount).clamp(0.0, 1.0);
     final isOverBudget = !isInverted && spentAmount > budgetAmount;
     final isOnTrack = isInverted && spentAmount >= budgetAmount;
-    final percentDisplay = (percent * 100).toStringAsFixed(0);
 
-    // For savings: green when on track, orange when behind
-    // For spending: normal when under, red when over
-    Color statusColor;
-    String statusText;
-
-    if (isInverted) {
-      // Savings logic
-      statusColor = isOnTrack ? Colors.green : Colors.orange;
-      statusText = isOnTrack ? "✓ Done" : "$percentDisplay%";
-    } else {
-      // Spending logic
-      statusColor = isOverBudget ? Colors.red : color;
-      statusText = isOverBudget ? "Over!" : "$percentDisplay%";
-    }
+    final amountColor = isOverBudget
+        ? v.neg
+        : isOnTrack
+        ? v.pos
+        : Theme.of(context).colorScheme.onSurface;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                width: 8,
+                height: 8,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: color,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                child: Icon(icon, color: color, size: 20),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: VestaSpace.sm),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      "JOD ${spentAmount.toStringAsFixed(0)} / ${budgetAmount.toStringAsFixed(0)}",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isOverBudget ? Colors.red : Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
+                child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  statusText,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: statusColor,
-                  ),
-                ),
+              const SizedBox(width: VestaSpace.sm),
+              MoneyText(spentAmount, color: amountColor),
+              Text(
+                " / ${formatMoney(budgetAmount)}",
+                style: TextStyle(fontSize: 12, color: v.muted),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          // Progress bar
-          Container(
-            height: 6,
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(3),
-            ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: FractionallySizedBox(
-                widthFactor: percent,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isOverBudget ? Colors.red : color,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-              ),
-            ),
+          const SizedBox(height: 6),
+          VestaProgressBar(
+            value: percent,
+            height: 4,
+            color: isOverBudget ? v.neg : color,
           ),
         ],
       ),
@@ -1128,81 +1003,40 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
   }
 
   Widget _buildIncomeTracker() {
+    final v = context.vesta;
     final percent = _expectedIncome > 0
-        ? (_actualIncome / _expectedIncome).clamp(0.0, 1.5)
+        ? (_actualIncome / _expectedIncome).clamp(0.0, 1.0)
         : 0.0;
     final isOnTrack = _actualIncome >= _expectedIncome;
-    final percentDisplay = (percent * 100).toStringAsFixed(0);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.only(top: 8),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Divider(),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.teal.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.account_balance_wallet,
-                  color: Colors.teal,
-                  size: 20,
+              Icon(PhosphorIconsRegular.handCoins, size: 16, color: v.pos),
+              const SizedBox(width: VestaSpace.sm),
+              const Expanded(
+                child: Text(
+                  "Income",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Income Received",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      "JOD ${_actualIncome.toStringAsFixed(0)} / ${_expectedIncome.toStringAsFixed(0)} expected",
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: (isOnTrack ? Colors.teal : Colors.orange).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isOnTrack ? Icons.check_circle : Icons.schedule,
-                      color: isOnTrack ? Colors.teal : Colors.orange,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      isOnTrack ? "Received" : "$percentDisplay%",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: isOnTrack ? Colors.teal : Colors.orange,
-                      ),
-                    ),
-                  ],
-                ),
+              const SizedBox(width: VestaSpace.sm),
+              MoneyText(_actualIncome, color: isOnTrack ? v.pos : null),
+              Text(
+                " / ${formatMoney(_expectedIncome)}",
+                style: TextStyle(fontSize: 12, color: v.muted),
               ),
             ],
           ),
+          const SizedBox(height: 6),
+          VestaProgressBar(value: percent, height: 4, color: v.pos),
         ],
       ),
     );
@@ -1217,73 +1051,42 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     if (amount <= 0) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.only(top: 10),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(width: 12),
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: VestaSpace.sm),
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 13, color: context.vesta.muted),
             ),
           ),
-          Text(
-            "JOD ${amount.toStringAsFixed(0)}",
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
-          ),
+          MoneyText(amount, size: 13, color: color),
         ],
       ),
     );
   }
 
   Widget _buildUpcomingPayments() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    final v = context.vesta;
+    return VestaCard(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Row(
-            children: [
-              Icon(Icons.schedule, color: Colors.black87),
-              SizedBox(width: 8),
-              Text(
-                "Upcoming Payments",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
+          const SectionHeader(title: "Upcoming payments"),
+          const SizedBox(height: VestaSpace.sm),
 
           if (_isLoading)
             const Center(child: CircularProgressIndicator()),
 
           if (!_isLoading && _sosps.isEmpty)
-            const Text(
-              "No upcoming payments",
-              style: TextStyle(color: Colors.grey),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: VestaSpace.md),
+              child: Text(
+                "No upcoming payments",
+                style: TextStyle(fontSize: 13, color: v.muted),
+              ),
             ),
 
           if (!_isLoading && _sosps.isNotEmpty)
@@ -1323,10 +1126,12 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
       }
     }
 
-    final icon = type == "arrival" ? Icons.call_received : Icons.call_made;
+    final icon = type == "arrival"
+        ? PhosphorIconsRegular.arrowDownLeft
+        : PhosphorIconsRegular.arrowUpRight;
     final color = status == "active"
-        ? Theme.of(context).primaryColor
-        : Colors.grey;
+        ? context.vesta.accentInk
+        : context.vesta.muted;
 
     return _buildPaymentItem(
       title: beneficiaryName,
@@ -1356,92 +1161,52 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     required IconData icon,
     required Color color,
   }) {
+    final v = context.vesta;
     final bool isIncoming = type == "arrival";
-    final amountColor = isIncoming ? Colors.green[700] : Colors.red[700];
-    final amountSign = isIncoming ? "+" : "-";
     final statusText =
         status.substring(0, 1).toUpperCase() + status.substring(1);
+    final details = [
+      nextPaymentDate,
+      if (frequency != null)
+        "${frequency[0].toUpperCase()}${frequency.substring(1)}",
+      statusText,
+    ].join(" · ");
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(width: 12),
+          IconBadge(icon, size: 40, circle: false, color: color),
+          const SizedBox(width: VestaSpace.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
                 Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  "From $accountName",
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  "From: $accountName",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[700],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  nextPaymentDate,
-                  style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  "Status: $statusText",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: status == "active"
-                        ? Colors.green[700]
-                        : Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                if (frequency != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    "Frequency: ${frequency[0].toUpperCase()}${frequency.substring(1)}",
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                  ),
-                ],
+                Text(details, style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: VestaSpace.sm),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Text(
-                "$amountSign $currency ${amount.toStringAsFixed(2)}",
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: amountColor,
-                ),
+              MoneyText(
+                isIncoming ? amount : -amount,
+                currency: currency,
+                showPlus: true,
+                color: isIncoming ? v.pos : null,
               ),
-              if (remainingPayments != null) ...[
-                const SizedBox(height: 4),
+              if (remainingPayments != null)
                 Text(
-                  "$remainingPayments payments left",
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  "$remainingPayments left",
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
-              ],
             ],
           ),
         ],
