@@ -316,7 +316,7 @@ class _HomeTile extends StatelessWidget {
               Text(
                 label,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleSmall,
+                style: headingStyle(15),
               ),
             ],
           ),

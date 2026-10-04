@@ -297,12 +297,15 @@ ThemeData _buildTheme({
     headlineMedium: headingStyle(28, color: text).copyWith(letterSpacing: -0.5),
     headlineSmall: headingStyle(22, color: text),
     titleLarge: headingStyle(17, color: text),
-    titleMedium: headingStyle(16, color: text),
-    titleSmall: headingStyle(15, color: text),
+    // Material's own widgets (dropdowns, chips, tabs) default to the title
+    // and label roles, so those stay in Poppins; Pixelify headings come from
+    // headingStyle() where the prototype uses them.
+    titleMedium: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: text),
+    titleSmall: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: text),
     bodyLarge: TextStyle(fontSize: 15, color: text),
     bodyMedium: TextStyle(fontSize: 14, color: text),
     bodySmall: TextStyle(fontSize: 12, color: v.muted),
-    labelLarge: headingStyle(14, color: text),
+    labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: text),
     labelMedium: TextStyle(fontSize: 13, color: text),
     labelSmall: TextStyle(fontSize: 11, color: text),
   );
@@ -373,7 +376,7 @@ ThemeData _buildTheme({
         foregroundColor: v.accentInk,
         disabledBackgroundColor: v.raised,
         disabledForegroundColor: v.muted,
-        textStyle: textTheme.labelLarge,
+        textStyle: headingStyle(14),
         padding: buttonPadding,
         shape: buttonShape,
         side: BorderSide(color: v.accentInk),
@@ -383,7 +386,7 @@ ThemeData _buildTheme({
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: text,
-        textStyle: textTheme.labelLarge,
+        textStyle: headingStyle(14),
         padding: buttonPadding,
         shape: buttonShape,
         side: BorderSide(color: outline),
@@ -400,7 +403,7 @@ ThemeData _buildTheme({
         backgroundColor: accent,
         foregroundColor: Colors.white,
         elevation: 0,
-        textStyle: textTheme.labelLarge,
+        textStyle: headingStyle(14),
         padding: buttonPadding,
         shape: buttonShape,
       ),

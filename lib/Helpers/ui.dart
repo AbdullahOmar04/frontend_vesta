@@ -195,7 +195,7 @@ class SectionHeader extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+          child: Text(title, style: headingStyle(16)),
         ),
         if (actionLabel != null)
           GestureDetector(
@@ -242,7 +242,7 @@ class OutlineIconButton extends StatelessWidget {
           padding: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(VestaRadius.md),
-            side: BorderSide(color: c.withValues(alpha: 0.5)),
+            side: BorderSide(color: context.vesta.divider),
           ),
         ),
       ),
@@ -411,6 +411,75 @@ class IconBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(circle ? size / 2 : 12),
       ),
       child: Icon(icon, size: size * 0.46, color: color),
+    );
+  }
+}
+
+// Monogram and brand colour per Jordanian bank, from the prototype's bank
+// list. Matched against the account name in order, so longer names go first.
+const List<(String, String, Color)> _banks = [
+  ('arab jordan investment', 'AJ', Color(0xFF3C4A8F)),
+  ('ajib', 'AJ', Color(0xFF3C4A8F)),
+  ('arab bank', 'AB', Color(0xFF1F6F5C)),
+  ('housing bank', 'HB', Color(0xFF2A5EA8)),
+  ('hbtf', 'HB', Color(0xFF2A5EA8)),
+  ('etihad', 'BE', Color(0xFF6B3FA0)),
+  ('cairo amman', 'CA', Color(0xFFB0472D)),
+  ('capital bank', 'CB', Color(0xFF1D3557)),
+  ('jordan kuwait', 'JK', Color(0xFF00707A)),
+  ('ahli', 'JA', Color(0xFF8A2B45)),
+  ('bank of jordan', 'BJ', Color(0xFF7A5A12)),
+  ('jordan islamic', 'JI', Color(0xFF2F7A3A)),
+  ('safwa', 'SW', Color(0xFF4B6B2A)),
+  ('investbank', 'IB', Color(0xFFA03030)),
+  ('jordan commercial', 'JC', Color(0xFF2B5F8A)),
+  ('société générale', 'SG', Color(0xFF9A2632)),
+  ('societe generale', 'SG', Color(0xFF9A2632)),
+  ('bank abc', 'BA', Color(0xFF5A3D7A)),
+];
+
+/// Rounded square with an account's monogram: the bank's own colour for
+/// known Jordanian banks, otherwise the name's initials on the accent.
+class BankBadge extends StatelessWidget {
+  const BankBadge(this.name, {super.key, this.size = 36});
+
+  final String name;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final lower = name.toLowerCase();
+    String? mono;
+    Color? color;
+    for (final (key, m, c) in _banks) {
+      if (lower.contains(key)) {
+        mono = m;
+        color = c;
+        break;
+      }
+    }
+    if (mono == null) {
+      final words = name.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
+      mono = words.length > 1
+          ? words.take(2).map((w) => w[0]).join()
+          : name.trim().padRight(2).substring(0, 2).trim();
+      mono = mono.toUpperCase();
+    }
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: color ?? Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        mono,
+        style: headingStyle(13, color: Colors.white).copyWith(
+          fontVariations: const [FontVariation('wght', 600)],
+          letterSpacing: 0.3,
+        ),
+      ),
     );
   }
 }
