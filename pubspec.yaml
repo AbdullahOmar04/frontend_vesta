@@ -41,6 +41,7 @@ flutter:
     - assets/images/Dark.png
     - assets/images/budgeting.png
     - assets/images/LOGO_APP-ICON-DARK.png
+    - assets/images/vesta_head.png
 
   fonts:
     - family: Poppins

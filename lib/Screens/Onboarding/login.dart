@@ -3,7 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Helpers/biometric_service.dart';
-import 'package:frontend_vesta/Helpers/widgets.dart';
+import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/Onboarding/register.dart';
 import 'package:frontend_vesta/Screens/pages/main_screen.dart';
 
@@ -57,7 +59,7 @@ class _LoginState extends State<Login> {
       barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Reset Password'),
+          title: const Text('Reset password'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,9 +75,6 @@ class _LoginState extends State<Login> {
                 decoration: InputDecoration(
                   labelText: 'Email',
                   hintText: 'example@email.com',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
                 ),
               ),
             ],
@@ -92,9 +91,9 @@ class _LoginState extends State<Login> {
                       final email = emailController.text.trim();
                       if (email.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text('Please enter your email address'),
-                            backgroundColor: Colors.red,
+                            backgroundColor: Theme.of(context).colorScheme.error,
                           ),
                         );
                         return;
@@ -106,9 +105,9 @@ class _LoginState extends State<Login> {
                       );
                       if (!emailRegex.hasMatch(email)) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text('Please enter a valid email address'),
-                            backgroundColor: Colors.red,
+                            backgroundColor: Theme.of(context).colorScheme.error,
                           ),
                         );
                         return;
@@ -129,7 +128,6 @@ class _LoginState extends State<Login> {
                               content: Text(
                                 'Password reset email sent. Please check your inbox.',
                               ),
-                              backgroundColor: Colors.green,
                             ),
                           );
                         }
@@ -146,18 +144,18 @@ class _LoginState extends State<Login> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(message),
-                            backgroundColor: Colors.red,
+                            backgroundColor: Theme.of(context).colorScheme.error,
                           ),
                         );
                       } catch (e) {
                         setDialogState(() => isLoading = false);
                         debugPrint('Password reset error: $e');
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text(
                               'An error occurred. Please try again later.',
                             ),
-                            backgroundColor: Colors.red,
+                            backgroundColor: Theme.of(context).colorScheme.error,
                           ),
                         );
                       }
@@ -168,7 +166,7 @@ class _LoginState extends State<Login> {
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Send Reset Link'),
+                  : const Text('Send reset link'),
             ),
           ],
         ),
@@ -243,7 +241,7 @@ class _LoginState extends State<Login> {
         message = 'Account error. Please contact support.';
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.red),
+        SnackBar(content: Text(message), backgroundColor: Theme.of(context).colorScheme.error),
       );
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -255,7 +253,6 @@ class _LoginState extends State<Login> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Biometric login is not available or not enabled'),
-          backgroundColor: Colors.orange,
         ),
       );
       return;
@@ -268,9 +265,9 @@ class _LoginState extends State<Login> {
       if (!authenticated) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text('Biometric authentication failed'),
-              backgroundColor: Colors.red,
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }
@@ -284,7 +281,6 @@ class _LoginState extends State<Login> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('No stored credentials. Please login with password first.'),
-              backgroundColor: Colors.orange,
             ),
           );
         }
@@ -307,7 +303,6 @@ class _LoginState extends State<Login> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Session expired. Please login with password.'),
-              backgroundColor: Colors.orange,
             ),
           );
         }
@@ -316,9 +311,9 @@ class _LoginState extends State<Login> {
       debugPrint('Biometric login error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('An error occurred. Please try again.'),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -329,171 +324,124 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
+    final v = context.vesta;
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      appBar: AppBar(
-        title: Text(
-          'Login',
-          style: TextStyle(color: Theme.of(context).colorScheme.surface),
-        ),
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.surface),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(30),
-                  topRight: Radius.circular(30),
-                ),
+      appBar: const VestaAppBar(title: 'Log in'),
+      body: VestaBackground(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            VestaSpace.xl,
+            VestaSpace.sm,
+            VestaSpace.xl,
+            VestaSpace.xl,
+          ),
+          children: [
+            Text('Welcome back', style: headingStyle(24)),
+            const SizedBox(height: VestaSpace.xs),
+            Text(
+              'Log in with your username or email.',
+              style: TextStyle(fontSize: 14, color: v.muted),
+            ),
+            const SizedBox(height: VestaSpace.xl),
+            TextField(
+              controller: identifierController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Username or email',
               ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 26),
-                    Text(
-                      'Welcome Back',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 35,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.secondary,
-                        fontFamily: 'Poppins',
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Login with your username or email',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 20, fontFamily: 'Poppins'),
-                    ),
-                    SizedBox(
-                      height: 160,
-                      child: OverflowBox(
-                        maxWidth: double.infinity,
-                        maxHeight: 400,
-                        alignment: Alignment.center,
-                        child: Image.asset(
-                          'assets/images/Dark.png',
-                          width: 400,
-                          height: 400,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: identifierController,
-                      decoration: InputDecoration(
-                        labelText: 'Username or Email',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: passwordController,
-                      obscureText: _obscurePassword,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: GestureDetector(
-                        onTap: _showForgotPasswordDialog,
-                        child: Text(
-                          'Forgot Password?',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.w500,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _loading
-                        ? const CircularProgressIndicator()
-                        : Row(
-                            children: [
-                              Expanded(
-                                child: largeButton(
-                                  context,
-                                  "Login",
-                                  Theme.of(context).colorScheme.secondary,
-                                  _login,
-                                ),
-                              ),
-                              if (_biometricAvailable)
-                                IconButton(
-                                  onPressed: _biometricEnabled ? _biometricLogin : null,
-                                  icon: Icon(
-                                    Icons.fingerprint,
-                                    color: _biometricEnabled
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Colors.grey,
-                                    size: 32,
-                                  ),
-                                  tooltip: _biometricEnabled
-                                      ? 'Login with biometrics'
-                                      : 'Enable biometrics in settings after login',
-                                ),
-                            ],
-                          ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text("Don't have an account? "),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const Register(),
-                              ),
-                            );
-                          },
-                          child: Text(
-                            "Sign Up",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                  ],
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: passwordController,
+              obscureText: _obscurePassword,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword
+                        ? PhosphorIconsRegular.eyeSlash
+                        : PhosphorIconsRegular.eye,
+                    color: v.muted,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
                 ),
               ),
             ),
-          ),
-        ],
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: _showForgotPasswordDialog,
+                child: const Text('Forgot password?'),
+              ),
+            ),
+            const SizedBox(height: VestaSpace.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: PrimaryButton(
+                    label: 'Log in',
+                    loading: _loading,
+                    onPressed: _login,
+                  ),
+                ),
+                if (_biometricAvailable)
+                  Padding(
+                    padding: const EdgeInsets.only(left: VestaSpace.sm),
+                    child: IconButton(
+                      onPressed: _biometricEnabled && !_loading
+                          ? _biometricLogin
+                          : null,
+                      icon: Icon(
+                        PhosphorIconsRegular.fingerprint,
+                        size: 26,
+                        color: _biometricEnabled ? v.accentInk : v.muted,
+                      ),
+                      tooltip: _biometricEnabled
+                          ? 'Log in with biometrics'
+                          : 'Enable biometrics in settings after logging in',
+                      style: IconButton.styleFrom(
+                        fixedSize: const Size(48, 48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            VestaRadius.button,
+                          ),
+                          side: BorderSide(color: v.divider),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: VestaSpace.lg),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Don't have an account? ",
+                  style: TextStyle(fontSize: 13, color: v.muted),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const Register(),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    "Sign up",
+                    style: TextStyle(fontSize: 13, color: v.accentInk),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

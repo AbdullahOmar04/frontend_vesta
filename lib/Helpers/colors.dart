@@ -324,15 +324,16 @@ ThemeData _buildTheme({
     titleLarge: headingStyle(17, color: text),
     // Material's own widgets (dropdowns, chips, tabs) default to the title
     // and label roles, so those stay in Poppins; Pixelify headings come from
-    // headingStyle() where the prototype uses them.
-    titleMedium: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: text),
-    titleSmall: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: text),
-    bodyLarge: TextStyle(fontSize: 15, color: text),
-    bodyMedium: TextStyle(fontSize: 14, color: text),
-    bodySmall: TextStyle(fontSize: 12, color: v.muted),
-    labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: text),
-    labelMedium: TextStyle(fontSize: 13, color: text),
-    labelSmall: TextStyle(fontSize: 11, color: text),
+    // headingStyle() where the prototype uses them. The font is named on each
+    // style because some slots (dialog content) use them without merging.
+    titleMedium: TextStyle(fontFamily: bodyFont, fontSize: 15, fontWeight: FontWeight.w500, color: text),
+    titleSmall: TextStyle(fontFamily: bodyFont, fontSize: 14, fontWeight: FontWeight.w500, color: text),
+    bodyLarge: TextStyle(fontFamily: bodyFont, fontSize: 15, color: text),
+    bodyMedium: TextStyle(fontFamily: bodyFont, fontSize: 14, color: text),
+    bodySmall: TextStyle(fontFamily: bodyFont, fontSize: 12, color: v.muted),
+    labelLarge: TextStyle(fontFamily: bodyFont, fontSize: 14, fontWeight: FontWeight.w500, color: text),
+    labelMedium: TextStyle(fontFamily: bodyFont, fontSize: 13, color: text),
+    labelSmall: TextStyle(fontFamily: bodyFont, fontSize: 11, color: text),
   );
 
   final buttonShape = RoundedRectangleBorder(
