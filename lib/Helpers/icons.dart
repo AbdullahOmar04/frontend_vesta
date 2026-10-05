@@ -70,6 +70,7 @@ class PhosphorIconsRegular {
   static const IconData eye = IconData(0xe220, fontFamily: 'Phosphor');
   static const IconData eyeSlash = IconData(0xe224, fontFamily: 'Phosphor');
   static const IconData fileText = IconData(0xe23a, fontFamily: 'Phosphor');
+  static const IconData fingerprint = IconData(0xe23e, fontFamily: 'Phosphor');
   static const IconData flame = IconData(0xe624, fontFamily: 'Phosphor');
   static const IconData forkKnife = IconData(0xe262, fontFamily: 'Phosphor');
   static const IconData funnelSimple = IconData(0xe268, fontFamily: 'Phosphor');
@@ -225,6 +226,7 @@ class PhosphorIconsFill {
   static const IconData eye = IconData(0xe220, fontFamily: 'PhosphorFill');
   static const IconData eyeSlash = IconData(0xe224, fontFamily: 'PhosphorFill');
   static const IconData fileText = IconData(0xe23a, fontFamily: 'PhosphorFill');
+  static const IconData fingerprint = IconData(0xe23e, fontFamily: 'PhosphorFill');
   static const IconData flame = IconData(0xe624, fontFamily: 'PhosphorFill');
   static const IconData forkKnife = IconData(0xe262, fontFamily: 'PhosphorFill');
   static const IconData funnelSimple = IconData(0xe268, fontFamily: 'PhosphorFill');
