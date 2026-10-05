@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:frontend_vesta/Helpers/account_balance.dart';
+import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/spending_categories.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transactions.dart';
@@ -25,6 +27,7 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
   List<TransactionModel> _allTransactions = [];
   Map<String, CategoryData> _categories = {};
   Map<String, String> _categoryBuckets = {};
+  Map<String, String> _accountLabels = {};
 
   double _currentCycleBudget = 0.01;
   double _currentCycleSpending = 0.0;
@@ -96,6 +99,15 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
 
       debugPrint("💳 Found ${accountsSnap.docs.length} accounts");
 
+      final accountLabels = <String, String>{
+        for (final d in accountsSnap.docs)
+          d.id: AccountInfo(
+            id: d.id,
+            name: d.data()['accountName'] ?? d.id,
+            type: d.data()['accountTypeName'] as String?,
+          ).label,
+      };
+
       final transactions = <TransactionModel>[];
       for (var accDoc in accountsSnap.docs) {
         final txSnap = await accDoc.reference.collection('transactions').get();
@@ -118,6 +130,7 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
         _categories = categoryMap;
         _allTransactions = transactions;
         _categoryBuckets = bucketMap;
+        _accountLabels = accountLabels;
         _loading = false;
       });
     } catch (e) {
@@ -185,66 +198,35 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
     return Scaffold(
-      backgroundColor: scheme.primary,
-      appBar: AppBar(
-        leading: const BackButton(),
-        title: Text(
-          "Spending Analysis",
-          style: TextStyle(color: scheme.surface),
-        ),
-        iconTheme: IconThemeData(color: scheme.surface),
-        centerTitle: true,
-        backgroundColor: scheme.primary,
+      appBar: const VestaAppBar(title: "Spendings"),
+      body: VestaBackground(
+        child: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : _buildBody(),
       ),
-      body: _loading
-          ? Container(
-              color: scheme.surface,
-              child: const Center(child: CircularProgressIndicator()),
-            )
-          : _buildBody(),
     );
   }
 
   Widget _buildBody() {
-    final scheme = Theme.of(context).colorScheme;
-
     // We calculate these here to pass them to the builder methods
     final categoryNetAmounts = _calculateCategoryNetAmounts();
     final latestTransactions = _getLatestTransactions();
 
-    return Container(
-      height: double.infinity,
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
-        ),
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        VestaSpace.gutter,
+        VestaSpace.xs,
+        VestaSpace.gutter,
+        VestaSpace.xl,
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const SizedBox(height: 16),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    _buildBudgetTrackerBar(),
-                    const SizedBox(height: 24),
-                    _buildSpendingCategoriesSection(categoryNetAmounts),
-                    const SizedBox(height: 24),
-                    _buildLatestTransactionsSection(latestTransactions),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+      children: [
+        _buildBudgetTrackerBar(),
+        const SizedBox(height: 14),
+        _buildSpendingCategoriesSection(categoryNetAmounts),
+        const SizedBox(height: 14),
+        _buildLatestTransactionsSection(latestTransactions),
+      ],
     );
   }
 
@@ -255,167 +237,139 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
 
     final top5Categories = sortedCategories.take(3).toList();
 
-    return Column(
-      children: [
-        // Header
-        Row(
-          children: [
-            const Text(
-              "Spending Categories",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            const Spacer(),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SpendingCategories(),
-                  ),
-                ).then((_) {
-                  _loadData();
-                  _fetchCurrentCycleData();
-                });
-              },
-              child: const Text("See All"),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        // List or Empty State
-        if (top5Categories.isEmpty)
-          _buildEmptyCategoryState()
-        else
-          ListView.builder(
-            itemCount: top5Categories.length,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              final entry = top5Categories[index];
-              return _buildCategoryNetItem(entry);
+    return VestaCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SectionHeader(
+            title: "Categories",
+            actionLabel: "See all",
+            onAction: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SpendingCategories(),
+                ),
+              ).then((_) {
+                _loadData();
+                _fetchCurrentCycleData();
+              });
             },
           ),
-      ],
+          const SizedBox(height: VestaSpace.sm),
+          if (top5Categories.isEmpty)
+            _buildEmptyCategoryState()
+          else
+            for (final entry in top5Categories) _buildCategoryNetItem(entry),
+        ],
+      ),
     );
   }
 
   Widget _buildCategoryNetItem(MapEntry<String, double> entry) {
     final categoryData = _categories[entry.key];
     final netAmount = entry.value;
+    final bucket = bucketStyle(
+      _categoryBuckets[entry.key] ?? inferBucketFromCategoryName(entry.key),
+      context.vesta,
+    );
+    final count = _getTransactionsForCurrentPeriod()
+        .where((t) => t.category == entry.key)
+        .length;
 
-    final Color amountColor;
-    final String sign;
-    if (netAmount > 0) {
-      amountColor = Colors.green.shade600;
-      sign = "+";
-    } else if (netAmount < 0) {
-      amountColor = Colors.red.shade600;
-      sign = "-";
-    } else {
-      amountColor = Colors.grey.shade600;
-      sign = "";
-    }
-
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      color: Colors.white,
-      child: ListTile(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const Transactions(showBack: true),
-              settings: RouteSettings(
-                arguments: {'selectedCategory': entry.key},
-              ),
-            ),
-          ).then((_) {
-            _loadData();
-            _fetchCurrentCycleData();
-          });
-        },
-        leading: CircleAvatar(
-          backgroundColor:
-              categoryData?.color.withOpacity(0.2) ??
-              Colors.grey.withOpacity(0.2),
-          child: Icon(
-            categoryData?.icon ?? Icons.category,
-            color: categoryData?.color ?? Colors.grey,
-          ),
-        ),
-        title: Text(
-          categoryData?.name ?? entry.key,
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        subtitle: Text(
-          '${_getTransactionsForCurrentPeriod().where((t) => t.category == entry.key).length} transactions',
-          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-        ),
-        trailing: Text(
-          "$sign JOD ${netAmount.abs().toStringAsFixed(2)}",
-          style: TextStyle(
-            color: amountColor,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
+    return ListRow(
+      title: categoryData?.name ?? entry.key,
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      leading: IconBadge(
+        categoryIcon(categoryData?.name ?? entry.key),
+        size: 40,
+        circle: false,
+        color: bucket.color,
       ),
+      below: Row(
+        children: [
+          TagChip(bucket.label, color: bucket.color),
+          const SizedBox(width: VestaSpace.sm),
+          Text(
+            count == 1 ? "1 transaction" : "$count transactions",
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ),
+      // Spending shows as a plain amount; money that came back into a
+      // category (refunds, income) shows with a plus in green.
+      trailing: MoneyText(
+        netAmount < 0 ? netAmount.abs() : netAmount,
+        showPlus: netAmount > 0,
+        color: netAmount > 0 ? context.vesta.pos : null,
+      ),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const Transactions(showBack: true),
+            settings: RouteSettings(
+              arguments: {'selectedCategory': entry.key},
+            ),
+          ),
+        ).then((_) {
+          _loadData();
+          _fetchCurrentCycleData();
+        });
+      },
     );
   }
 
   /// SECTION: Latest Transactions
-  /// Displays the 5 most recent transactions.
+  /// Displays the 5 most recent transactions, grouped by day.
   Widget _buildLatestTransactionsSection(List<TransactionModel> transactions) {
-    return Column(
-      children: [
-        // Header
-        Row(
-          children: [
-            const Text(
-              "Latest Transactions",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            const Spacer(),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const Transactions(showBack: true),
-                  ),
-                ).then((_) {
-                  _loadData();
-                  _fetchCurrentCycleData();
-                });
-              },
-              child: Text(
-                "All Transactions",
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w500,
+    final groups = <String, List<TransactionModel>>{};
+    for (final txn in transactions) {
+      groups.putIfAbsent(shortDateLabel(txn.date), () => []).add(txn);
+    }
+
+    return VestaCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SectionHeader(
+            title: "Latest transactions",
+            actionLabel: "See all",
+            onAction: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const Transactions(showBack: true),
                 ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        // List or Empty State
-        if (transactions.isEmpty)
-          _buildEmptyTransactionState()
-        else
-          ListView.builder(
-            itemCount: transactions.length,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              final txn = transactions[index];
-              return TransactionCard(
-                transaction: txn,
-                onCategoryChanged: _refreshAfterCategoryChange,
-              );
+              ).then((_) {
+                _loadData();
+                _fetchCurrentCycleData();
+              });
             },
           ),
-      ],
+          if (transactions.isEmpty)
+            _buildEmptyTransactionState()
+          else
+            for (final group in groups.entries) ...[
+              Padding(
+                padding: const EdgeInsets.only(top: 10, bottom: 2),
+                child: Text(
+                  group.key,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              for (final txn in group.value)
+                TransactionCard(
+                  key: ValueKey(txn.id),
+                  transaction: txn,
+                  accountName: _accountLabels[txn.accountId],
+                  showDate: false,
+                  onCategoryChanged: _refreshAfterCategoryChange,
+                  onDeleted: _refreshAfterCategoryChange,
+                ),
+            ],
+        ],
+      ),
     );
   }
 
@@ -425,12 +379,29 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
   }
 
   Widget _buildBudgetTrackerBar() {
-    final percent = (_currentCycleSpending / _currentCycleBudget).clamp(
-      0.0,
-      1.0,
-    );
+    final v = context.vesta;
+    final hasBudget = _currentCycleBudget > 0.01;
+    final used = hasBudget ? _currentCycleSpending / _currentCycleBudget : 0.0;
+    final left = _currentCycleBudget - _currentCycleSpending;
 
+    // Where today falls in the budget cycle, for the even-pace marker.
     final now = DateTime.now();
+    final cycleStart = now.day >= _budgetResetDay
+        ? DateTime(now.year, now.month, _budgetResetDay)
+        : DateTime(now.year, now.month - 1, _budgetResetDay);
+    final cycleEnd = DateTime(cycleStart.year, cycleStart.month + 1, _budgetResetDay);
+    final totalDays = cycleEnd.difference(cycleStart).inDays;
+    final today = DateTime(now.year, now.month, now.day);
+    final daysLeft = cycleEnd.difference(today).inDays;
+    final pace = totalDays > 0 ? (totalDays - daysLeft) / totalDays : 0.0;
+
+    final meterColor = used > 1
+        ? v.neg
+        : used > pace + 0.05
+        ? v.bucketLuxury
+        : Theme.of(context).colorScheme.primary;
+    final leftColor = used > 1 ? v.neg : v.muted;
+
     final monthNames = [
       '',
       'January',
@@ -447,77 +418,63 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
       'December',
     ];
     String cycleMonthName = monthNames[now.month];
-    int cycleYear = now.year;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[800],
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    final small = TextStyle(fontSize: 12, color: v.muted);
+
+    return VestaCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "Spending Budget for $cycleMonthName $cycleYear",
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
+              Expanded(
+                child: Text("Spent in $cycleMonthName so far", style: small),
               ),
+              if (hasBudget)
+                Text(
+                  "${(used * 100).round()}% used",
+                  style: small.copyWith(color: leftColor),
+                ),
             ],
           ),
-          const SizedBox(height: 12),
-          // The progress bar
-          Container(
-            height: 10,
-            decoration: BoxDecoration(
-              color: Colors.grey[700],
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: FractionallySizedBox(
-                widthFactor: percent.isNaN ? 0.0 : percent, // Avoid NaN errors
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
+          const SizedBox(height: VestaSpace.sm),
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.end,
+            spacing: 6,
+            children: [
+              MoneyText.hero(_currentCycleSpending, size: 30),
+              if (hasBudget)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 3),
+                  child: Text(
+                    "of ${formatMoney(_currentCycleBudget)}",
+                    style: TextStyle(fontSize: 13, color: v.muted),
                   ),
                 ),
-              ),
-            ),
+            ],
           ),
-          const SizedBox(height: 8),
-          // Labels
+          const SizedBox(height: VestaSpace.md),
+          VestaProgressBar(
+            value: used,
+            height: 12,
+            color: meterColor,
+            marker: hasBudget ? pace : null,
+          ),
+          const SizedBox(height: VestaSpace.sm),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "JOD ${_currentCycleSpending.toStringAsFixed(0)}",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  !hasBudget
+                      ? "No budget plan for this cycle yet"
+                      : left >= 0
+                      ? "${formatMoney(left)} left"
+                      : "${formatMoney(-left)} over",
+                  style: small.copyWith(color: leftColor),
                 ),
               ),
               Text(
-                "JOD ${_currentCycleBudget.toStringAsFixed(0)}",
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
+                daysLeft == 1 ? "1 day to go" : "$daysLeft days to go",
+                style: small,
               ),
             ],
           ),
@@ -528,30 +485,12 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
 
   /// WIDGET: Empty State (for categories)
   Widget _buildEmptyCategoryState() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 32),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.pie_chart_outline, size: 60, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            Text(
-              "No categorized spending yet",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[700],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Assign categories to transactions\nto see your analysis.",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Text(
+        "No categorized spending yet.\nAssign categories to transactions to see them here.",
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 13, color: context.vesta.muted),
       ),
     );
   }
@@ -707,24 +646,12 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
   }
 
   Widget _buildEmptyTransactionState() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 32),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.receipt_long, size: 60, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            Text(
-              "No transactions found",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[700],
-              ),
-            ),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Text(
+        "No transactions yet.",
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 13, color: context.vesta.muted),
       ),
     );
   }

@@ -133,14 +133,14 @@ class DeepLinkService {
       showDialog(
         context: activeContext,
         builder: (dialogCtx) => AlertDialog(
-          title: const Text("You're Invited!"),
+          title: const Text("You're invited!"),
           content: Text("$inviterName has invited you to join $householdName."),
           actions: [
             TextButton(
               child: const Text("Decline"),
               onPressed: () => Navigator.of(dialogCtx).pop(),
             ),
-            ElevatedButton(
+            FilledButton(
               child: const Text("Accept"),
               onPressed: () async {
                 // This is the "Trigger" for our Cloud Function!
@@ -154,7 +154,6 @@ class DeepLinkService {
                     ScaffoldMessenger.of(activeContext).showSnackBar(
                       const SnackBar(
                         content: Text("Invite accepted! Joining household..."),
-                        backgroundColor: Colors.green,
                       ),
                     );
                   }
@@ -176,7 +175,7 @@ class DeepLinkService {
       ScaffoldMessenger.of(activeContext).showSnackBar(
         SnackBar(
           content: Text("Error: ${e.toString()}"),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(activeContext).colorScheme.error,
         ),
       );
     }

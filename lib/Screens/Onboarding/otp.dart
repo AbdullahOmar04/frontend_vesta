@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend_vesta/Helpers/widgets.dart';
+import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/pages/main_screen.dart';
 
 const int otpValidityDurationSeconds = 120; // 2 minutes
@@ -106,7 +108,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.block, color: Colors.red.shade600),
+            Icon(PhosphorIconsRegular.warningCircle, color: context.vesta.neg),
             const SizedBox(width: 8),
             const Text('Phone Number Blocked'),
           ],
@@ -193,9 +195,9 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
 
     if (_otpExpired) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text("OTP has expired. Please request a new code."),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
@@ -203,9 +205,9 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
 
     if (smsCode.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text("Please enter a 6-digit OTP"),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
@@ -329,7 +331,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.message ?? "Verification failed"),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -339,7 +341,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
         _showBlockedDialog();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+          SnackBar(content: Text("Error: $e"), backgroundColor: Theme.of(context).colorScheme.error),
         );
       }
     } finally {
@@ -365,7 +367,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(e.message ?? "Failed to resend OTP"),
-                backgroundColor: Colors.red,
+                backgroundColor: Theme.of(context).colorScheme.error,
               ),
             );
           }
@@ -385,7 +387,6 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("New OTP sent successfully"),
-              backgroundColor: Colors.green,
             ),
           );
         },
@@ -404,7 +405,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Error resending OTP: $e"),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -413,151 +414,91 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final v = context.vesta;
+    final urgent = _remainingSeconds <= 30;
+    final small = TextStyle(fontSize: 13, color: v.muted);
 
     return Scaffold(
-      backgroundColor: scheme.primary,
-      appBar: AppBar(
-        title: Text('Sign Up', style: TextStyle(color: scheme.surface)),
-        iconTheme: IconThemeData(color: scheme.surface),
-        backgroundColor: scheme.primary,
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: scheme.surface,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(30),
-                  topRight: Radius.circular(30),
-                ),
-              ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 32),
-                    Text(
-                      'Enter OTP',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: scheme.primary,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _otpController,
-                      maxLength: 6,
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 24, letterSpacing: 8),
-                      decoration: InputDecoration(
-                        labelText: 'Enter 6-digit OTP',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        counterText: '',
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    _loading
-                        ? const CircularProgressIndicator()
-                        : largeButton(
-                            context,
-                            "Verify & Create Account",
-                            scheme.secondary,
-                            _finishSignup,
-                          ),
-                    const SizedBox(height: 16),
-                    Text(
-                      "We texted you a code to verify your phone number (+962) ${widget.phoneNumber.substring(4)}.",
-                      style: TextStyle(color: Colors.grey.shade600),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                    if (_otpExpired)
-                      Text(
-                        "OTP has expired. Please request a new code.",
-                        style: TextStyle(
-                          color: Colors.red.shade600,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        textAlign: TextAlign.center,
-                      )
-                    else
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.timer_outlined,
-                            size: 18,
-                            color: _remainingSeconds <= 30
-                                ? Colors.orange.shade700
-                                : scheme.primary,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            "Code expires in ${_formatTime(_remainingSeconds)}",
-                            style: TextStyle(
-                              color: _remainingSeconds <= 30
-                                  ? Colors.orange.shade700
-                                  : scheme.primary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    const SizedBox(height: 16),
-                    if (_canResend)
-                      RichText(
-                        text: TextSpan(
-                          text: "Didn't receive the code? ",
-                          style: TextStyle(color: Colors.grey.shade700),
-                          children: [
-                            WidgetSpan(
-                              child: GestureDetector(
-                                onTap: _loading ? null : _resendOtp,
-                                child: Text(
-                                  "Resend OTP",
-                                  style: TextStyle(
-                                    color: scheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    else
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Resend code in ",
-                            style: TextStyle(color: Colors.grey.shade600),
-                          ),
-                          Text(
-                            "${_resendCooldownRemaining}s",
-                            style: TextStyle(
-                              color: scheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
+      appBar: const VestaAppBar(title: 'Sign up'),
+      body: VestaBackground(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            VestaSpace.xl,
+            VestaSpace.sm,
+            VestaSpace.xl,
+            VestaSpace.xl,
+          ),
+          children: [
+            Text('Enter the code', style: headingStyle(24)),
+            const SizedBox(height: VestaSpace.xs),
+            Text(
+              "We texted a code to (+962) ${widget.phoneNumber.substring(4)} to verify your number.",
+              style: TextStyle(fontSize: 14, color: v.muted),
+            ),
+            const SizedBox(height: VestaSpace.xl),
+            TextField(
+              controller: _otpController,
+              maxLength: 6,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              style: amountStyle(24).copyWith(letterSpacing: 8),
+              decoration: const InputDecoration(
+                hintText: '••••••',
+                counterText: '',
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: VestaSpace.md),
+            if (_otpExpired)
+              Text(
+                "This code has expired. Request a new one below.",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: v.neg),
+              )
+            else
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    PhosphorIconsRegular.alarm,
+                    size: 16,
+                    color: urgent ? v.neg : v.muted,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    "Code expires in ${_formatTime(_remainingSeconds)}",
+                    style: small.copyWith(color: urgent ? v.neg : v.muted),
+                  ),
+                ],
+              ),
+            const SizedBox(height: VestaSpace.xl),
+            PrimaryButton(
+              label: 'Verify & create account',
+              loading: _loading,
+              onPressed: _finishSignup,
+            ),
+            const SizedBox(height: VestaSpace.md),
+            if (_canResend)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Didn't get it? ", style: small),
+                  GestureDetector(
+                    onTap: _loading ? null : _resendOtp,
+                    child: Text(
+                      "Resend code",
+                      style: TextStyle(fontSize: 13, color: v.accentInk),
+                    ),
+                  ),
+                ],
+              )
+            else
+              Text(
+                "You can resend the code in ${_resendCooldownRemaining}s",
+                textAlign: TextAlign.center,
+                style: small,
+              ),
+          ],
+        ),
       ),
     );
   }

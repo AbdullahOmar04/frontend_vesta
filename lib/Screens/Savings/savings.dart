@@ -3,7 +3,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend_vesta/Helpers/widgets.dart';
+import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/Savings/create_savings.dart';
 
 class SavingsPage extends StatefulWidget {
@@ -25,12 +27,25 @@ class _SavingsPageState extends State<SavingsPage> {
       setState(() {});
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Savings goal created successfully!'),
-          backgroundColor: Colors.green,
-        ),
+        const SnackBar(content: Text('Savings goal created successfully!')),
       );
     }
+  }
+
+  /// Small tinted panel used inside the dialogs for the current figures.
+  Widget _infoPanel(List<Widget> children) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(VestaSpace.md),
+      decoration: BoxDecoration(
+        color: context.vesta.tint,
+        borderRadius: BorderRadius.circular(VestaRadius.button),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
   }
 
   void _showAllocateBottomSheet(
@@ -72,66 +87,47 @@ class _SavingsPageState extends State<SavingsPage> {
 
     if (!mounted) return;
 
+    final v = context.vesta;
+    final errorColor = Theme.of(context).colorScheme.error;
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
-        title: Text(
-          'Allocate to $goalTitle',
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        title: Text('Allocate to $goalTitle'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(32, 162, 0, 255),
-                borderRadius: BorderRadius.circular(12),
+            _infoPanel([
+              Text(
+                'Available: ${formatMoney(available)}',
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: v.tintText,
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Available: JOD ${available.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Current in goal: JOD ${currentAmount.toStringAsFixed(2)}',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                  ),
-                  Text(
-                    'Remaining to reach goal: JOD ${remaining.toStringAsFixed(2)}',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                  ),
-                ],
+              const SizedBox(height: VestaSpace.xs),
+              Text(
+                'In this goal: ${formatMoney(currentAmount)}',
+                style: TextStyle(fontSize: 12, color: v.muted),
               ),
-            ),
-            const SizedBox(height: 16),
+              Text(
+                'Still needed: ${formatMoney(remaining)}',
+                style: TextStyle(fontSize: 12, color: v.muted),
+              ),
+            ]),
+            const SizedBox(height: VestaSpace.lg),
             TextField(
               controller: amountController,
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
-              decoration: InputDecoration(
-                labelText: 'Amount to Allocate',
+              decoration: const InputDecoration(
+                labelText: 'Amount to allocate',
                 prefixText: 'JOD ',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
               ),
               autofocus: true,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: VestaSpace.sm),
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton(
@@ -141,12 +137,8 @@ class _SavingsPageState extends State<SavingsPage> {
                         _showDeallocateDialog(goalId, goal);
                       }
                     : null,
-                child: Text(
-                  'Remove from goal',
-                  style: TextStyle(
-                    color: currentAmount > 0 ? Colors.red : Colors.grey,
-                  ),
-                ),
+                style: TextButton.styleFrom(foregroundColor: v.neg),
+                child: const Text('Remove from goal'),
               ),
             ),
           ],
@@ -156,15 +148,15 @@ class _SavingsPageState extends State<SavingsPage> {
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
+          FilledButton(
             onPressed: () {
               final amount = double.tryParse(amountController.text);
               if (amount == null || amount <= 0) {
                 parentScaffoldMessenger.clearSnackBars();
                 parentScaffoldMessenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Please enter a valid amount'),
-                    backgroundColor: Colors.red,
+                  SnackBar(
+                    content: const Text('Please enter a valid amount'),
+                    backgroundColor: errorColor,
                   ),
                 );
                 return;
@@ -173,9 +165,9 @@ class _SavingsPageState extends State<SavingsPage> {
               if (amount > available) {
                 parentScaffoldMessenger.clearSnackBars();
                 parentScaffoldMessenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Insufficient available balance'),
-                    backgroundColor: Colors.red,
+                  SnackBar(
+                    content: const Text('Insufficient available balance'),
+                    backgroundColor: errorColor,
                   ),
                 );
                 return;
@@ -186,7 +178,6 @@ class _SavingsPageState extends State<SavingsPage> {
                 parentScaffoldMessenger.showSnackBar(
                   const SnackBar(
                     content: Text('This goal is already fully funded'),
-                    backgroundColor: Colors.orange,
                   ),
                 );
                 return;
@@ -202,7 +193,6 @@ class _SavingsPageState extends State<SavingsPage> {
                     content: Text(
                       'Allocating JOD ${actualAmount.toStringAsFixed(2)} (capped to remaining goal amount)',
                     ),
-                    backgroundColor: Colors.orange,
                   ),
                 );
               }
@@ -220,11 +210,13 @@ class _SavingsPageState extends State<SavingsPage> {
   void _deleteSavingGoalDialog(String goalId) {
     // Store parent scaffold messenger before showing dialog
     final parentScaffoldMessenger = ScaffoldMessenger.of(context);
+    final neg = context.vesta.neg;
+    final errorColor = Theme.of(context).colorScheme.error;
 
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete Savings Goal'),
+        title: const Text('Delete savings goal'),
         content: const Text(
           'Are you sure you want to delete this savings goal? This action cannot be undone.',
         ),
@@ -233,7 +225,7 @@ class _SavingsPageState extends State<SavingsPage> {
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
+          TextButton(
             onPressed: () async {
               final userId = user?.uid;
               if (userId == null) return;
@@ -252,7 +244,6 @@ class _SavingsPageState extends State<SavingsPage> {
                   parentScaffoldMessenger.showSnackBar(
                     const SnackBar(
                       content: Text('Savings goal deleted successfully'),
-                      backgroundColor: Colors.green,
                     ),
                   );
                 }
@@ -262,13 +253,13 @@ class _SavingsPageState extends State<SavingsPage> {
                   parentScaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text('Error deleting goal: $e'),
-                      backgroundColor: Colors.red,
+                      backgroundColor: errorColor,
                     ),
                   );
                 }
               }
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: neg),
             child: const Text('Delete'),
           ),
         ],
@@ -283,6 +274,8 @@ class _SavingsPageState extends State<SavingsPage> {
 
     // Store parent scaffold messenger before showing dialog
     final parentScaffoldMessenger = ScaffoldMessenger.of(context);
+    final v = context.vesta;
+    final errorColor = Theme.of(context).colorScheme.error;
 
     showDialog(
       context: context,
@@ -292,36 +285,28 @@ class _SavingsPageState extends State<SavingsPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.orange.shade50,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'Current in goal: JOD ${currentAmount.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+            _infoPanel([
+              Text(
+                'In this goal: ${formatMoney(currentAmount)}',
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: v.tintText,
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
+            ]),
+            const SizedBox(height: VestaSpace.lg),
             TextField(
               controller: amountController,
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
-              decoration: InputDecoration(
-                labelText: 'Amount to Remove',
+              decoration: const InputDecoration(
+                labelText: 'Amount to remove',
                 prefixText: 'JOD ',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
               ),
               autofocus: true,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: VestaSpace.sm),
             TextButton(
               onPressed: () {
                 amountController.text = currentAmount.toString();
@@ -335,15 +320,15 @@ class _SavingsPageState extends State<SavingsPage> {
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
+          TextButton(
             onPressed: () {
               final amount = double.tryParse(amountController.text);
               if (amount == null || amount <= 0) {
                 parentScaffoldMessenger.clearSnackBars();
                 parentScaffoldMessenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Please enter a valid amount'),
-                    backgroundColor: Colors.red,
+                  SnackBar(
+                    content: const Text('Please enter a valid amount'),
+                    backgroundColor: errorColor,
                   ),
                 );
                 return;
@@ -352,9 +337,9 @@ class _SavingsPageState extends State<SavingsPage> {
               if (amount > currentAmount) {
                 parentScaffoldMessenger.clearSnackBars();
                 parentScaffoldMessenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Amount exceeds current allocation'),
-                    backgroundColor: Colors.red,
+                  SnackBar(
+                    content: const Text('Amount exceeds current allocation'),
+                    backgroundColor: errorColor,
                   ),
                 );
                 return;
@@ -363,7 +348,7 @@ class _SavingsPageState extends State<SavingsPage> {
               Navigator.pop(dialogContext);
               _deallocateFromGoal(goalId, goal, amount);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: v.neg),
             child: const Text('Remove'),
           ),
         ],
@@ -403,7 +388,6 @@ class _SavingsPageState extends State<SavingsPage> {
             content: Text(
               'JOD ${amount.toStringAsFixed(2)} allocated successfully!',
             ),
-            backgroundColor: Colors.green,
           ),
         );
       }
@@ -411,7 +395,10 @@ class _SavingsPageState extends State<SavingsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     }
@@ -449,7 +436,6 @@ class _SavingsPageState extends State<SavingsPage> {
             content: Text(
               'JOD ${amount.toStringAsFixed(2)} removed successfully!',
             ),
-            backgroundColor: Colors.orange,
           ),
         );
       }
@@ -457,43 +443,33 @@ class _SavingsPageState extends State<SavingsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     }
   }
 
   Widget _buildEmptyState() {
-    return Center(
+    return Padding(
+      padding: const EdgeInsets.only(top: 48),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 100),
-          Icon(Icons.savings, size: 80, color: const Color.fromARGB(255, 98, 0, 255)),
-          const SizedBox(height: 16),
+          const PixelIcon(PixelArt.save, size: 72),
+          const SizedBox(height: 14),
+          Text("No savings goals yet", style: headingStyle(22)),
+          const SizedBox(height: VestaSpace.sm),
           Text(
-            "No Savings Goals Yet",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Create your first savings goal to\nstart managing your finances",
+            "Create a goal and move money from your savings into it as you go.",
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+            style: TextStyle(fontSize: 14, color: context.vesta.muted),
           ),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: largeButton(
-              context,
-              "Create Savings Goal",
-              Theme.of(context).colorScheme.secondary,
-              _navigateToCreateSavings,
-            ),
+          const SizedBox(height: VestaSpace.xl),
+          PrimaryButton(
+            label: "Create a savings goal",
+            onPressed: _navigateToCreateSavings,
           ),
         ],
       ),
@@ -516,46 +492,39 @@ class _SavingsPageState extends State<SavingsPage> {
   @override
   Widget build(BuildContext context) {
     final userId = user?.uid;
-    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: scheme.primary,
-      appBar: AppBar(
-        title: Text('Savings Goals', style: TextStyle(color: scheme.surface)),
-        centerTitle: true,
-        iconTheme: IconThemeData(color: scheme.surface),
-        backgroundColor: scheme.primary,
+      appBar: VestaAppBar(
+        title: 'Savings',
+        actions: [
+          HeaderButton(label: 'New goal', onPressed: _navigateToCreateSavings),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToCreateSavings,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      body: userId == null
-          ? const Center(child: Text("Not logged in"))
-          : StreamBuilder<DocumentSnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection("users")
-                  .doc(userId)
-                  .snapshots(),
-              builder: (context, userSnapshot) {
-                if (userSnapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+      body: VestaBackground(
+        child: userId == null
+            ? const Center(child: Text("Not logged in"))
+            : StreamBuilder<DocumentSnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection("users")
+                    .doc(userId)
+                    .snapshots(),
+                builder: (context, userSnapshot) {
+                  if (userSnapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                final userData =
-                    userSnapshot.data?.data() as Map<String, dynamic>? ?? {};
-                final totalSavings = (userData["totalSavings"] ?? 0).toDouble();
+                  final userData =
+                      userSnapshot.data?.data() as Map<String, dynamic>? ?? {};
+                  final totalSavings = (userData["totalSavings"] ?? 0)
+                      .toDouble();
 
-                return Container(
-                  height: double.infinity,
-                  decoration: BoxDecoration(
-                    color: scheme.surface,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
+                  return ListView(
+                    padding: const EdgeInsets.fromLTRB(
+                      VestaSpace.gutter,
+                      VestaSpace.xs,
+                      VestaSpace.gutter,
+                      VestaSpace.xl,
                     ),
-                  ),
-                  child: Column(
                     children: [
                       // Total Savings Header with StreamBuilder for allocated amount
                       StreamBuilder<QuerySnapshot>(
@@ -577,127 +546,115 @@ class _SavingsPageState extends State<SavingsPage> {
 
                           final unallocated = totalSavings - totalAllocated;
 
-                          return Container(
-                            padding: const EdgeInsets.all(24),
-                            margin: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: scheme.onPrimary, //onPrimary
-                              borderRadius: BorderRadius.circular(16),
-                            ),
+                          return _buildTotalCard(
+                            totalSavings,
+                            totalAllocated,
+                            unallocated,
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Savings Goals List
+                      StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection("users")
+                            .doc(userId)
+                            .collection("savings")
+                            .orderBy("createdAt", descending: true)
+                            .snapshots(),
+                        builder: (context, savingsSnapshot) {
+                          if (savingsSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Padding(
+                              padding: EdgeInsets.only(top: 32),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+
+                          if (!savingsSnapshot.hasData ||
+                              savingsSnapshot.data!.docs.isEmpty) {
+                            return _buildEmptyState();
+                          }
+
+                          final savingsGoals = savingsSnapshot.data!.docs;
+
+                          return VestaCard(
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                RichText(
-                                  textAlign: TextAlign.center,
-                                  text: TextSpan(
-                                    children: [
-                                      const TextSpan(
-                                        text: 'Total Savings\n',
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      TextSpan(
-                                        text:
-                                            'JOD ${totalSavings.toStringAsFixed(2)}',
-                                        style: const TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 30,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
+                                const SectionHeader(title: "Saving goals"),
+                                const SizedBox(height: VestaSpace.xs),
+                                for (var i = 0; i < savingsGoals.length; i++)
+                                  _buildSavingsGoalCard(
+                                    savingsGoals[i].data()
+                                        as Map<String, dynamic>,
+                                    savingsGoals[i].id,
+                                    first: i == 0,
                                   ),
-                                ),
-                                const SizedBox(height: 12),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.9),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        'Available to Allocate: ',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey[800],
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      Text(
-                                        'JOD ${unallocated.toStringAsFixed(2)}',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: unallocated > 0
-                                              ? Colors.green[700]
-                                              : Colors.red[700],
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
                               ],
                             ),
                           );
                         },
                       ),
-
-                      // Savings Goals List
-                      Expanded(
-                        child: StreamBuilder<QuerySnapshot>(
-                          stream: FirebaseFirestore.instance
-                              .collection("users")
-                              .doc(userId)
-                              .collection("savings")
-                              .orderBy("createdAt", descending: true)
-                              .snapshots(),
-                          builder: (context, savingsSnapshot) {
-                            if (savingsSnapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-
-                            if (!savingsSnapshot.hasData ||
-                                savingsSnapshot.data!.docs.isEmpty) {
-                              return _buildEmptyState();
-                            }
-
-                            final savingsGoals = savingsSnapshot.data!.docs;
-
-                            return ListView.builder(
-                              padding: const EdgeInsets.all(16),
-                              itemCount: savingsGoals.length,
-                              itemBuilder: (context, index) {
-                                final goal =
-                                    savingsGoals[index].data()
-                                        as Map<String, dynamic>;
-                                final goalId = savingsGoals[index].id;
-
-                                return _buildSavingsGoalCard(goal, goalId);
-                              },
-                            );
-                          },
-                        ),
-                      ),
                     ],
-                  ),
-                );
-              },
-            ),
+                  );
+                },
+              ),
+      ),
     );
   }
 
-  Widget _buildSavingsGoalCard(Map<String, dynamic> goal, String goalId) {
+  Widget _buildTotalCard(
+    double totalSavings,
+    double totalAllocated,
+    double unallocated,
+  ) {
+    final v = context.vesta;
+    return VestaCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text("Total saved", style: TextStyle(fontSize: 12, color: v.muted)),
+          const SizedBox(height: VestaSpace.xs),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: MoneyText.hero(totalSavings, size: 30),
+          ),
+          const SizedBox(height: VestaSpace.md),
+          const Divider(),
+          const SizedBox(height: 10),
+          _buildInfoRow("Allocated to goals", MoneyText(totalAllocated)),
+          const SizedBox(height: 6),
+          _buildInfoRow(
+            "Left to allocate",
+            MoneyText(unallocated, color: unallocated > 0 ? v.pos : v.neg),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, Widget value) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(fontSize: 13, color: context.vesta.muted),
+          ),
+        ),
+        value,
+      ],
+    );
+  }
+
+  Widget _buildSavingsGoalCard(
+    Map<String, dynamic> goal,
+    String goalId, {
+    required bool first,
+  }) {
+    final v = context.vesta;
     final goalTitle = goal['goalTitle'] ?? 'Unknown';
     final emoji = goal['emoji'] ?? '💰';
     final targetAmount = (goal['targetAmount'] ?? 0).toDouble();
@@ -708,168 +665,78 @@ class _SavingsPageState extends State<SavingsPage> {
 
     final rawProgress = targetAmount > 0 ? currentAmount / targetAmount : 0.0;
     final progress = rawProgress > 1.0 ? 1.0 : rawProgress; // Cap at 100%
-    final progressPercentage = (rawProgress * 100).toStringAsFixed(1);
+    final progressPercentage = (rawProgress * 100).toStringAsFixed(0);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: InkWell(
-        onTap: () => _showAllocateBottomSheet(goalId, goal),
-        onLongPress: () => {_deleteSavingGoalDialog(goalId)},
-        borderRadius: BorderRadius.circular(16),
-        child: Column(
+    return InkWell(
+      onTap: () => _showAllocateBottomSheet(goalId, goal),
+      onLongPress: () => {_deleteSavingGoalDialog(goalId)},
+      child: Container(
+        decoration: BoxDecoration(
+          border: first ? null : Border(top: BorderSide(color: v.divider)),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
           children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(emoji, style: const TextStyle(fontSize: 24)),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          goalTitle,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          _convertMonthsToYearsAndMonths(durationMonths),
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (isCompleted)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        'Completed',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                ],
+            Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: v.raised,
+                borderRadius: BorderRadius.circular(12),
               ),
+              child: Text(emoji, style: const TextStyle(fontSize: 20)),
             ),
-
-            // Progress Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+            const SizedBox(width: VestaSpace.md),
+            Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'JOD ${currentAmount.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                      Expanded(
+                        child: Text(
+                          goalTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Text(
-                        'JOD ${targetAmount.toStringAsFixed(2)}',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
+                      if (isCompleted)
+                        TagChip.pill(
+                          'Completed',
+                          icon: PhosphorIconsRegular.check,
+                          color: v.pos,
+                        )
+                      else
+                        Text(
+                          '$progressPercentage%',
+                          style: amountStyle(13),
+                        ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 8,
-                      backgroundColor: Colors.grey[200],
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        isCompleted ? Colors.green : Colors.blue,
-                      ),
-                    ),
+                  const SizedBox(height: 6),
+                  VestaProgressBar(
+                    value: progress,
+                    height: 4,
+                    color: isCompleted ? v.pos : v.accentInk,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
-                    '$progressPercentage% achieved',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    '${formatMoney(currentAmount)} of ${formatMoney(targetAmount)}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  Text(
+                    '${formatMoney(monthlyAmount)} a month · ${_convertMonthsToYearsAndMonths(durationMonths)}',
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
               ),
             ),
-
-            // Details
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildInfoColumn(
-                      'Monthly',
-                      'JOD ${monthlyAmount.toStringAsFixed(2)}',
-                    ),
-                  ),
-                  Container(width: 1, height: 30, color: Colors.grey[300]),
-                  Expanded(
-                    child: _buildInfoColumn(
-                      'Remaining',
-                      'JOD ${((targetAmount - currentAmount) > 0 ? (targetAmount - currentAmount) : 0).toStringAsFixed(2)}',
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            const SizedBox(width: VestaSpace.sm),
+            Icon(PhosphorIconsRegular.caretRight, size: 16, color: v.muted),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildInfoColumn(String label, String value) {
-    return Column(
-      children: [
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-        ),
-      ],
     );
   }
 }

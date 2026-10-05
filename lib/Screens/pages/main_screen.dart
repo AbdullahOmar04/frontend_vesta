@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transactions.dart';
+import 'package:frontend_vesta/Screens/pages/accounts.dart';
 import 'package:frontend_vesta/Screens/pages/home.dart';
 import 'package:frontend_vesta/Screens/pages/profile.dart';
 import 'package:frontend_vesta/deep_link_service.dart';
@@ -13,9 +16,33 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  static const int _walletIndex = 2;
+
   int _selectedIndex = 0;
 
-  final List<Widget> _pages = const [HomePage(), Transactions(showBack: false,), ProfilePage()];
+  // Transactions holds the prototype's Dashboard slot until Dashboard exists.
+  static const List<VestaNavItem> _tabs = [
+    VestaNavItem(
+      label: 'Home',
+      icon: PhosphorIconsRegular.house,
+      selectedIcon: PhosphorIconsFill.house,
+    ),
+    VestaNavItem(
+      label: 'Transactions',
+      icon: PhosphorIconsRegular.receipt,
+      selectedIcon: PhosphorIconsFill.receipt,
+    ),
+    VestaNavItem(
+      label: 'Wallet',
+      icon: PhosphorIconsRegular.wallet,
+      selectedIcon: PhosphorIconsFill.wallet,
+    ),
+    VestaNavItem(
+      label: 'Profile',
+      icon: PhosphorIconsRegular.userCircle,
+      selectedIcon: PhosphorIconsFill.userCircle,
+    ),
+  ];
 
   @override
   void initState() {
@@ -24,64 +51,33 @@ class _MainScreenState extends State<MainScreen> {
     deepLinkService.checkPendingLink(context);
   }
 
+  void _select(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  Widget _page(int index) {
+    switch (index) {
+      case 1:
+        return const Transactions(showBack: false);
+      case _walletIndex:
+        return const AccountsPage(showBack: false);
+      case 3:
+        return const ProfilePage();
+      default:
+        return HomePage(onOpenWallet: () => _select(_walletIndex));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: NavigationBarTheme(
-        data: NavigationBarThemeData(
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          indicatorColor: Colors.transparent,
-          labelTextStyle: WidgetStateProperty.all(
-            TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-        ),
-        child: NavigationBar(
-          height: 70,
-          elevation: 0,
-          selectedIndex: _selectedIndex,
-          onDestinationSelected: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          destinations: [
-            NavigationDestination(
-              icon: Icon(
-                Icons.home_outlined,
-                size: 30,
-                color: _selectedIndex == 0
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.grey[500],
-              ),
-              label: 'Home',
-            ),
-            NavigationDestination(
-              icon: Icon(
-                Icons.receipt_long_outlined,
-                size: 30,
-                color: _selectedIndex == 1
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.grey[500],
-              ),
-              label: 'Transactions',
-            ),
-            NavigationDestination(
-              icon: Icon(
-                Icons.person_outline,
-                size: 30,
-                color: _selectedIndex == 2
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.grey[500],
-              ),
-              label: 'Profile',
-            ),
-          ],
-        ),
+      body: _page(_selectedIndex),
+      bottomNavigationBar: VestaBottomBar(
+        items: _tabs,
+        selectedIndex: _selectedIndex,
+        onSelected: _select,
       ),
     );
   }

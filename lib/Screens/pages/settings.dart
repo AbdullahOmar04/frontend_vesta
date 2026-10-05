@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:frontend_vesta/Helpers/biometric_service.dart';
+import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -45,9 +48,9 @@ class _SettingsState extends State<Settings> {
       if (!authenticated) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Biometric authentication failed'),
-              backgroundColor: Colors.red,
+            SnackBar(
+              content: const Text('Biometric authentication failed'),
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }
@@ -66,45 +69,51 @@ class _SettingsState extends State<Settings> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
-      body: ListView(
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              'Security',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+      appBar: const VestaAppBar(title: 'Settings'),
+      body: VestaBackground(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            VestaSpace.gutter,
+            VestaSpace.xs,
+            VestaSpace.gutter,
+            VestaSpace.xl,
           ),
-          if (_loading)
-            const Center(child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: CircularProgressIndicator(),
-            ))
-          else if (_biometricAvailable)
-            SwitchListTile(
-              title: const Text('Biometric Login'),
-              subtitle: Text(
-                _biometricEnabled
-                    ? 'Use fingerprint or face to login'
-                    : 'Enable quick login with biometrics',
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 2, bottom: VestaSpace.sm),
+              child: Text(
+                'Security',
+                style: TextStyle(fontSize: 13, color: context.vesta.muted),
               ),
-              value: _biometricEnabled,
-              onChanged: _toggleBiometric,
-              secondary: const Icon(Icons.fingerprint),
-            )
-          else
-            const ListTile(
-              leading: Icon(Icons.fingerprint, color: Colors.grey),
-              title: Text('Biometric Login'),
-              subtitle: Text('Not available on this device'),
             ),
-        ],
+            VestaCard(
+              padding: EdgeInsets.zero,
+              radius: VestaRadius.lg,
+              child: _loading
+                  ? const Padding(
+                      padding: EdgeInsets.all(VestaSpace.lg),
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  : _biometricAvailable
+                  ? ToggleRow(
+                      icon: PhosphorIconsRegular.fingerprint,
+                      title: 'Biometric login',
+                      subtitle: _biometricEnabled
+                          ? 'Use fingerprint or face to log in'
+                          : 'Enable quick login with biometrics',
+                      value: _biometricEnabled,
+                      onChanged: _toggleBiometric,
+                    )
+                  : const ToggleRow(
+                      icon: PhosphorIconsRegular.fingerprint,
+                      title: 'Biometric login',
+                      subtitle: 'Not available on this device',
+                      value: false,
+                      onChanged: null,
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
