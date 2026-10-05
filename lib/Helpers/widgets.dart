@@ -9,7 +9,6 @@ import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/pages/accounts.dart';
-import 'package:frontend_vesta/Screens/pages/settings.dart' as app_settings;
 
 import 'dart:async';
 
@@ -288,33 +287,6 @@ Widget largeButton(
   );
 }
 
-Widget splashSmallButton(
-  BuildContext context,
-  String text,
-  Color color,
-  VoidCallback onPressed,
-) {
-  return SizedBox(
-    width: 120,
-    height: 50,
-    child: ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      ),
-      onPressed: onPressed,
-      child: Text(
-        text,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    ),
-  );
-}
-
 // ignore: non_constant_identifier_names
 Widget BankCard(
   BuildContext context,
@@ -344,99 +316,6 @@ Widget BankCard(
             Text(
               bankName,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-Widget drawer(BuildContext context, String username) {
-  final user = FirebaseAuth.instance.currentUser;
-  return Drawer(
-    child: ListView(
-      padding: EdgeInsets.zero,
-      children: [
-        DrawerHeader(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          child: Text(
-            'Menu',
-            style: TextStyle(color: Colors.white, fontSize: 24),
-          ),
-        ),
-        ListTile(
-          leading: const Icon(Icons.settings),
-          title: const Text('Settings'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => app_settings.Settings()),
-            );
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.calendar_month),
-          title: const Text('Change Day of Month'),
-          onTap: () {
-            inputDayOfMonth(context);
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.logout),
-          title: const Text('Logout'),
-          onTap: () async {
-            await FirebaseAuth.instance.signOut();
-            Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.developer_mode),
-          title: const Text('GET UID'),
-          onTap: () {
-            print(user?.uid);
-          },
-        ),
-      ],
-    ),
-  );
-}
-
-Widget squareButton(
-  BuildContext context,
-  String text,
-  IconData icon,
-  Color color,
-  VoidCallback onPressed,
-) {
-  return Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: SizedBox(
-      height: 140,
-      width: 180,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(children: [Icon(icon, color: Colors.white, size: 30)]),
-            SizedBox(height: 20),
-            Text(
-              text,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
             ),
           ],
         ),
