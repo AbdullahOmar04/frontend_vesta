@@ -4,6 +4,31 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
+
+/// Emoji in a tinted rounded square, used for goals.
+class _GoalEmoji extends StatelessWidget {
+  const _GoalEmoji(this.emoji, {this.size = 40});
+
+  final String emoji;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: context.vesta.tint,
+        borderRadius: BorderRadius.circular(size * 0.3),
+      ),
+      child: Text(emoji, style: TextStyle(fontSize: size * 0.5)),
+    );
+  }
+}
 
 class CreateSavings extends StatefulWidget {
   const CreateSavings({super.key});
@@ -14,14 +39,10 @@ class CreateSavings extends StatefulWidget {
 
 class _CreateSavingsState extends State<CreateSavings> {
   final List<Map<String, dynamic>> _savingsGoals = [
-    {'title': 'New Car', 'emoji': '🚗', 'color': const Color(0xFFFFF3E0)},
-    {'title': 'Vacation', 'emoji': '🏝️', 'color': const Color(0xFFE8F5E9)},
-    {'title': 'House', 'emoji': '🏠', 'color': const Color(0xFFFCE4EC)},
-    {
-      'title': 'Emergency Fund',
-      'emoji': '🆘',
-      'color': const Color(0xFFFFEBEE),
-    },
+    {'title': 'New Car', 'emoji': '🚗'},
+    {'title': 'Vacation', 'emoji': '🏝️'},
+    {'title': 'House', 'emoji': '🏠'},
+    {'title': 'Emergency Fund', 'emoji': '🆘'},
   ];
 
   void _onGoalTap(Map<String, dynamic> goal) async {
@@ -31,7 +52,6 @@ class _CreateSavingsState extends State<CreateSavings> {
         builder: (context) => SavingsGoalDetails(
           goalTitle: goal['title'],
           emoji: goal['emoji'],
-          backgroundColor: goal['color'],
         ),
       ),
     );
@@ -46,13 +66,9 @@ class _CreateSavingsState extends State<CreateSavings> {
     showDialog(
       context: context,
       builder: (context) => _CustomGoalDialog(
-        onGoalCreated: (title, emoji, color) {
+        onGoalCreated: (title, emoji) {
           setState(() {
-            _savingsGoals.add({
-              'title': title,
-              'emoji': emoji,
-              'color': color,
-            });
+            _savingsGoals.add({'title': title, 'emoji': emoji});
           });
         },
       ),
@@ -62,119 +78,71 @@ class _CreateSavingsState extends State<CreateSavings> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Choose your Saving goal',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-        backgroundColor: Colors.grey[50],
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
+      appBar: const VestaAppBar(title: 'New savings goal'),
+      body: VestaBackground(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            VestaSpace.gutter,
+            VestaSpace.xs,
+            VestaSpace.gutter,
+            VestaSpace.xl,
+          ),
           children: [
-            Expanded(
-              child: ListView.builder(
-                itemCount: _savingsGoals.length,
-                itemBuilder: (context, index) {
-                  final goal = _savingsGoals[index];
-                  return _buildGoalCard(goal);
-                },
+            Padding(
+              padding: const EdgeInsets.only(bottom: VestaSpace.md),
+              child: Text(
+                'Pick what you are saving for.',
+                style: TextStyle(fontSize: 13, color: context.vesta.muted),
               ),
             ),
-            const SizedBox(height: 16),
+            VestaCard(
+              padding: const EdgeInsets.symmetric(
+                horizontal: VestaSpace.lg,
+                vertical: 4,
+              ),
+              child: Column(
+                children: [
+                  for (var i = 0; i < _savingsGoals.length; i++)
+                    _buildGoalCard(_savingsGoals[i], first: i == 0),
+                ],
+              ),
+            ),
+            const SizedBox(height: VestaSpace.lg),
             _buildAddNewGoalButton(),
-            const SizedBox(height: 16),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildGoalCard(Map<String, dynamic> goal) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: InkWell(
-        onTap: () => _onGoalTap(goal),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Text(
-                goal['title'],
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
-                ),
-              ),
-              const Spacer(),
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: goal['color'],
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    goal['emoji'],
-                    style: const TextStyle(fontSize: 32),
-                  ),
-                ),
-              ),
-            ],
-          ),
+  Widget _buildGoalCard(Map<String, dynamic> goal, {required bool first}) {
+    final v = context.vesta;
+    return InkWell(
+      onTap: () => _onGoalTap(goal),
+      child: Container(
+        decoration: BoxDecoration(
+          border: first ? null : Border(top: BorderSide(color: v.divider)),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            _GoalEmoji(goal['emoji']),
+            const SizedBox(width: VestaSpace.md),
+            Expanded(child: Text(goal['title'])),
+            Icon(PhosphorIconsRegular.caretRight, size: 16, color: v.muted),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildAddNewGoalButton() {
-    return InkWell(
-      onTap: _addNewGoal,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[300]!),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.add, color: Colors.grey[700], size: 20),
-            const SizedBox(width: 8),
-            Text(
-              'Add New Saving Goal',
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.grey[700],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: _addNewGoal,
+        icon: const Icon(PhosphorIconsRegular.plus, size: 18),
+        label: const Text('Custom goal'),
       ),
     );
   }
@@ -183,7 +151,7 @@ class _CreateSavingsState extends State<CreateSavings> {
 ////////////////////////////////
 
 class _CustomGoalDialog extends StatefulWidget {
-  final Function(String title, String emoji, Color color) onGoalCreated;
+  final Function(String title, String emoji) onGoalCreated;
 
   const _CustomGoalDialog({required this.onGoalCreated});
 
@@ -194,7 +162,6 @@ class _CustomGoalDialog extends StatefulWidget {
 class _CustomGoalDialogState extends State<_CustomGoalDialog> {
   final _titleController = TextEditingController();
   String _selectedEmoji = '💰';
-  Color _selectedColor = const Color(0xFFE3F2FD);
 
   final List<String> _emojis = [
     '💰',
@@ -215,17 +182,6 @@ class _CustomGoalDialogState extends State<_CustomGoalDialog> {
     '🎁'
   ];
 
-  final List<Color> _colors = [
-    const Color(0xFFE3F2FD),
-    const Color(0xFFFFF3E0),
-    const Color(0xFFE8F5E9),
-    const Color(0xFFFCE4EC),
-    const Color(0xFFFFEBEE),
-    const Color(0xFFF3E5F5),
-    const Color(0xFFE0F2F1),
-    const Color(0xFFFFF9C4),
-  ];
-
   @override
   void dispose() {
     _titleController.dispose();
@@ -236,231 +192,90 @@ class _CustomGoalDialogState extends State<_CustomGoalDialog> {
     if (_titleController.text.trim().isEmpty) {
       // Get the parent scaffold messenger to show snackbar on the right screen
       final scaffoldMessenger = ScaffoldMessenger.of(context);
+      final errorColor = Theme.of(context).colorScheme.error;
       Navigator.pop(context);
       scaffoldMessenger.clearSnackBars();
       scaffoldMessenger.showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a goal title'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Please enter a goal title'),
+          backgroundColor: errorColor,
         ),
       );
       return;
     }
 
-    widget.onGoalCreated(
-      _titleController.text.trim(),
-      _selectedEmoji,
-      _selectedColor,
-    );
+    widget.onGoalCreated(_titleController.text.trim(), _selectedEmoji);
     Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 400),
+    final v = context.vesta;
+    final scheme = Theme.of(context).colorScheme;
+
+    return AlertDialog(
+      title: const Text('Custom goal'),
+      content: SizedBox(
+        width: 320,
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Create Custom Goal',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: _titleController,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(
+                  labelText: 'Goal title',
+                  hintText: 'e.g., Wedding, Gadget, etc.',
                 ),
-                const SizedBox(height: 24),
-                
-                // Goal Title
-                const Text(
-                  'Goal Title',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _titleController,
-                  decoration: InputDecoration(
-                    hintText: 'e.g., Wedding, Gadget, etc.',
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                
-                // Emoji Selection
-                const Text(
-                  'Choose Icon',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  height: 160,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: GridView.builder(
-                    padding: const EdgeInsets.all(8),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                      childAspectRatio: 1,
-                    ),
-                    itemCount: _emojis.length,
-                    itemBuilder: (context, index) {
-                      final emoji = _emojis[index];
-                      final isSelected = emoji == _selectedEmoji;
-                      return InkWell(
-                        onTap: () {
-                          setState(() {
-                            _selectedEmoji = emoji;
-                          });
-                        },
-                        borderRadius: BorderRadius.circular(8),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? Colors.blue.withOpacity(0.2)
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: isSelected ? Colors.blue : Colors.grey[300]!,
-                              width: 2,
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              emoji,
-                              style: const TextStyle(fontSize: 24),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 24),
-                
-                // Color Selection
-                const Text(
-                  'Choose Color',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: _colors.map((color) {
-                    final isSelected = color == _selectedColor;
-                    return InkWell(
+              ),
+              const SizedBox(height: VestaSpace.lg),
+              Text('Icon', style: TextStyle(fontSize: 12, color: v.muted)),
+              const SizedBox(height: VestaSpace.sm),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final emoji in _emojis)
+                    InkWell(
                       onTap: () {
                         setState(() {
-                          _selectedColor = color;
+                          _selectedEmoji = emoji;
                         });
                       },
-                      borderRadius: BorderRadius.circular(25),
+                      borderRadius: BorderRadius.circular(10),
                       child: Container(
-                        width: 50,
-                        height: 50,
+                        width: 44,
+                        height: 44,
+                        alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
+                          color: emoji == _selectedEmoji
+                              ? v.tint
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: isSelected ? Colors.blue : Colors.grey[300]!,
-                            width: isSelected ? 3 : 1,
+                            color: emoji == _selectedEmoji
+                                ? scheme.primary
+                                : v.divider,
                           ),
                         ),
-                        child: isSelected
-                            ? const Icon(
-                                Icons.check,
-                                color: Colors.blue,
-                                size: 24,
-                              )
-                            : null,
-                      ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 32),
-                
-                // Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          side: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
+                        child: Text(emoji, style: const TextStyle(fontSize: 22)),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _createGoal,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Create',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(onPressed: _createGoal, child: const Text('Create')),
+      ],
     );
   }
 }
@@ -470,13 +285,11 @@ class _CustomGoalDialogState extends State<_CustomGoalDialog> {
 class SavingsGoalDetails extends StatefulWidget {
   final String goalTitle;
   final String emoji;
-  final Color backgroundColor;
 
   const SavingsGoalDetails({
     super.key,
     required this.goalTitle,
     required this.emoji,
-    required this.backgroundColor,
   });
 
   @override
@@ -536,13 +349,14 @@ class _SavingsGoalDetailsState extends State<SavingsGoalDetails> {
     final targetAmount = double.tryParse(_targetAmountController.text);
     final months = int.tryParse(_monthsController.text);
     final monthlyAmount = double.tryParse(_monthlyAmountController.text);
+    final errorColor = Theme.of(context).colorScheme.error;
 
     if (targetAmount == null || targetAmount <= 0) {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid target amount'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Please enter a valid target amount'),
+          backgroundColor: errorColor,
         ),
       );
       return;
@@ -551,9 +365,9 @@ class _SavingsGoalDetailsState extends State<SavingsGoalDetails> {
     if (months == null || months <= 0) {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid duration'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Please enter a valid duration'),
+          backgroundColor: errorColor,
         ),
       );
       return;
@@ -562,9 +376,9 @@ class _SavingsGoalDetailsState extends State<SavingsGoalDetails> {
     if (monthlyAmount == null || monthlyAmount <= 0) {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid monthly amount'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Please enter a valid monthly amount'),
+          backgroundColor: errorColor,
         ),
       );
       return;
@@ -574,9 +388,9 @@ class _SavingsGoalDetailsState extends State<SavingsGoalDetails> {
     if (userId == null) {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('User not logged in'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('User not logged in'),
+          backgroundColor: errorColor,
         ),
       );
       return;
@@ -609,7 +423,7 @@ class _SavingsGoalDetailsState extends State<SavingsGoalDetails> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error creating goal: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: errorColor,
           ),
         );
       }
@@ -618,311 +432,181 @@ class _SavingsGoalDetailsState extends State<SavingsGoalDetails> {
 
   @override
   Widget build(BuildContext context) {
+    final v = context.vesta;
+    const gap = SizedBox(height: VestaSpace.lg);
+    final amountFormatter = FilteringTextInputFormatter.allow(
+      RegExp(r'^\d+\.?\d{0,2}'),
+    );
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          widget.goalTitle,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-        backgroundColor: Colors.grey[50],
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Goal Icon
-            Center(
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: widget.backgroundColor,
-                  shape: BoxShape.circle,
+      appBar: VestaAppBar(title: widget.goalTitle),
+      body: VestaBackground(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(
+            VestaSpace.gutter,
+            VestaSpace.sm,
+            VestaSpace.gutter,
+            VestaSpace.xl,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Goal Icon
+              Center(child: _GoalEmoji(widget.emoji, size: 72)),
+              const SizedBox(height: VestaSpace.xl),
+
+              // Target Amount
+              TextField(
+                controller: _targetAmountController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
-                child: Center(
+                inputFormatters: [amountFormatter],
+                decoration: const InputDecoration(
+                  labelText: 'Target amount',
+                  prefixText: 'JOD ',
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    if (_isCalculatingFromMonths) {
+                      _calculateMonthlyAmount();
+                    } else {
+                      _calculateMonths();
+                    }
+                  });
+                },
+              ),
+              gap,
+
+              // Duration Toggle
+              Text(
+                'Plan it by',
+                style: TextStyle(fontSize: 12, color: v.muted),
+              ),
+              const SizedBox(height: VestaSpace.sm),
+              Row(
+                children: [
+                  ChoiceTag(
+                    label: 'Duration',
+                    icon: PhosphorIconsRegular.calendarBlank,
+                    selected: _isCalculatingFromMonths,
+                    onTap: () {
+                      setState(() {
+                        _isCalculatingFromMonths = true;
+                      });
+                      // Automatically recalculate when switching modes
+                      _calculateMonthlyAmount();
+                    },
+                  ),
+                  const SizedBox(width: VestaSpace.sm),
+                  ChoiceTag(
+                    label: 'Monthly amount',
+                    icon: PhosphorIconsRegular.coins,
+                    selected: !_isCalculatingFromMonths,
+                    onTap: () {
+                      setState(() {
+                        _isCalculatingFromMonths = false;
+                      });
+                      // Automatically recalculate when switching modes
+                      _calculateMonths();
+                    },
+                  ),
+                ],
+              ),
+              gap,
+
+              // Duration Field
+              TextField(
+                controller: _monthsController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                enabled: _isCalculatingFromMonths,
+                decoration: InputDecoration(
+                  labelText: 'Duration',
+                  suffixText: 'months',
+                  fillColor: _isCalculatingFromMonths ? null : v.raised,
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    if (_isCalculatingFromMonths) {
+                      _calculateMonthlyAmount();
+                    }
+                  });
+                },
+              ),
+              if (_monthsController.text.isNotEmpty &&
+                  int.tryParse(_monthsController.text) != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6, left: 4),
                   child: Text(
-                    widget.emoji,
-                    style: const TextStyle(fontSize: 50),
+                    '≈ ${_convertMonthsToYearsAndMonths(int.parse(_monthsController.text))}',
+                    style: TextStyle(fontSize: 12, color: v.muted),
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 32),
+              gap,
 
-            // Target Amount
-            const Text(
-              'Target Amount',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _targetAmountController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-              ],
-              decoration: InputDecoration(
-                prefixText: 'JOD ',
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
+              // Monthly Amount Field
+              TextField(
+                controller: _monthlyAmountController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
+                inputFormatters: [amountFormatter],
+                enabled: !_isCalculatingFromMonths,
+                decoration: InputDecoration(
+                  labelText: 'Monthly savings',
+                  prefixText: 'JOD ',
+                  fillColor: !_isCalculatingFromMonths ? null : v.raised,
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.blue, width: 2),
-                ),
+                onChanged: (value) {
+                  setState(() {
+                    if (!_isCalculatingFromMonths) {
+                      _calculateMonths();
+                    }
+                  });
+                },
               ),
-              onChanged: (value) {
-                setState(() {
-                  if (_isCalculatingFromMonths) {
-                    _calculateMonthlyAmount();
-                  } else {
-                    _calculateMonths();
-                  }
-                });
-              },
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: VestaSpace.xl),
 
-            // Duration Toggle
-            const Text(
-              'Calculate by:',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Row(
-              children: [
-                ChoiceChip(
-                  label: const Text('Duration'),
-                  selected: _isCalculatingFromMonths,
-                  onSelected: (selected) {
-                    setState(() {
-                      _isCalculatingFromMonths = true;
-                    });
-                    // Automatically recalculate when switching modes
-                    _calculateMonthlyAmount();
-                  },
-                ),
-                const SizedBox(width: 8),
-                ChoiceChip(
-                  label: const Text('Monthly Amount'),
-                  selected: !_isCalculatingFromMonths,
-                  onSelected: (selected) {
-                    setState(() {
-                      _isCalculatingFromMonths = false;
-                    });
-                    // Automatically recalculate when switching modes
-                    _calculateMonths();
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Duration Field
-            const Text(
-              'Duration',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _monthsController,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              enabled: _isCalculatingFromMonths,
-              decoration: InputDecoration(
-                suffixText: 'months',
-                filled: true,
-                fillColor: _isCalculatingFromMonths
-                    ? Colors.white
-                    : Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.blue, width: 2),
-                ),
-                disabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  if (_isCalculatingFromMonths) {
-                    _calculateMonthlyAmount();
-                  }
-                });
-              },
-            ),
-            if (_monthsController.text.isNotEmpty &&
-                int.tryParse(_monthsController.text) != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  '≈ ${_convertMonthsToYearsAndMonths(int.parse(_monthsController.text))}',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[600],
-                    fontStyle: FontStyle.italic,
+              // Summary Card
+              if (_targetAmountController.text.isNotEmpty &&
+                  _monthsController.text.isNotEmpty &&
+                  _monthlyAmountController.text.isNotEmpty) ...[
+                VestaCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text('Summary', style: headingStyle(16)),
+                      const SizedBox(height: VestaSpace.md),
+                      _buildSummaryRow(
+                        'Goal',
+                        'JOD ${double.parse(_targetAmountController.text).toStringAsFixed(2)}',
+                      ),
+                      const SizedBox(height: VestaSpace.sm),
+                      _buildSummaryRow(
+                        'Duration',
+                        _convertMonthsToYearsAndMonths(
+                          int.parse(_monthsController.text),
+                        ),
+                      ),
+                      const SizedBox(height: VestaSpace.sm),
+                      _buildSummaryRow(
+                        'Monthly savings',
+                        'JOD ${double.parse(_monthlyAmountController.text).toStringAsFixed(2)}',
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            const SizedBox(height: 24),
-
-            // Monthly Amount Field
-            const Text(
-              'Monthly Savings',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _monthlyAmountController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                const SizedBox(height: VestaSpace.xl),
               ],
-              enabled: !_isCalculatingFromMonths,
-              decoration: InputDecoration(
-                prefixText: 'JOD ',
-                filled: true,
-                fillColor: !_isCalculatingFromMonths
-                    ? Colors.white
-                    : Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.blue, width: 2),
-                ),
-                disabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  if (!_isCalculatingFromMonths) {
-                    _calculateMonths();
-                  }
-                });
-              },
-            ),
-            const SizedBox(height: 32),
 
-            // Summary Card
-            if (_targetAmountController.text.isNotEmpty &&
-                _monthsController.text.isNotEmpty &&
-                _monthlyAmountController.text.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: widget.backgroundColor.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: widget.backgroundColor),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Summary',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildSummaryRow(
-                      'Goal',
-                      'JOD ${double.parse(_targetAmountController.text).toStringAsFixed(2)}',
-                    ),
-                    const SizedBox(height: 8),
-                    _buildSummaryRow(
-                      'Duration',
-                      _convertMonthsToYearsAndMonths(
-                        int.parse(_monthsController.text),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildSummaryRow(
-                      'Monthly Savings',
-                      'JOD ${double.parse(_monthlyAmountController.text).toStringAsFixed(2)}',
-                    ),
-                  ],
-                ),
-              ),
-            const SizedBox(height: 32),
-
-            // Create Button
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton(
+              // Create Button
+              PrimaryButton(
+                label: 'Create savings goal',
                 onPressed: _saveSavingGoal,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.secondary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Create Savings Goal',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
               ),
-            ),
-            const SizedBox(height: 20),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -934,16 +618,9 @@ class _SavingsGoalDetailsState extends State<SavingsGoalDetails> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 15, color: Colors.black87),
+          style: TextStyle(fontSize: 13, color: context.vesta.muted),
         ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
+        Text(value, style: amountStyle(14)),
       ],
     );
   }

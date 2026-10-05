@@ -250,6 +250,38 @@ class OutlineIconButton extends StatelessWidget {
   }
 }
 
+/// Small outlined text button for app bar actions (the prototype's
+/// "Manage" button).
+class HeaderButton extends StatelessWidget {
+  const HeaderButton({super.key, required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final ink = context.vesta.accentInk;
+    return Padding(
+      padding: const EdgeInsets.only(right: VestaSpace.xs),
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: ink,
+          side: BorderSide(color: ink),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(VestaRadius.md),
+          ),
+          textStyle: const TextStyle(fontFamily: bodyFont, fontSize: 13),
+        ),
+        child: Text(label),
+      ),
+    );
+  }
+}
+
 final NumberFormat _money = NumberFormat('#,##0.00', 'en_US');
 
 /// Formats an amount the way the prototype does: "JOD 1,234.50", and
