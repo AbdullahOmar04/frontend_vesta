@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend_vesta/Helpers/widgets.dart';
+import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/pages/accounts.dart';
 
 /// Account types offered when adding an account by hand. The codes match what
@@ -86,7 +87,10 @@ class _AddAccountPageState extends State<AddAccountPage> {
       debugPrint('⚠️ Error adding account: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     } finally {
@@ -96,71 +100,52 @@ class _AddAccountPageState extends State<AddAccountPage> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
     return Scaffold(
-      backgroundColor: scheme.primary,
-      appBar: AppBar(
-        backgroundColor: scheme.primary,
-        title: Text('Add Account', style: TextStyle(color: scheme.surface)),
-        iconTheme: IconThemeData(color: scheme.surface),
-        centerTitle: true,
-      ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          color: scheme.surface,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
-        ),
+      appBar: const VestaAppBar(title: 'Add account'),
+      body: VestaBackground(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(
+            VestaSpace.gutter,
+            VestaSpace.md,
+            VestaSpace.gutter,
+            VestaSpace.xl,
+          ),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 8),
                 TextFormField(
                   controller: _nameCtrl,
                   textCapitalization: TextCapitalization.words,
                   decoration: const InputDecoration(
                     labelText: 'Account name',
                     hintText: 'e.g. Arab Bank, Cash, Wallet',
-                    border: OutlineInputBorder(),
                   ),
                   validator: (v) => (v == null || v.trim().isEmpty)
                       ? 'Enter an account name'
                       : null,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: VestaSpace.lg),
                 DropdownButtonFormField<String>(
                   initialValue: _type,
-                  decoration: const InputDecoration(
-                    labelText: 'Type',
-                    border: OutlineInputBorder(),
-                  ),
+                  style: Theme.of(context).textTheme.bodyLarge,
+                  decoration: const InputDecoration(labelText: 'Type'),
                   items: accountTypeCodes.keys
                       .map((t) => DropdownMenuItem(value: t, child: Text(t)))
                       .toList(),
                   onChanged: (v) => setState(() => _type = v ?? 'Current'),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: VestaSpace.lg),
                 TextFormField(
                   controller: _currencyCtrl,
                   textCapitalization: TextCapitalization.characters,
-                  decoration: const InputDecoration(
-                    labelText: 'Currency',
-                    border: OutlineInputBorder(),
-                  ),
+                  decoration: const InputDecoration(labelText: 'Currency'),
                   validator: (v) => (v == null || v.trim().isEmpty)
                       ? 'Enter a currency'
                       : null,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: VestaSpace.lg),
                 TextFormField(
                   controller: _balanceCtrl,
                   keyboardType: const TextInputType.numberWithOptions(
@@ -168,7 +153,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   ),
                   decoration: const InputDecoration(
                     labelText: 'Current balance',
-                    border: OutlineInputBorder(),
                   ),
                   validator: (v) {
                     final parsed = double.tryParse((v ?? '').trim());
@@ -176,15 +160,17 @@ class _AddAccountPageState extends State<AddAccountPage> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 8),
-                const Text(
+                const SizedBox(height: VestaSpace.sm),
+                Text(
                   'Transactions you add will be added to or taken off this balance.',
-                  style: TextStyle(fontSize: 12, color: Colors.black54),
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const SizedBox(height: 28),
-                _saving
-                    ? const Center(child: CircularProgressIndicator())
-                    : largeButton(context, 'Add Account', scheme.primary, _save),
+                PrimaryButton(
+                  label: 'Add account',
+                  onPressed: _save,
+                  loading: _saving,
+                ),
               ],
             ),
           ),

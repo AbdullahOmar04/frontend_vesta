@@ -5,8 +5,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
 import 'package:frontend_vesta/Helpers/account_balance.dart';
+import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/pages/accounts.dart';
-import 'package:frontend_vesta/Screens/pages/settings.dart' as app_settings;
 
 import 'dart:async';
 
@@ -285,33 +287,6 @@ Widget largeButton(
   );
 }
 
-Widget splashSmallButton(
-  BuildContext context,
-  String text,
-  Color color,
-  VoidCallback onPressed,
-) {
-  return SizedBox(
-    width: 120,
-    height: 50,
-    child: ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      ),
-      onPressed: onPressed,
-      child: Text(
-        text,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    ),
-  );
-}
-
 // ignore: non_constant_identifier_names
 Widget BankCard(
   BuildContext context,
@@ -349,105 +324,6 @@ Widget BankCard(
   );
 }
 
-Widget drawer(BuildContext context, String username) {
-  final user = FirebaseAuth.instance.currentUser;
-  return Drawer(
-    child: ListView(
-      padding: EdgeInsets.zero,
-      children: [
-        DrawerHeader(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          child: Text(
-            'Menu',
-            style: TextStyle(color: Colors.white, fontSize: 24),
-          ),
-        ),
-        ListTile(
-          leading: const Icon(Icons.settings),
-          title: const Text('Settings'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => app_settings.Settings()),
-            );
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.calendar_month),
-          title: const Text('Change Day of Month'),
-          onTap: () {
-            inputDayOfMonth(context);
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.logout),
-          title: const Text('Logout'),
-          onTap: () async {
-            await FirebaseAuth.instance.signOut();
-            Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.developer_mode),
-          title: const Text('GET UID'),
-          onTap: () {
-            print(user?.uid);
-            print( _authHeaders());
-          },
-        ),
-      ],
-    ),
-  ); 
-}
-
-Future<Map<String, String>> _authHeaders() async {
-  final token = await FirebaseAuth.instance.currentUser?.getIdToken();
-  if (token == null) throw Exception('Not authenticated');
-  return {'Authorization': 'Bearer $token'};
-}
-Widget squareButton(
-  BuildContext context,
-  String text,
-  IconData icon,
-  Color color,
-  VoidCallback onPressed,
-) {
-  return Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: SizedBox(
-      height: 140,
-      width: 180,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(children: [Icon(icon, color: Colors.white, size: 30)]),
-            SizedBox(height: 20),
-            Text(
-              text,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
 Future<void> inputDayOfMonth(BuildContext context) async {
   final formKey = GlobalKey<FormState>();
   bool isLoading = false;
@@ -464,367 +340,129 @@ Future<void> inputDayOfMonth(BuildContext context) async {
   final int dayOfMonth = userData["dayOfMonth"] ?? 28;
   final controller = TextEditingController(text: dayOfMonth.toString());
 
+  if (!context.mounted) return;
+
   await showDialog(
     context: context,
     barrierDismissible: false,
     builder: (context) {
       return StatefulBuilder(
         builder: (context, setState) {
-          return Dialog(
-            backgroundColor: Colors.transparent,
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 340),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
+          final v = context.vesta;
+          return AlertDialog(
+            title: Row(
+              children: [
+                Icon(PhosphorIconsRegular.calendarBlank, color: v.accentInk),
+                const SizedBox(width: VestaSpace.sm),
+                const Text("Budget reset day"),
+              ],
+            ),
+            content: Form(
+              key: formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          const Color.fromARGB(255, 55, 54, 67),
-                          const Color.fromARGB(
-                            255,
-                            55,
-                            54,
-                            67,
-                          ).withOpacity(0.8),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.calendar_month,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          "Update Day of Month",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Enter the day of month for your cycle",
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
+                  Text(
+                    "Your budget cycle starts on this day each month, usually payday.",
+                    style: TextStyle(fontSize: 13, color: v.muted),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Form(
-                      key: formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Day of Month",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            controller: controller,
-                            keyboardType: TextInputType.number,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: "Enter day (1-31)",
-                              hintStyle: TextStyle(
-                                color: Colors.grey[400],
-                                fontWeight: FontWeight.normal,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: Colors.grey[300]!,
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: Colors.grey[300]!,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color.fromARGB(255, 55, 54, 67),
-                                  width: 2,
-                                ),
-                              ),
-                              errorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color.fromARGB(255, 218, 75, 92),
-                                  width: 2,
-                                ),
-                              ),
-                              focusedErrorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color.fromARGB(255, 218, 75, 92),
-                                  width: 2,
-                                ),
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey[50],
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
-                              ),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter a day';
-                              }
-                              final day = int.tryParse(value.trim());
-                              if (day == null) {
-                                return 'Please enter a valid number';
-                              }
-                              if (day < 1 || day > 31) {
-                                return 'Day must be between 1 and 31';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.blue[50],
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.blue[100]!),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.info_outline,
-                                  size: 16,
-                                  color: Colors.blue[600],
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    "Current: Day $dayOfMonth",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.blue[600],
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: controller,
+                    autofocus: true,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: "Day of month",
+                      hintText: "1-31",
                     ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Please enter a day';
+                      }
+                      final day = int.tryParse(value.trim());
+                      if (day == null) {
+                        return 'Please enter a valid number';
+                      }
+                      if (day < 1 || day > 31) {
+                        return 'Day must be between 1 and 31';
+                      }
+                      return null;
+                    },
                   ),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextButton(
-                            onPressed: isLoading
-                                ? null
-                                : () => Navigator.pop(context),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                side: BorderSide(color: Colors.grey[300]!),
-                              ),
-                            ),
-                            child: Text(
-                              "Cancel",
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: isLoading
-                                ? null
-                                : () async {
-                                    if (!formKey.currentState!.validate()) {
-                                      return;
-                                    }
-
-                                    setState(() {
-                                      isLoading = true;
-                                    });
-
-                                    try {
-                                      final newDay = int.tryParse(
-                                        controller.text.trim(),
-                                      );
-                                      if (newDay != null) {
-                                        final uid = FirebaseAuth
-                                            .instance
-                                            .currentUser!
-                                            .uid;
-                                        await FirebaseFirestore.instance
-                                            .collection("users")
-                                            .doc(uid)
-                                            .update({"dayOfMonth": newDay});
-
-                                        if (context.mounted) {
-                                          Navigator.pop(context);
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Row(
-                                                children: [
-                                                  const Icon(
-                                                    Icons.check_circle,
-                                                    color: Colors.white,
-                                                    size: 20,
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Text(
-                                                    "Day of month updated to $newDay",
-                                                  ),
-                                                ],
-                                              ),
-                                              backgroundColor: Colors.green,
-                                              behavior:
-                                                  SnackBarBehavior.floating,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      }
-                                    } catch (e) {
-                                      setState(() {
-                                        isLoading = false;
-                                      });
-
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.error_outline,
-                                                  color: Colors.white,
-                                                  size: 20,
-                                                ),
-                                                const SizedBox(width: 8),
-                                                const Text(
-                                                  "Failed to update day. Try again.",
-                                                ),
-                                              ],
-                                            ),
-                                            backgroundColor:
-                                                const Color.fromARGB(
-                                                  255,
-                                                  218,
-                                                  75,
-                                                  92,
-                                                ),
-                                            behavior: SnackBarBehavior.floating,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                    }
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color.fromARGB(
-                                255,
-                                55,
-                                54,
-                                67,
-                              ),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                    ),
-                                  )
-                                : const Text(
-                                    "Save Changes",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  const SizedBox(height: VestaSpace.sm),
+                  Text(
+                    "Current: day $dayOfMonth",
+                    style: TextStyle(fontSize: 12, color: v.muted),
                   ),
                 ],
               ),
             ),
+            actions: [
+              TextButton(
+                onPressed: isLoading ? null : () => Navigator.pop(context),
+                child: const Text("Cancel"),
+              ),
+              FilledButton(
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        if (!formKey.currentState!.validate()) {
+                          return;
+                        }
+
+                        setState(() {
+                          isLoading = true;
+                        });
+
+                        try {
+                          final newDay = int.tryParse(controller.text.trim());
+                          if (newDay != null) {
+                            final uid = FirebaseAuth.instance.currentUser!.uid;
+                            await FirebaseFirestore.instance
+                                .collection("users")
+                                .doc(uid)
+                                .update({"dayOfMonth": newDay});
+
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "Budget reset day updated to $newDay",
+                                  ),
+                                ),
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          setState(() {
+                            isLoading = false;
+                          });
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text(
+                                  "Failed to update day. Try again.",
+                                ),
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.error,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                child: isLoading
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text("Save"),
+              ),
+            ],
           );
         },
       );
@@ -833,7 +471,9 @@ Future<void> inputDayOfMonth(BuildContext context) async {
 }
 
 Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
-  final controller = TextEditingController(text: currentIncome.toString());
+  final controller = TextEditingController(
+    text: currentIncome == null ? '' : currentIncome.toString(),
+  );
   final formKey = GlobalKey<FormState>();
   bool isLoading = false;
 
@@ -843,407 +483,134 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
     builder: (context) {
       return StatefulBuilder(
         builder: (context, setState) {
-          return Dialog(
-            backgroundColor: Colors.transparent,
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 340),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
+          final v = context.vesta;
+          return AlertDialog(
+            title: Row(
+              children: [
+                Icon(PhosphorIconsRegular.handCoins, color: v.accentInk),
+                const SizedBox(width: VestaSpace.sm),
+                const Text("Monthly income"),
+              ],
+            ),
+            content: Form(
+              key: formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header with icon and gradient
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          const Color.fromARGB(255, 55, 54, 67),
-                          const Color.fromARGB(
-                            255,
-                            55,
-                            54,
-                            67,
-                          ).withOpacity(0.8),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.account_balance_wallet_outlined,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          "Update Total Income",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Enter your monthly income amount",
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
+                  Text(
+                    "Your budget plan splits this amount each cycle.",
+                    style: TextStyle(fontSize: 13, color: v.muted),
                   ),
-
-                  // Content area
-                  Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Form(
-                      key: formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Monthly Income",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-
-                          // Enhanced TextField
-                          TextFormField(
-                            controller: controller,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                            decoration: InputDecoration(
-                              prefixIcon: Container(
-                                margin: const EdgeInsets.all(8),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color.fromARGB(
-                                    255,
-                                    55,
-                                    54,
-                                    67,
-                                  ).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Text(
-                                  "JOD",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color.fromARGB(255, 55, 54, 67),
-                                  ),
-                                ),
-                              ),
-                              hintText: "Enter amount",
-                              hintStyle: TextStyle(
-                                color: Colors.grey[400],
-                                fontWeight: FontWeight.normal,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: Colors.grey[300]!,
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: Colors.grey[300]!,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color.fromARGB(255, 55, 54, 67),
-                                  width: 2,
-                                ),
-                              ),
-                              errorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color.fromARGB(255, 218, 75, 92),
-                                  width: 2,
-                                ),
-                              ),
-                              focusedErrorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color.fromARGB(255, 218, 75, 92),
-                                  width: 2,
-                                ),
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey[50],
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
-                              ),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter an amount';
-                              }
-                              final amount = double.tryParse(value.trim());
-                              if (amount == null) {
-                                return 'Please enter a valid number';
-                              }
-                              if (amount < 0) {
-                                return 'Amount must be 0 or greater';
-                              }
-                              if (amount > 999999) {
-                                return 'Amount is too large';
-                              }
-                              return null;
-                            },
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          // Current vs New comparison
-                          if (currentIncome > 0)
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.blue[50],
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.blue[100]!),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.info_outline,
-                                    size: 16,
-                                    color: Colors.blue[600],
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      "Current: JOD ${currentIncome.toStringAsFixed(0)}",
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.blue[600],
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: controller,
+                    autofocus: true,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
                     ),
-                  ),
-
-                  // Action buttons
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                    child: Row(
-                      children: [
-                        // Cancel button
-                        Expanded(
-                          child: TextButton(
-                            onPressed: isLoading
-                                ? null
-                                : () => Navigator.pop(context),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                side: BorderSide(color: Colors.grey[300]!),
-                              ),
-                            ),
-                            child: Text(
-                              "Cancel",
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(width: 12),
-
-                        // Save button
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: isLoading
-                                ? null
-                                : () async {
-                                    if (!formKey.currentState!.validate()) {
-                                      return;
-                                    }
-
-                                    setState(() {
-                                      isLoading = true;
-                                    });
-
-                                    try {
-                                      final newValue = double.tryParse(
-                                        controller.text.trim(),
-                                      );
-                                      if (newValue != null) {
-                                        final uid = FirebaseAuth
-                                            .instance
-                                            .currentUser!
-                                            .uid;
-                                        await FirebaseFirestore.instance
-                                            .collection("users")
-                                            .doc(uid)
-                                            .update({"totalIncome": newValue});
-
-                                        if (context.mounted) {
-                                          Navigator.pop(context);
-
-                                          // Show success message
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Row(
-                                                children: [
-                                                  const Icon(
-                                                    Icons.check_circle,
-                                                    color: Colors.white,
-                                                    size: 20,
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Text(
-                                                    "Income updated to JOD ${newValue.toStringAsFixed(0)}",
-                                                  ),
-                                                ],
-                                              ),
-                                              backgroundColor: Colors.green,
-                                              behavior:
-                                                  SnackBarBehavior.floating,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      }
-                                    } catch (e) {
-                                      setState(() {
-                                        isLoading = false;
-                                      });
-
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.error_outline,
-                                                  color: Colors.white,
-                                                  size: 20,
-                                                ),
-                                                const SizedBox(width: 8),
-                                                const Text(
-                                                  "Failed to update income. Try again.",
-                                                ),
-                                              ],
-                                            ),
-                                            backgroundColor:
-                                                const Color.fromARGB(
-                                                  255,
-                                                  218,
-                                                  75,
-                                                  92,
-                                                ),
-                                            behavior: SnackBarBehavior.floating,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                    }
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color.fromARGB(
-                                255,
-                                55,
-                                54,
-                                67,
-                              ),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                    ),
-                                  )
-                                : const Text(
-                                    "Save Changes",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ],
+                    style: amountStyle(16),
+                    decoration: const InputDecoration(
+                      labelText: "Amount",
+                      prefixText: "JOD ",
+                      hintText: "Enter amount",
                     ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Please enter an amount';
+                      }
+                      final amount = double.tryParse(value.trim());
+                      if (amount == null) {
+                        return 'Please enter a valid number';
+                      }
+                      if (amount < 0) {
+                        return 'Amount must be 0 or greater';
+                      }
+                      if (amount > 999999) {
+                        return 'Amount is too large';
+                      }
+                      return null;
+                    },
                   ),
+                  if (currentIncome is num && currentIncome > 0) ...[
+                    const SizedBox(height: VestaSpace.sm),
+                    Text(
+                      "Current: JOD ${currentIncome.toStringAsFixed(0)}",
+                      style: TextStyle(fontSize: 12, color: v.muted),
+                    ),
+                  ],
                 ],
               ),
             ),
+            actions: [
+              TextButton(
+                onPressed: isLoading ? null : () => Navigator.pop(context),
+                child: const Text("Cancel"),
+              ),
+              FilledButton(
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        if (!formKey.currentState!.validate()) {
+                          return;
+                        }
+
+                        setState(() {
+                          isLoading = true;
+                        });
+
+                        try {
+                          final newValue = double.tryParse(
+                            controller.text.trim(),
+                          );
+                          if (newValue != null) {
+                            final uid = FirebaseAuth.instance.currentUser!.uid;
+                            await FirebaseFirestore.instance
+                                .collection("users")
+                                .doc(uid)
+                                .update({"totalIncome": newValue});
+
+                            if (context.mounted) {
+                              Navigator.pop(context);
+
+                              // Show success message
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "Income updated to JOD ${newValue.toStringAsFixed(0)}",
+                                  ),
+                                ),
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          setState(() {
+                            isLoading = false;
+                          });
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text(
+                                  "Failed to update income. Try again.",
+                                ),
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.error,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                child: isLoading
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text("Save"),
+              ),
+            ],
           );
         },
       );
@@ -1267,320 +634,116 @@ Future<double?> inputHouseholBudget(
     builder: (dialogContext) {
       return StatefulBuilder(
         builder: (dialogContext, setState) {
-          return Dialog(
-            backgroundColor: Colors.transparent,
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 340),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
+          final v = dialogContext.vesta;
+          return AlertDialog(
+            title: Row(
+              children: [
+                Icon(PhosphorIconsRegular.wallet, color: v.accentInk),
+                const SizedBox(width: VestaSpace.sm),
+                const Text("Household budget"),
+              ],
+            ),
+            content: Form(
+              key: formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          const Color.fromARGB(255, 55, 54, 67),
-                          const Color.fromARGB(
-                            255,
-                            55,
-                            54,
-                            67,
-                          ).withOpacity(0.8),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.account_balance_wallet_outlined,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          "Update Household Budget",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Enter your budget for this month",
-                          style: TextStyle(color: Colors.white70, fontSize: 14),
-                        ),
-                      ],
-                    ),
+                  Text(
+                    "How much the household plans to spend this month.",
+                    style: TextStyle(fontSize: 13, color: v.muted),
                   ),
-
-                  // Content
-                  Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Form(
-                      key: formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Budget",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            controller: controller,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                            decoration: InputDecoration(
-                              prefixIcon: Container(
-                                margin: const EdgeInsets.all(8),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color.fromARGB(
-                                    255,
-                                    55,
-                                    54,
-                                    67,
-                                  ).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Text(
-                                  "JOD",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color.fromARGB(255, 55, 54, 67),
-                                  ),
-                                ),
-                              ),
-                              hintText: "Enter amount",
-                              hintStyle: TextStyle(
-                                color: Colors.grey[400],
-                                fontWeight: FontWeight.normal,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: Colors.grey[300]!,
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: Colors.grey[300]!,
-                                ),
-                              ),
-                              focusedBorder: const OutlineInputBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(12),
-                                ),
-                                borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 55, 54, 67),
-                                  width: 2,
-                                ),
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey[50],
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
-                              ),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter an amount';
-                              }
-                              final amount = double.tryParse(value.trim());
-                              if (amount == null) return 'Invalid number';
-                              if (amount <= 0) {
-                                return 'Amount must be greater than 0';
-                              }
-                              if (amount > 999999) {
-                                return 'Amount is too large';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 8),
-                          if (currentBudget > 0)
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.blue[50],
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.blue[100]!),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.info_outline,
-                                    size: 16,
-                                    color: Colors.blue[600],
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      "Current: JOD ${currentBudget.toStringAsFixed(0)}",
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.blue[600],
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: controller,
+                    autofocus: true,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
                     ),
-                  ),
-
-                  // Buttons
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextButton(
-                            onPressed: isLoading
-                                ? null
-                                : () => Navigator.of(dialogContext).pop(),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                side: BorderSide(color: Colors.grey[300]!),
-                              ),
-                            ),
-                            child: Text(
-                              "Cancel",
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: isLoading
-                                ? null
-                                : () async {
-                                    if (!formKey.currentState!.validate()) {
-                                      return;
-                                    }
-
-                                    setState(() => isLoading = true);
-
-                                    try {
-                                      final newValue = double.tryParse(
-                                        controller.text.trim(),
-                                      );
-                                      if (newValue != null) {
-                                        await FirebaseFirestore.instance
-                                            .collection("households")
-                                            .doc(householdId)
-                                            .update({"budget": newValue});
-
-                                        result = newValue;
-                                        Navigator.of(dialogContext).pop();
-                                      }
-                                    } catch (e) {
-                                      setState(() => isLoading = false);
-                                      ScaffoldMessenger.of(
-                                        dialogContext,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            "Failed to update budget. Try again.",
-                                          ),
-                                          backgroundColor: Colors.red,
-                                        ),
-                                      );
-                                    }
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color.fromARGB(
-                                255,
-                                55,
-                                54,
-                                67,
-                              ),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                    ),
-                                  )
-                                : const Text(
-                                    "Save Changes",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ],
+                    style: amountStyle(16),
+                    decoration: const InputDecoration(
+                      labelText: "Budget",
+                      prefixText: "JOD ",
+                      hintText: "Enter amount",
                     ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Please enter an amount';
+                      }
+                      final amount = double.tryParse(value.trim());
+                      if (amount == null) return 'Invalid number';
+                      if (amount <= 0) {
+                        return 'Amount must be greater than 0';
+                      }
+                      if (amount > 999999) {
+                        return 'Amount is too large';
+                      }
+                      return null;
+                    },
                   ),
+                  if (currentBudget > 0) ...[
+                    const SizedBox(height: VestaSpace.sm),
+                    Text(
+                      "Current: JOD ${currentBudget.toStringAsFixed(0)}",
+                      style: TextStyle(fontSize: 12, color: v.muted),
+                    ),
+                  ],
                 ],
               ),
             ),
+            actions: [
+              TextButton(
+                onPressed: isLoading
+                    ? null
+                    : () => Navigator.of(dialogContext).pop(),
+                child: const Text("Cancel"),
+              ),
+              FilledButton(
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        if (!formKey.currentState!.validate()) {
+                          return;
+                        }
+
+                        setState(() => isLoading = true);
+
+                        try {
+                          final newValue = double.tryParse(
+                            controller.text.trim(),
+                          );
+                          if (newValue != null) {
+                            await FirebaseFirestore.instance
+                                .collection("households")
+                                .doc(householdId)
+                                .update({"budget": newValue});
+
+                            result = newValue;
+                            Navigator.of(dialogContext).pop();
+                          }
+                        } catch (e) {
+                          setState(() => isLoading = false);
+                          ScaffoldMessenger.of(dialogContext).showSnackBar(
+                            SnackBar(
+                              content: const Text(
+                                "Failed to update budget. Try again.",
+                              ),
+                              backgroundColor: Theme.of(
+                                dialogContext,
+                              ).colorScheme.error,
+                            ),
+                          );
+                        }
+                      },
+                child: isLoading
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text("Save"),
+              ),
+            ],
           );
         },
       );
@@ -1605,69 +768,17 @@ class AccountFilterDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 48,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade300),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String?>(
-          isExpanded: true,
-          value: selectedAccountId,
-          hint: Row(
-            children: [
-              Icon(Icons.filter_list, size: 18, color: Colors.grey[600]),
-              const SizedBox(width: 6),
-              Text(
-                'All Accounts',
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
-              ),
-            ],
-          ),
-          icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
-          items: [
-            const DropdownMenuItem<String?>(
-              value: null,
-              child: Row(
-                children: [
-                  Icon(Icons.clear_all, size: 18, color: Colors.grey),
-                  SizedBox(width: 6),
-                  Text('All Accounts', style: TextStyle(fontSize: 14)),
-                ],
-              ),
-            ),
-            ...accounts.map((acc) {
-              return DropdownMenuItem<String?>(
-                value: acc.id,
-                child: Row(
-                  children: [
-                    const Icon(Icons.account_balance_wallet, size: 18),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        acc.name,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ],
-          onChanged: onChanged,
+    return _FilterDropdownShell<String?>(
+      value: selectedAccountId,
+      hintIcon: PhosphorIconsRegular.wallet,
+      hintText: 'All accounts',
+      items: [
+        const _FilterItem(null, 'All accounts', PhosphorIconsRegular.wallet),
+        ...accounts.map(
+          (acc) => _FilterItem(acc.id, acc.label, PhosphorIconsRegular.bank),
         ),
-      ),
+      ],
+      onChanged: onChanged,
     );
   }
 }
@@ -1686,67 +797,95 @@ class CategoryFilterDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return _FilterDropdownShell<String?>(
+      value: selectedCategory,
+      hintIcon: PhosphorIconsRegular.funnelSimple,
+      hintText: 'All categories',
+      items: [
+        const _FilterItem(
+          null,
+          'All categories',
+          PhosphorIconsRegular.funnelSimple,
+        ),
+        ...categories.map((cat) => _FilterItem(cat, cat, categoryIcon(cat))),
+      ],
+      onChanged: onChanged,
+    );
+  }
+}
+
+class _FilterItem<T> {
+  const _FilterItem(this.value, this.label, this.icon);
+
+  final T value;
+  final String label;
+  final IconData icon;
+}
+
+/// Outlined dropdown used by the transaction filters.
+class _FilterDropdownShell<T> extends StatelessWidget {
+  const _FilterDropdownShell({
+    required this.value,
+    required this.hintIcon,
+    required this.hintText,
+    required this.items,
+    required this.onChanged,
+  });
+
+  final T value;
+  final IconData hintIcon;
+  final String hintText;
+  final List<_FilterItem<T>> items;
+  final ValueChanged<T> onChanged;
+
+  Widget _row(BuildContext context, IconData icon, String label, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 13, color: color),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final v = context.vesta;
+    final scheme = Theme.of(context).colorScheme;
     return Container(
-      height: 48,
+      height: 44,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: scheme.surfaceContainer,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade300),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: v.divider),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: DropdownButtonHideUnderline(
-        child: DropdownButton<String?>(
+        child: DropdownButton<T>(
           isExpanded: true,
-          value: selectedCategory,
-          hint: Row(
-            children: [
-              Icon(Icons.filter_alt, size: 18, color: Colors.grey[600]),
-              const SizedBox(width: 6),
-              Text(
-                'All Categories',
-                style: TextStyle(color: Colors.grey[600], fontSize: 14),
-              ),
-            ],
-          ),
-          icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+          value: value,
+          // Wider than the half-width button so labels like
+          // "Arab Bank · Savings" aren't cut off in the open menu.
+          menuWidth: 260,
+          borderRadius: BorderRadius.circular(VestaRadius.button),
+          dropdownColor: scheme.surfaceContainer,
+          hint: _row(context, hintIcon, hintText, v.muted),
+          icon: Icon(PhosphorIconsRegular.caretDown, size: 14, color: v.muted),
           items: [
-            const DropdownMenuItem<String?>(
-              value: null,
-              child: Row(
-                children: [
-                  Icon(Icons.clear_all, size: 18, color: Colors.grey),
-                  SizedBox(width: 6),
-                  Text('All Categories', style: TextStyle(fontSize: 14)),
-                ],
+            for (final item in items)
+              DropdownMenuItem<T>(
+                value: item.value,
+                child: _row(context, item.icon, item.label, scheme.onSurface),
               ),
-            ),
-            ...categories.map(
-              (cat) => DropdownMenuItem<String?>(
-                value: cat,
-                child: Row(
-                  children: [
-                    const Icon(Icons.label, size: 18),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        cat,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ],
-          onChanged: onChanged,
+          onChanged: (picked) => onChanged(picked as T),
         ),
       ),
     );
@@ -1761,11 +900,19 @@ class TransactionCard extends StatefulWidget {
     required this.transaction,
     this.onCategoryChanged,
     this.onDeleted,
+    this.accountName,
+    this.showDate = true,
   });
 
   final TransactionModel transaction;
   final VoidCallback? onCategoryChanged;
   final VoidCallback? onDeleted;
+
+  /// Display name of the transaction's account, when the caller has it.
+  final String? accountName;
+
+  /// False when the list already groups transactions under date headings.
+  final bool showDate;
 
   @override
   State<TransactionCard> createState() => _TransactionCardState();
@@ -1774,168 +921,87 @@ class TransactionCard extends StatefulWidget {
 class _TransactionCardState extends State<TransactionCard> {
   bool _isUpdating = false;
 
+  String get _title {
+    final t = widget.transaction;
+    for (final s in [t.merchantName, t.description, t.category]) {
+      if (s != null && s.trim().isNotEmpty) return s.trim();
+    }
+    return t.isDebit ? 'Expense' : 'Income';
+  }
+
+  String? get _accountText {
+    final name = widget.accountName ?? widget.transaction.accountLabel;
+    return name != null && name.isNotEmpty ? name : null;
+  }
+
+  String get _subtitle {
+    final t = widget.transaction;
+    final category = t.category != null && t.category!.isNotEmpty
+        ? t.category!
+        : 'Uncategorized';
+    return widget.showDate ? '$category · ${shortDateLabel(t.date)}' : category;
+  }
+
+  num get _signedAmount =>
+      widget.transaction.isDebit ? -widget.transaction.amount : widget.transaction.amount;
+
   @override
   Widget build(BuildContext context) {
-    final isDebit = widget.transaction.isDebit;
-    final amountColor = isDebit ? Colors.red : Colors.green;
-
-    return GestureDetector(
+    final t = widget.transaction;
+    return InkWell(
       onTap: () => _showDetailsSheet(context),
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
           children: [
-            // Amount
-            Row(
-              children: [
-                Text(
-                  "${isDebit ? '- ' : '+ '}"
-                  "${widget.transaction.amount.toStringAsFixed(2)} "
-                  "${widget.transaction.currency}",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
-                    color: amountColor,
+            IconBadge(categoryIcon(t.category)),
+            const SizedBox(width: VestaSpace.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(
+                    _subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
-                ),
-                const Spacer(),
-
-                // 🔽 Check if there are households, then show a button
-                FutureBuilder<bool>(
-                  future: _checkForHouseholds(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const SizedBox.shrink();
-                    }
-
-                    final hasHouseholds = snapshot.data ?? false;
-                    if (!hasHouseholds) {
-                      return const SizedBox.shrink();
-                    }
-
-                    // ✅ Show the button
-                    return TextButton.icon(
-                      onPressed: () => _showAssignToHouseholdSheet(context),
-                      icon: const Icon(Icons.house_outlined, size: 18),
-                      label: const Text("Assign"),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.grey[800],
-                        textStyle: const TextStyle(fontSize: 14),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 4),
-
-            // Account + Date
-            Row(
-              children: [
-                Text(
-                  widget.transaction.accountLabel != null &&
-                          widget.transaction.accountLabel!.isNotEmpty
-                      ? widget.transaction.accountLabel!
-                      : "Acc • ${widget.transaction.accountId}",
-                  style: const TextStyle(fontSize: 13, color: Colors.black54),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    _formatDate(widget.transaction.date),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                const Icon(Icons.chevron_right),
-              ],
-            ),
-
-            const SizedBox(height: 10),
-
-            // Category dropdown
-            Stack(
-              children: [
-                Builder(
-                  builder: (context) {
-                    // dedupe labels
-                    final labels = categoryLabels.toSet().toList();
-
-                    final current = widget.transaction.category;
-                    final isValidValue =
-                        current != null &&
-                        current.isNotEmpty &&
-                        (current == "Unassign" || labels.contains(current));
-
-                    return DropdownButtonFormField<String>(
-                      value: isValidValue ? current : null,
-                      hint: const Text("Category"),
-                      isExpanded: true,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.grey[100],
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
+                  if (_accountText != null)
+                    Row(
+                      children: [
+                        Icon(
+                          PhosphorIconsRegular.bank,
+                          size: 12,
+                          color: context.vesta.muted,
                         ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                      items: [
-                        const DropdownMenuItem(
-                          value: "Unassign",
-                          child: Text("Unassign"),
-                        ),
-                        ...labels.map(
-                          (label) => DropdownMenuItem(
-                            value: label,
-                            child: Text(label),
+                        const SizedBox(width: VestaSpace.xs),
+                        Flexible(
+                          child: Text(
+                            _accountText!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ),
                       ],
-                      onChanged: _isUpdating ? null : _onCategoryChanged,
-                    );
-                  },
-                ),
-                if (_isUpdating)
-                  const Positioned.fill(
-                    child: Center(
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
+            const SizedBox(width: VestaSpace.sm),
+            _isUpdating
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : MoneyText(
+                    _signedAmount,
+                    currency: t.currency,
+                    showPlus: true,
+                    color: t.isDebit ? null : context.vesta.pos,
+                  ),
           ],
         ),
       ),
@@ -2008,7 +1074,10 @@ class _TransactionCardState extends State<TransactionCard> {
       widget.onCategoryChanged?.call();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text("Error: $e"),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
     } finally {
       setState(() => _isUpdating = false);
@@ -2031,123 +1100,219 @@ class _TransactionCardState extends State<TransactionCard> {
 
   void _showDetailsSheet(BuildContext context) {
     final isDebit = widget.transaction.isDebit;
-    final typeLabel = isDebit ? "Debit" : "Credit";
+    final typeLabel = isDebit ? "Expense" : "Income";
     final sourceLabel = widget.transaction.source.name;
 
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      backgroundColor: Colors.white,
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Wrap(
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(20),
-                ),
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheet) {
+          final v = sheetContext.vesta;
+          final current = widget.transaction.category;
+          final labels = categoryLabels.toSet().toList();
+
+          // Category changes go through _onCategoryChanged as before; the
+          // sheet just redraws when it starts and when it finishes.
+          Future<void> pick(String value) async {
+            final update = _onCategoryChanged(value);
+            setSheet(() {});
+            await update;
+            if (sheetContext.mounted) setSheet(() {});
+          }
+
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(
+                VestaSpace.gutter,
+                0,
+                VestaSpace.gutter,
+                VestaSpace.gutter,
               ),
-            ),
-            Text(
-              "${widget.transaction.amount.toStringAsFixed(2)} "
-              "${widget.transaction.currency}",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: isDebit ? Colors.red : Colors.green,
-              ),
-            ),
-            const SizedBox(height: 10),
-            _info("Type", typeLabel),
-            _info("Merchant", widget.transaction.merchantName ?? "—"),
-            _info(
-              "Account",
-              widget.transaction.accountLabel ??
-                  "Acc • ${widget.transaction.accountId}",
-            ),
-            _info("Source", sourceLabel),
-            if (widget.transaction.description?.isNotEmpty == true)
-              _info("Description", widget.transaction.description!),
-            _info("Date", _formatDateInDetails(widget.transaction.date)),
-            Row(
-              children: [
-                Expanded(
-                  child: largeButton(
-                    context,
-                    'Delete Transaction',
-                    Colors.red,
-                    () {
-                      _deleteTransaction()
-                          .then((_) {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Transaction deleted"),
-                                backgroundColor: Colors.green,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      IconBadge(
+                        categoryIcon(current),
+                        size: 48,
+                        circle: false,
+                      ),
+                      const SizedBox(width: VestaSpace.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: headingStyle(17),
+                            ),
+                            Text(
+                              _subtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(sheetContext).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: VestaSpace.sm),
+                      MoneyText(
+                        _signedAmount,
+                        currency: widget.transaction.currency,
+                        size: 17,
+                        showPlus: true,
+                        color: isDebit ? null : v.pos,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: VestaSpace.lg),
+                  VestaCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Category',
+                                style: Theme.of(sheetContext).textTheme.bodySmall,
                               ),
-                            );
-                            widget.onDeleted?.call();
-                          })
-                          .catchError((e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("Error deleting transaction: $e"),
-                                backgroundColor: Colors.red,
+                            ),
+                            if (_isUpdating)
+                              const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            else if (current != null && current.isNotEmpty)
+                              GestureDetector(
+                                onTap: () => pick("Unassign"),
+                                child: Text(
+                                  'Remove',
+                                  style: TextStyle(fontSize: 12, color: v.accentInk),
+                                ),
                               ),
-                            );
-                          });
+                          ],
+                        ),
+                        const SizedBox(height: VestaSpace.sm),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            for (final label in labels)
+                              ChoiceTag(
+                                label: label,
+                                icon: categoryIcon(label),
+                                selected: current == label,
+                                onTap: _isUpdating || current == label
+                                    ? null
+                                    : () => pick(label),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: VestaSpace.lg),
+                        _info(sheetContext, "Type", typeLabel),
+                        _info(
+                          sheetContext,
+                          "Merchant",
+                          widget.transaction.merchantName ?? "—",
+                        ),
+                        _info(sheetContext, "Account", _accountText ?? "—"),
+                        _info(sheetContext, "Source", sourceLabel),
+                        if (widget.transaction.description?.isNotEmpty == true)
+                          _info(
+                            sheetContext,
+                            "Description",
+                            widget.transaction.description!,
+                          ),
+                        _info(
+                          sheetContext,
+                          "Date",
+                          _formatDateInDetails(widget.transaction.date),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: VestaSpace.lg),
+                  FutureBuilder<bool>(
+                    future: _checkForHouseholds(),
+                    builder: (context, snapshot) {
+                      if (snapshot.data != true) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: OutlineButton(
+                          label: 'Assign to household',
+                          onPressed: () => _showAssignToHouseholdSheet(context),
+                        ),
+                      );
                     },
                   ),
-                ),
-              ],
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: v.neg,
+                        side: BorderSide(color: v.neg.withValues(alpha: 0.6)),
+                      ),
+                      onPressed: () {
+                        _deleteTransaction()
+                            .then((_) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Transaction deleted"),
+                                ),
+                              );
+                              widget.onDeleted?.call();
+                            })
+                            .catchError((e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "Error deleting transaction: $e",
+                                  ),
+                                  backgroundColor: Theme.of(context).colorScheme.error,
+                                ),
+                              );
+                            });
+                      },
+                      child: const Text('Delete transaction'),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _info(String title, String value) {
+  Widget _info(BuildContext context, String title, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 90, child: Text("$title:")),
+          SizedBox(
+            width: 96,
+            child: Text(title, style: Theme.of(context).textTheme.bodySmall),
+          ),
           Expanded(
             child: Text(
               value.isEmpty ? "—" : value,
-              style: const TextStyle(fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 13),
             ),
           ),
         ],
       ),
     );
-  }
-
-  static String _formatDate(DateTime dt) {
-    if (dt.millisecondsSinceEpoch == 0) return "—";
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    return "${months[dt.month - 1]} ${dt.day}, ${dt.year}";
   }
 
   static String _formatDateInDetails(DateTime dt) {
@@ -2203,17 +1368,16 @@ class _TransactionCardState extends State<TransactionCard> {
 
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
       builder: (context) => ListView(
         shrinkWrap: true,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(
+          VestaSpace.gutter,
+          0,
+          VestaSpace.gutter,
+          VestaSpace.gutter,
+        ),
         children: [
-          const Text(
-            "Assign to Household",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+          Text("Assign to household", style: headingStyle(17)),
           const SizedBox(height: 12),
           ...householdDocs.docs.map((doc) {
             final data = doc.data();
@@ -2221,7 +1385,8 @@ class _TransactionCardState extends State<TransactionCard> {
             final householdId = doc.id;
 
             return ListTile(
-              leading: const Icon(Icons.house_rounded),
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(PhosphorIconsRegular.houseLine),
               title: Text(name),
               onTap: () async {
                 final user = FirebaseAuth.instance.currentUser;
@@ -2267,7 +1432,6 @@ class _TransactionCardState extends State<TransactionCard> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text("Assigned to '$name' successfully!"),
-                      backgroundColor: Colors.green,
                     ),
                   );
                 }
@@ -2311,129 +1475,80 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
     _fetchAddedByName();
   }
 
+  String get _title {
+    final t = widget.transaction;
+    for (final s in [t.merchantName, t.description, t.category]) {
+      if (s != null && s.trim().isNotEmpty) return s.trim();
+    }
+    return t.isDebit ? 'Expense' : 'Income';
+  }
+
+  String get _subtitle {
+    final t = widget.transaction;
+    final category = t.category != null && t.category!.isNotEmpty
+        ? t.category!
+        : 'Uncategorized';
+    return '$category · ${shortDateLabel(t.date)}';
+  }
+
+  num get _signedAmount => widget.transaction.isDebit
+      ? -widget.transaction.amount
+      : widget.transaction.amount;
+
   @override
   Widget build(BuildContext context) {
-    final isDebit = widget.transaction.isDebit;
-    final amountColor = isDebit ? Colors.red : Colors.green;
-
-    return GestureDetector(
+    final t = widget.transaction;
+    final v = context.vesta;
+    return InkWell(
       onTap: () => _showDetailsSheet(context),
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
           children: [
-            /// AMOUNT
-            Row(
-              children: [
-                Text(
-                  "${isDebit ? '- ' : '+ '}"
-                  "${widget.transaction.amount.toStringAsFixed(2)} "
-                  "${widget.transaction.currency}",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
-                    color: amountColor,
-                  ),
-                ),
-                const Spacer(),
-
-                /// ADDED BY
-                if (_addedByName != null)
+            IconBadge(categoryIcon(t.category)),
+            const SizedBox(width: VestaSpace.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_title, maxLines: 1, overflow: TextOverflow.ellipsis),
                   Text(
-                    "By $_addedByName",
-                    style: const TextStyle(fontSize: 13, color: Colors.black54),
+                    _subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
-              ],
+                  if (_addedByName != null)
+                    Row(
+                      children: [
+                        Icon(PhosphorIconsRegular.user, size: 12, color: v.muted),
+                        const SizedBox(width: VestaSpace.xs),
+                        Flexible(
+                          child: Text(
+                            _addedByName!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
             ),
-
-            const SizedBox(height: 4),
-
-            /// DATE
-            Row(
-              children: [
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+            const SizedBox(width: VestaSpace.sm),
+            _isUpdating
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : MoneyText(
+                    _signedAmount,
+                    currency: t.currency,
+                    showPlus: true,
+                    color: t.isDebit ? null : v.pos,
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    _formatDate(widget.transaction.date),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                const Icon(Icons.chevron_right),
-              ],
-            ),
-
-            const SizedBox(height: 10),
-
-            /// CATEGORY DROPDOWN
-            Stack(
-              children: [
-                DropdownButtonFormField<String>(
-                  value: widget.transaction.category?.isNotEmpty == true
-                      ? widget.transaction.category
-                      : null,
-                  hint: const Text("Category"),
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  items: [
-                    const DropdownMenuItem(
-                      value: "Unassign",
-                      child: Text("Unassign"),
-                    ),
-                    ...categoryLabels.map(
-                      (label) =>
-                          DropdownMenuItem(value: label, child: Text(label)),
-                    ),
-                  ],
-                  onChanged: _isUpdating ? null : _onCategoryChanged,
-                ),
-                if (_isUpdating)
-                  const Positioned.fill(
-                    child: Center(
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
           ],
         ),
       ),
@@ -2497,7 +1612,10 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
       widget.onCategoryChanged?.call();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text("Error: $e"),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
     } finally {
       setState(() => _isUpdating = false);
@@ -2516,123 +1634,206 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
 
   void _showDetailsSheet(BuildContext context) {
     final isDebit = widget.transaction.isDebit;
-    final typeLabel = isDebit ? "Debit" : "Credit";
+    final typeLabel = isDebit ? "Expense" : "Income";
     final sourceLabel = widget.transaction.source.name;
 
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      backgroundColor: Colors.white,
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Wrap(
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(20),
-                ),
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheet) {
+          final v = sheetContext.vesta;
+          final current = widget.transaction.category;
+
+          // Category changes go through _onCategoryChanged as before; the
+          // sheet just redraws when it starts and when it finishes.
+          Future<void> pick(String value) async {
+            final update = _onCategoryChanged(value);
+            setSheet(() {});
+            await update;
+            if (sheetContext.mounted) setSheet(() {});
+          }
+
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(
+                VestaSpace.gutter,
+                0,
+                VestaSpace.gutter,
+                VestaSpace.gutter,
               ),
-            ),
-            Text(
-              "${widget.transaction.amount.toStringAsFixed(2)} "
-              "${widget.transaction.currency}",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: isDebit ? Colors.red : Colors.green,
-              ),
-            ),
-            const SizedBox(height: 10),
-            _info("Type", typeLabel),
-            _info("Merchant", widget.transaction.merchantName ?? "—"),
-            _info(
-              "Account",
-              widget.transaction.accountLabel ??
-                  "Acc • ${widget.transaction.accountId}",
-            ),
-            _info("Source", sourceLabel),
-            if (widget.transaction.description?.isNotEmpty == true)
-              _info("Description", widget.transaction.description!),
-            if (_addedByName != null) _info("Added by", _addedByName!),
-            _info("Date", _formatDateInDetails(widget.transaction.date)),
-            Row(
-              children: [
-                Expanded(
-                  child: largeButton(
-                    context,
-                    'Delete Transaction',
-                    Colors.red,
-                    () {
-                      _deleteTransaction()
-                          .then((_) {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Transaction deleted"),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                            widget.onDeleted?.call();
-                          })
-                          .catchError((e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("Error deleting transaction: $e"),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          });
-                    },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      IconBadge(categoryIcon(current), size: 48, circle: false),
+                      const SizedBox(width: VestaSpace.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: headingStyle(17),
+                            ),
+                            Text(
+                              _subtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(sheetContext).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: VestaSpace.sm),
+                      MoneyText(
+                        _signedAmount,
+                        currency: widget.transaction.currency,
+                        size: 17,
+                        showPlus: true,
+                        color: isDebit ? null : v.pos,
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: VestaSpace.lg),
+                  VestaCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Category',
+                                style: Theme.of(sheetContext).textTheme.bodySmall,
+                              ),
+                            ),
+                            if (_isUpdating)
+                              const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            else if (current != null && current.isNotEmpty)
+                              GestureDetector(
+                                onTap: () => pick("Unassign"),
+                                child: Text(
+                                  'Remove',
+                                  style: TextStyle(fontSize: 12, color: v.accentInk),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: VestaSpace.sm),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            for (final label in categoryLabels)
+                              ChoiceTag(
+                                label: label,
+                                icon: categoryIcon(label),
+                                selected: current == label,
+                                onTap: _isUpdating || current == label
+                                    ? null
+                                    : () => pick(label),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: VestaSpace.lg),
+                        _info(sheetContext, "Type", typeLabel),
+                        _info(
+                          sheetContext,
+                          "Merchant",
+                          widget.transaction.merchantName ?? "—",
+                        ),
+                        _info(
+                          sheetContext,
+                          "Account",
+                          widget.transaction.accountLabel ?? "—",
+                        ),
+                        _info(sheetContext, "Source", sourceLabel),
+                        if (widget.transaction.description?.isNotEmpty == true)
+                          _info(
+                            sheetContext,
+                            "Description",
+                            widget.transaction.description!,
+                          ),
+                        if (_addedByName != null)
+                          _info(sheetContext, "Added by", _addedByName!),
+                        _info(
+                          sheetContext,
+                          "Date",
+                          _formatDateInDetails(widget.transaction.date),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: VestaSpace.lg),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: v.neg,
+                        side: BorderSide(color: v.neg.withValues(alpha: 0.6)),
+                      ),
+                      onPressed: () {
+                        _deleteTransaction()
+                            .then((_) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Transaction deleted"),
+                                ),
+                              );
+                              widget.onDeleted?.call();
+                            })
+                            .catchError((e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "Error deleting transaction: $e",
+                                  ),
+                                  backgroundColor: Theme.of(context).colorScheme.error,
+                                ),
+                              );
+                            });
+                      },
+                      child: const Text('Remove from household'),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _info(String title, String value) => Padding(
+  Widget _info(BuildContext context, String title, String value) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(width: 90, child: Text("$title:")),
+        SizedBox(
+          width: 96,
+          child: Text(title, style: Theme.of(context).textTheme.bodySmall),
+        ),
         Expanded(
           child: Text(
             value.isEmpty ? "—" : value,
-            style: const TextStyle(fontWeight: FontWeight.w500),
+            style: const TextStyle(fontSize: 13),
           ),
         ),
       ],
     ),
   );
-
-  static String _formatDate(DateTime dt) {
-    if (dt.millisecondsSinceEpoch == 0) return "—";
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    return "${months[dt.month - 1]} ${dt.day}, ${dt.year}";
-  }
 
   static String _formatDateInDetails(DateTime dt) {
     if (dt.millisecondsSinceEpoch == 0) return "—";
@@ -2668,28 +1869,13 @@ class ErrorView extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 12),
-            Text(
-              "Failed to load transactions",
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.black54),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text("Retry"),
-            ),
-          ],
+        child: _StateMessage(
+          icon: PhosphorIconsRegular.warningCircle,
+          iconColor: context.vesta.neg,
+          title: "Couldn't load transactions",
+          message: message,
+          actionLabel: "Retry",
+          onAction: onRetry,
         ),
       ),
     );
@@ -2704,31 +1890,12 @@ class EmptyTransactionsState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(Icons.receipt_long, size: 80, color: Colors.grey[400]),
-        const SizedBox(height: 12),
-        Text(
-          "No transactions yet",
-          style: TextStyle(
-            fontSize: 18,
-            color: Colors.grey[700],
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          "Pull down to refresh or sync with your bank.",
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey[600]),
-        ),
-        const SizedBox(height: 16),
-        OutlinedButton.icon(
-          onPressed: onSync,
-          icon: const Icon(Icons.sync),
-          label: const Text("Sync Now"),
-        ),
-      ],
+    return _StateMessage(
+      icon: PhosphorIconsRegular.receipt,
+      title: "No transactions yet",
+      message: "Tap + to add your first one.",
+      actionLabel: "Refresh",
+      onAction: onSync,
     );
   }
 }
@@ -2740,31 +1907,54 @@ class EmptyFilterState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(Icons.filter_list_off, size: 80, color: Colors.grey[400]),
-        const SizedBox(height: 12),
-        Text(
-          "No transactions found",
-          style: TextStyle(
-            fontSize: 18,
-            color: Colors.grey[700],
-            fontWeight: FontWeight.w600,
+    return _StateMessage(
+      icon: PhosphorIconsRegular.funnelSimple,
+      title: "No transactions match these filters",
+      message: "Try a different account, category or date.",
+      actionLabel: "Clear filters",
+      onAction: onClearFilter,
+    );
+  }
+}
+
+class _StateMessage extends StatelessWidget {
+  const _StateMessage({
+    required this.icon,
+    required this.title,
+    required this.message,
+    required this.actionLabel,
+    required this.onAction,
+    this.iconColor,
+  });
+
+  final IconData icon;
+  final Color? iconColor;
+  final String title;
+  final String message;
+  final String actionLabel;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final v = context.vesta;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: VestaSpace.xl),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 56, color: iconColor ?? v.muted),
+          const SizedBox(height: VestaSpace.md),
+          Text(title, textAlign: TextAlign.center, style: headingStyle(17)),
+          const SizedBox(height: VestaSpace.sm),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, color: v.muted),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          "Try selecting a different account or clear the filter.",
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey[600]),
-        ),
-        const SizedBox(height: 16),
-        OutlinedButton.icon(
-          onPressed: onClearFilter,
-          icon: const Icon(Icons.clear),
-          label: const Text("Clear Filter"),
-        ),
-      ],
+          const SizedBox(height: VestaSpace.lg),
+          OutlinedButton(onPressed: onAction, child: Text(actionLabel)),
+        ],
+      ),
     );
   }
 }
@@ -3126,4 +2316,20 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
             ),
     );
   }
+}
+
+String homePageGreeting() {
+  final now = DateTime.now();
+  final hour = now.hour;
+
+  if (hour >= 5 && hour <= 12) {
+    return 'Good morning,';
+  } else if (hour > 12 && hour < 17) {
+    return 'Good afternoon,';
+  } else if (hour >= 17 && hour < 21) {
+    return 'Good evening,';
+  } else {
+    return 'Late night,'; // Covers 21:00 to 04:59
+  }
+
 }

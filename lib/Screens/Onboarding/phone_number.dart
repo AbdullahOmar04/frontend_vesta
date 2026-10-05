@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; 
-import 'package:frontend_vesta/Helpers/widgets.dart';
+import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/Onboarding/otp.dart';
 
 class PhoneNumberPage extends StatefulWidget {
@@ -44,7 +46,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.block, color: Colors.red.shade600),
+            Icon(PhosphorIconsRegular.warningCircle, color: context.vesta.neg),
             const SizedBox(width: 8),
             const Text('Phone Number Blocked'),
           ],
@@ -89,11 +91,11 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
 
     if (!valid) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
             "Enter a valid Jordan number starting with 7 (e.g. 79xxxxxxx)",
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
@@ -118,7 +120,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(e.message ?? "Phone verification failed"),
-                backgroundColor: Colors.red,
+                backgroundColor: Theme.of(context).colorScheme.error,
               ),
             );
           }
@@ -151,7 +153,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Error starting phone verification: $e"),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -160,97 +162,44 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final v = context.vesta;
 
     return Scaffold(
-      backgroundColor: scheme.primary,
-      appBar: AppBar(
-        title: Text('Sign Up', style: TextStyle(color: scheme.surface)),
-        iconTheme: IconThemeData(color: scheme.surface),
-        backgroundColor: scheme.primary,
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: scheme.surface,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(30),
-                  topRight: Radius.circular(30),
-                ),
-              ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 32),
-                    Text(
-                      'Enter your phone number',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: scheme.primary,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade400),
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.grey.shade100,
-                          ),
-                          child: const Text(
-                            '+962',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: TextField(
-                            controller: _phoneController,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              hintText: '7XXXXXXX',
-                              hintStyle: TextStyle(color: Colors.grey.shade400),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    _loading
-                        ? const CircularProgressIndicator()
-                        : largeButton(
-                            context,
-                            "Send",
-                            scheme.secondary,
-                            _goToOtp,
-                          ),
-                    const SizedBox(height: 12),
-                    Text(
-                      "We'll send you a verification code to the provided number.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey.shade600),
-                    ),
-                  ],
-                ),
+      appBar: const VestaAppBar(title: 'Sign up'),
+      body: VestaBackground(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            VestaSpace.xl,
+            VestaSpace.sm,
+            VestaSpace.xl,
+            VestaSpace.xl,
+          ),
+          children: [
+            Text('Your phone number', style: headingStyle(24)),
+            const SizedBox(height: VestaSpace.xs),
+            Text(
+              "We'll send you a verification code to the provided number.",
+              style: TextStyle(fontSize: 14, color: v.muted),
+            ),
+            const SizedBox(height: VestaSpace.xl),
+            TextField(
+              controller: _phoneController,
+              keyboardType: TextInputType.number,
+              style: amountStyle(16),
+              decoration: const InputDecoration(
+                labelText: 'Phone number',
+                prefixText: '+962 ',
+                hintText: '7XXXXXXX',
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: VestaSpace.xl),
+            PrimaryButton(
+              label: 'Send code',
+              loading: _loading,
+              onPressed: _goToOtp,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:frontend_vesta/Helpers/widgets.dart';
+import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/Onboarding/phone_number.dart';
 
 class Register extends StatefulWidget {
@@ -60,16 +62,18 @@ class _RegisterState extends State<Register> {
       child: Row(
         children: [
           Icon(
-            isMet ? Icons.check_circle : Icons.circle_outlined,
-            size: 16,
-            color: isMet ? Colors.green : Colors.grey,
+            isMet
+                ? PhosphorIconsRegular.checkCircle
+                : PhosphorIconsRegular.circle,
+            size: 15,
+            color: isMet ? context.vesta.pos : context.vesta.muted,
           ),
           const SizedBox(width: 8),
           Text(
             text,
             style: TextStyle(
               fontSize: 12,
-              color: isMet ? Colors.green.shade700 : Colors.grey.shade600,
+              color: isMet ? context.vesta.pos : context.vesta.muted,
             ),
           ),
         ],
@@ -85,18 +89,18 @@ class _RegisterState extends State<Register> {
 
     if (username.isEmpty || email.isEmpty || pass.isEmpty || pass2.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text("Please fill all fields"),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
     }
     if (pass != pass2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text("Passwords do not match"),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
@@ -105,9 +109,9 @@ class _RegisterState extends State<Register> {
     // Validate password requirements
     if (!_isPasswordValid) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text("Please ensure your password meets all requirements"),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
@@ -117,9 +121,9 @@ class _RegisterState extends State<Register> {
     final usernameRegex = RegExp(r'^[a-zA-Z0-9_]+$');
     if (!usernameRegex.hasMatch(username)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text("Username can only contain letters, numbers, and underscores"),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
@@ -129,9 +133,9 @@ class _RegisterState extends State<Register> {
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(email)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text("Please enter a valid email address"),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
@@ -164,9 +168,9 @@ class _RegisterState extends State<Register> {
       if (usernameExists) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text("Username already taken. Please choose another one."),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
         setState(() => _loading = false);
@@ -192,9 +196,9 @@ class _RegisterState extends State<Register> {
       if (emailExists) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text("Email already registered. Please use another email or login."),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
         setState(() => _loading = false);
@@ -215,7 +219,7 @@ class _RegisterState extends State<Register> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error checking username/email: $e"),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     } finally {
@@ -225,186 +229,116 @@ class _RegisterState extends State<Register> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final v = context.vesta;
+
+    Widget eye(bool obscured, VoidCallback onTap) => IconButton(
+      icon: Icon(
+        obscured ? PhosphorIconsRegular.eyeSlash : PhosphorIconsRegular.eye,
+        color: v.muted,
+      ),
+      onPressed: onTap,
+    );
 
     return Scaffold(
-      backgroundColor: scheme.primary,
-      appBar: AppBar(
-        title: Text('Sign Up', style: TextStyle(color: scheme.surface)),
-        iconTheme: IconThemeData(color: scheme.surface),
-        backgroundColor: scheme.primary,
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: scheme.surface,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(30),
-                  topRight: Radius.circular(30),
-                ),
-              ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 32),
-                    Text(
-                      'Join Us Today',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 35,
-                        fontWeight: FontWeight.bold,
-                        color: scheme.secondary,
-                        fontFamily: 'Poppins',
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-
-                    SizedBox(
-                      height: 160, // reserve a smaller amount of layout space
-                      child: OverflowBox(
-                        maxWidth: double.infinity,
-                        maxHeight:
-                            400, // allow the image to grow beyond the reserved space
-                        alignment: Alignment.center,
-                        child: Image.asset(
-                          'assets/images/Dark.png',
-                          width: 400,
-                          height: 400,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    TextField(
-                      controller: _username,
-                      decoration: InputDecoration(
-                        labelText: 'Username',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _email,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        labelText: 'Email',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _password,
-                      obscureText: _obscurePassword,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Password Requirements:',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          _buildPasswordRequirement(
-                            'At least 6 characters',
-                            _hasMinLength,
-                          ),
-                          _buildPasswordRequirement(
-                            'At least one uppercase letter (A-Z)',
-                            _hasUppercase,
-                          ),
-                          _buildPasswordRequirement(
-                            'At least one lowercase letter (a-z)',
-                            _hasLowercase,
-                          ),
-                          _buildPasswordRequirement(
-                            'At least one number (0-9)',
-                            _hasNumber,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _repeatPassword,
-                      obscureText: _obscureRepeatPassword,
-                      decoration: InputDecoration(
-                        labelText: 'Repeat Password',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureRepeatPassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscureRepeatPassword = !_obscureRepeatPassword;
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    _loading
-                        ? const CircularProgressIndicator()
-                        : largeButton(
-                            context,
-                            "Continue",
-                            scheme.secondary,
-                            _goToPhoneStep,
-                          ),
-
-                    const SizedBox(height: 16),
-                  ],
-                ),
+      appBar: const VestaAppBar(title: 'Sign up'),
+      body: VestaBackground(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            VestaSpace.xl,
+            VestaSpace.sm,
+            VestaSpace.xl,
+            VestaSpace.xl,
+          ),
+          children: [
+            Text('Create your account', style: headingStyle(24)),
+            const SizedBox(height: VestaSpace.xs),
+            Text(
+              'Next we will verify your phone number.',
+              style: TextStyle(fontSize: 14, color: v.muted),
+            ),
+            const SizedBox(height: VestaSpace.xl),
+            TextField(
+              controller: _username,
+              decoration: const InputDecoration(labelText: 'Username'),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _email,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(labelText: 'Email'),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _password,
+              obscureText: _obscurePassword,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                suffixIcon: eye(_obscurePassword, () {
+                  setState(() {
+                    _obscurePassword = !_obscurePassword;
+                  });
+                }),
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: VestaSpace.md,
+                vertical: 10,
+              ),
+              decoration: BoxDecoration(
+                color: v.raised,
+                borderRadius: BorderRadius.circular(VestaRadius.md),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Password needs',
+                    style: TextStyle(fontSize: 12, color: v.muted),
+                  ),
+                  const SizedBox(height: VestaSpace.xs),
+                  _buildPasswordRequirement(
+                    'At least 6 characters',
+                    _hasMinLength,
+                  ),
+                  _buildPasswordRequirement(
+                    'At least one uppercase letter (A-Z)',
+                    _hasUppercase,
+                  ),
+                  _buildPasswordRequirement(
+                    'At least one lowercase letter (a-z)',
+                    _hasLowercase,
+                  ),
+                  _buildPasswordRequirement(
+                    'At least one number (0-9)',
+                    _hasNumber,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _repeatPassword,
+              obscureText: _obscureRepeatPassword,
+              decoration: InputDecoration(
+                labelText: 'Repeat password',
+                suffixIcon: eye(_obscureRepeatPassword, () {
+                  setState(() {
+                    _obscureRepeatPassword = !_obscureRepeatPassword;
+                  });
+                }),
+              ),
+            ),
+            const SizedBox(height: VestaSpace.xl),
+            PrimaryButton(
+              label: 'Continue',
+              loading: _loading,
+              onPressed: _goToPhoneStep,
+            ),
+          ],
+        ),
       ),
     );
   }

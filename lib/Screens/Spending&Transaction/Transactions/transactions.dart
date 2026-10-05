@@ -3,6 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/api_calls.dart';
+import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/new_spending.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/add_transaction.dart';
@@ -86,7 +89,11 @@ class _TransactionsState extends State<Transactions> {
 
       _accounts = accountsSnap.docs.map((doc) {
         final data = doc.data();
-        return AccountInfo(id: doc.id, name: data['accountName'] ?? doc.id);
+        return AccountInfo(
+          id: doc.id,
+          name: data['accountName'] ?? doc.id,
+          type: data['accountTypeName'] as String?,
+        );
       }).toList();
 
       if (!mounted) return;
@@ -288,31 +295,24 @@ class _TransactionsState extends State<Transactions> {
       case DateFilter.today:
         return 'Today';
       case DateFilter.lastWeek:
-        return 'Last 7 Days';
+        return 'Last 7 days';
       case DateFilter.lastMonth:
-        return 'Last 30 Days';
+        return 'Last 30 days';
       case DateFilter.customMonth:
         if (_selectedMonth != null) {
           return DateFormat('MMM yyyy').format(_selectedMonth!);
         }
-        return 'Select Month';
+        return 'Month';
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      appBar: _buildAppBar(),
-      body: Container(
-        height: double.infinity,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
-        ),
+      appBar: widget.showBack
+          ? VestaAppBar(title: 'Transactions', actions: _appBarActions())
+          : VestaAppBar.large(title: 'Transactions', actions: _appBarActions()),
+      body: VestaBackground(
         child: Column(
           children: [
             _buildFilterSection(),
@@ -321,84 +321,81 @@ class _TransactionsState extends State<Transactions> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        tooltip: 'Add transaction',
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const AddTransaction()),
           ).then((_) => _loadTransactions());
         },
-        child: Icon(Icons.add, color: Theme.of(context).colorScheme.surface),
+        child: const Icon(PhosphorIconsRegular.plus),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      automaticallyImplyLeading: widget.showBack,
-      title: Text(
-        'Transactions',
-        style: TextStyle(color: Theme.of(context).colorScheme.surface),
-      ),
-      iconTheme: IconThemeData(color: Theme.of(context).colorScheme.surface),
-      centerTitle: true,
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      actions: [
-        if (_syncing)
-          const Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Center(
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              ),
+  List<Widget> _appBarActions() {
+    return [
+      if (_syncing)
+        const Padding(
+          padding: EdgeInsets.only(right: 8),
+          child: Center(
+            child: SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
             ),
           ),
-        IconButton(
-          icon: const Icon(Icons.pie_chart),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const NewSpendingAnalysis(),
-              ),
-            ).then((_) => _loadTransactions());
-          },
         ),
-      ],
-    );
+      IconButton(
+        icon: const Icon(PhosphorIconsRegular.chartPieSlice),
+        tooltip: 'Spending analysis',
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const NewSpendingAnalysis(),
+            ),
+          ).then((_) => _loadTransactions());
+        },
+      ),
+    ];
   }
 
   Widget _buildFilterSection() {
     return Column(
       children: [
         // Date filter chips
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _buildDateChip(DateFilter.all),
-                const SizedBox(width: 8),
-                _buildDateChip(DateFilter.today),
-                const SizedBox(width: 8),
-                _buildDateChip(DateFilter.lastWeek),
-                const SizedBox(width: 8),
-                _buildDateChip(DateFilter.lastMonth),
-                const SizedBox(width: 8),
-                _buildMonthChip(),
-              ],
-            ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.fromLTRB(
+            VestaSpace.gutter,
+            VestaSpace.xs,
+            VestaSpace.gutter,
+            VestaSpace.sm,
+          ),
+          child: Row(
+            children: [
+              _buildDateChip(DateFilter.all),
+              const SizedBox(width: 6),
+              _buildDateChip(DateFilter.today),
+              const SizedBox(width: 6),
+              _buildDateChip(DateFilter.lastWeek),
+              const SizedBox(width: 6),
+              _buildDateChip(DateFilter.lastMonth),
+              const SizedBox(width: 6),
+              _buildMonthChip(),
+            ],
           ),
         ),
         // Account and category filters
         if (_accounts.isNotEmpty || _categories.isNotEmpty)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              VestaSpace.gutter,
+              0,
+              VestaSpace.gutter,
+              VestaSpace.md,
+            ),
             child: Row(
               children: [
                 if (_accounts.isNotEmpty)
@@ -410,7 +407,7 @@ class _TransactionsState extends State<Transactions> {
                     ),
                   ),
                 if (_accounts.isNotEmpty && _categories.isNotEmpty)
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                 if (_categories.isNotEmpty)
                   Expanded(
                     child: CategoryFilterDropdown(
@@ -427,47 +424,22 @@ class _TransactionsState extends State<Transactions> {
   }
 
   Widget _buildDateChip(DateFilter filter) {
-    final isSelected = _dateFilter == filter;
-    return FilterChip(
-      label: Text(_getDateFilterLabel(filter)),
-      selected: isSelected,
-      onSelected: (_) => _onDateFilterChanged(filter),
-      selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
-      checkmarkColor: Theme.of(context).colorScheme.primary,
-      labelStyle: TextStyle(
-        color: isSelected
-            ? Theme.of(context).colorScheme.primary
-            : Colors.grey[700],
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-      ),
+    return ChoiceTag(
+      label: _getDateFilterLabel(filter),
+      selected: _dateFilter == filter,
+      onTap: () => _onDateFilterChanged(filter),
     );
   }
 
   Widget _buildMonthChip() {
     final isSelected = _dateFilter == DateFilter.customMonth;
-    return FilterChip(
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            isSelected && _selectedMonth != null
-                ? DateFormat('MMM yyyy').format(_selectedMonth!)
-                : 'Month',
-          ),
-          const SizedBox(width: 4),
-          const Icon(Icons.calendar_month, size: 16),
-        ],
-      ),
+    return ChoiceTag(
+      label: isSelected && _selectedMonth != null
+          ? DateFormat('MMM yyyy').format(_selectedMonth!)
+          : 'Month',
+      icon: PhosphorIconsRegular.calendarBlank,
       selected: isSelected,
-      onSelected: (_) => _onDateFilterChanged(DateFilter.customMonth),
-      selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
-      checkmarkColor: Theme.of(context).colorScheme.primary,
-      labelStyle: TextStyle(
-        color: isSelected
-            ? Theme.of(context).colorScheme.primary
-            : Colors.grey[700],
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-      ),
+      onTap: () => _onDateFilterChanged(DateFilter.customMonth),
     );
   }
 
@@ -496,7 +468,7 @@ class _TransactionsState extends State<Transactions> {
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
-        const SizedBox(height: 120),
+        const SizedBox(height: 96),
         hasFilters
             ? EmptyFilterState(onClearFilter: _clearFilters)
             : EmptyTransactionsState(onSync: _loadTransactions),
@@ -505,14 +477,44 @@ class _TransactionsState extends State<Transactions> {
   }
 
   Widget _buildTransactionList() {
-    return ListView.separated(
-      padding: const EdgeInsets.all(12),
-      itemCount: _filteredTransactions.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
+    final accountNames = {for (final a in _accounts) a.id: a.label};
+    final count = _filteredTransactions.length;
+
+    // One card: a header slice, then one slice per transaction.
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(
+        VestaSpace.gutter,
+        0,
+        VestaSpace.gutter,
+        96,
+      ),
+      itemCount: count + 1,
       itemBuilder: (context, i) {
-        return TransactionCard(
-          transaction: _filteredTransactions[i],
-          onDeleted: _loadTransactions,
+        if (i == 0) {
+          return CardSegment(
+            first: true,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 12, bottom: 4),
+              child: Text(
+                count == 1
+                    ? '1 transaction · Most recent'
+                    : '$count transactions · Most recent',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          );
+        }
+        final transaction = _filteredTransactions[i - 1];
+        return CardSegment(
+          last: i == count,
+          divider: i > 1,
+          child: TransactionCard(
+            key: ValueKey(transaction.id),
+            transaction: transaction,
+            accountName: accountNames[transaction.accountId],
+            onDeleted: _loadTransactions,
+          ),
         );
       },
     );

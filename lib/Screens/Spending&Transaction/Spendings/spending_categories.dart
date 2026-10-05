@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 
 class SpendingCategories extends StatefulWidget {
   const SpendingCategories({super.key});
@@ -153,7 +156,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text("New Category"),
+              title: const Text("New category"),
               content: Form(
                 key: formKey,
                 child: Column(
@@ -162,7 +165,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
                     TextFormField(
                       controller: nameController,
                       decoration: const InputDecoration(
-                        labelText: "Category Name",
+                        labelText: "Name",
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -177,7 +180,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
                           ? 'income'
                           : selectedBucket,
                       decoration: const InputDecoration(
-                        labelText: "Budget Bucket",
+                        labelText: "Budget bucket",
                       ),
                       items: selectedType == 'income'
                           ? const [
@@ -189,7 +192,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
                           : const [
                               DropdownMenuItem(
                                 value: 'essential',
-                                child: Text("Essential"),
+                                child: Text("Necessity"),
                               ),
                               DropdownMenuItem(
                                 value: 'luxury',
@@ -216,7 +219,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
                     DropdownButtonFormField<String>(
                       initialValue: selectedType,
                       decoration: const InputDecoration(
-                        labelText: "Category Type",
+                        labelText: "Type",
                       ),
                       items: const [
                         DropdownMenuItem(
@@ -244,7 +247,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
                   onPressed: () => Navigator.pop(context),
                   child: const Text("Cancel"),
                 ),
-                ElevatedButton(
+                FilledButton(
                   onPressed: () async {
                     if (formKey.currentState!.validate()) {
                       final categoryName = nameController.text.trim();
@@ -293,7 +296,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Delete Category"),
+          title: const Text("Delete category"),
           content: Text(
             'Delete "$categoryName"?\n\n'
             "Existing transactions will keep their amounts, "
@@ -306,7 +309,8 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text("Delete", style: TextStyle(color: Colors.red)),
+              style: TextButton.styleFrom(foregroundColor: context.vesta.neg),
+              child: const Text("Delete"),
             ),
           ],
         );
@@ -340,7 +344,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error deleting category: $e"),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -384,215 +388,151 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final uid = _auth.currentUser?.uid;
 
     if (uid == null) {
       return const Scaffold(body: Center(child: Text("No logged-in user.")));
     }
 
+    final v = context.vesta;
+
     return Scaffold(
-      backgroundColor: scheme.primary,
-      appBar: AppBar(
-        backgroundColor: scheme.primary,
-        iconTheme: IconThemeData(color: scheme.surface),
-        title: Text(
-          "Spending Categories",
-          style: TextStyle(color: scheme.surface, fontWeight: FontWeight.w600),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showCreateCategoryDialog,
-        tooltip: "New Category",
-        backgroundColor: scheme.secondary,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          color: scheme.surface,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 8),
-              const Text(
-                "Manage Categories",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "Create, remove, and organize how your spending is grouped.\n"
-                "Tracked amounts are for the current budget cycle only.",
-                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-              ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                  stream: _db
-                      .collection('users')
-                      .doc(uid)
-                      .collection('categories')
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (snapshot.hasError) {
-                      return Center(child: Text("Error: ${snapshot.error}"));
-                    }
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return const Center(
-                        child: Text("No categories found. Create one!"),
-                      );
-                    }
-
-                    final categories = snapshot.data!.docs;
-
-                    return ListView.builder(
-                      itemCount: categories.length,
-                      itemBuilder: (context, index) {
-                        final category = categories[index];
-                        final data = category.data();
-                        final categoryName = category.id;
-                        final type = (data['type'] as String?) ?? 'expense';
-                        final bucket =
-                            (data['bucket'] as String?) ?? 'essential';
-
-                        final bool isIncome = type.toLowerCase() == 'income';
-                        final Color pillColor = isIncome
-                            ? Colors.green[700]!
-                            : Colors.red[700]!;
-
-                        final tracked =
-                            _cycleTotals[categoryName] ?? 0.0; // << key change
-
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Card(
-                            color: Colors.white,
-                            elevation: 3,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 14,
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          categoryName,
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Row(
-                                          children: [
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 10,
-                                                    vertical: 4,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                // ignore: deprecated_member_use
-                                                color: pillColor.withOpacity(
-                                                  0.08,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
-                                              ),
-                                              child: Text(
-                                                type,
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: pillColor,
-                                                ),
-                                              ),
-                                            ),
-                                            SizedBox(height: 8),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 10,
-                                                    vertical: 4,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.grey[200],
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
-                                              ),
-                                              child: Text(
-                                                bucket[0].toUpperCase() +
-                                                    bucket.substring(
-                                                      1,
-                                                    ), // Essential / Luxury / ...
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              "JOD ${tracked.toStringAsFixed(2)}",
-                                              // ...
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.delete,
-                                      color: Colors.red,
-                                    ),
-                                    onPressed: () =>
-                                        _confirmDeleteCategory(categoryName),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
+      appBar: VestaAppBar(
+        title: "Categories",
+        actions: [
+          if (_loadingTotals)
+            const Padding(
+              padding: EdgeInsets.only(right: 8),
+              child: Center(
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
                 ),
               ),
-              if (_loadingTotals)
-                const Padding(
-                  padding: EdgeInsets.only(top: 8.0),
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
+            ),
+          IconButton(
+            icon: const Icon(PhosphorIconsRegular.plus),
+            tooltip: "New category",
+            onPressed: _showCreateCategoryDialog,
+          ),
+        ],
+      ),
+      body: VestaBackground(
+        child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: _db
+              .collection('users')
+              .doc(uid)
+              .collection('categories')
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text("Error: ${snapshot.error}"));
+            }
+
+            final categories = snapshot.hasData
+                ? snapshot.data!.docs
+                : <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(
+                VestaSpace.gutter,
+                VestaSpace.xs,
+                VestaSpace.gutter,
+                VestaSpace.xl,
+              ),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: VestaSpace.md),
+                  child: Text(
+                    "Amounts are for the current budget cycle.",
+                    style: TextStyle(fontSize: 13, color: v.muted),
                   ),
                 ),
-            ],
-          ),
+                if (categories.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 28),
+                    child: Text(
+                      "No categories yet. Tap + to create one.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, color: v.muted),
+                    ),
+                  )
+                else
+                  VestaCard(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: VestaSpace.lg,
+                      vertical: 6,
+                    ),
+                    child: Column(
+                      children: [
+                        for (var i = 0; i < categories.length; i++)
+                          _categoryRow(categories[i], first: i == 0),
+                      ],
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
+      ),
+    );
+  }
+
+  Widget _categoryRow(
+    QueryDocumentSnapshot<Map<String, dynamic>> category, {
+    required bool first,
+  }) {
+    final v = context.vesta;
+    final data = category.data();
+    final categoryName = category.id;
+    final type = (data['type'] as String?) ?? 'expense';
+    final bucketName = (data['bucket'] as String?) ?? 'essential';
+    final bucket = bucketStyle(
+      type.toLowerCase() == 'income' ? 'income' : bucketName,
+      v,
+    );
+
+    final tracked = _cycleTotals[categoryName] ?? 0.0;
+
+    return Container(
+      decoration: BoxDecoration(
+        border: first ? null : Border(top: BorderSide(color: v.divider)),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          IconBadge(
+            categoryIcon(categoryName),
+            size: 40,
+            circle: false,
+            color: bucket.color,
+          ),
+          const SizedBox(width: VestaSpace.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  categoryName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: VestaSpace.xs),
+                TagChip(bucket.label, color: bucket.color),
+              ],
+            ),
+          ),
+          MoneyText(tracked),
+          IconButton(
+            icon: Icon(PhosphorIconsRegular.trash, size: 18, color: v.neg),
+            tooltip: "Delete category",
+            onPressed: () => _confirmDeleteCategory(categoryName),
+          ),
+        ],
       ),
     );
   }

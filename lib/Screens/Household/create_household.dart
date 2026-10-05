@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend_vesta/Helpers/widgets.dart';
+import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 
 class CreateHousehold extends StatefulWidget {
   const CreateHousehold({super.key});
@@ -25,9 +26,9 @@ class _CreateHouseholdState extends State<CreateHousehold> {
     final householdName = _householdNameController.text.trim();
     if (householdName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please enter a household name"),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text("Please enter a household name"),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
@@ -73,7 +74,7 @@ class _CreateHouseholdState extends State<CreateHousehold> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Error creating household: $e"),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -89,22 +90,34 @@ class _CreateHouseholdState extends State<CreateHousehold> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Household')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+      appBar: const VestaAppBar(title: 'New household'),
+      body: VestaBackground(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            VestaSpace.gutter,
+            VestaSpace.md,
+            VestaSpace.gutter,
+            VestaSpace.xl,
+          ),
           children: [
             TextField(
               controller: _householdNameController,
-              decoration: const InputDecoration(labelText: 'Household Name'),
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(
+                labelText: 'Household name',
+                hintText: 'e.g. Home, Flat 3B',
+              ),
             ),
-            const SizedBox(height: 16),
-            largeButton(
-              context,
-              'Create',
-              Theme.of(context).colorScheme.secondary,
-              () {
+            const SizedBox(height: VestaSpace.sm),
+            Text(
+              'You can invite the people you live with once it is created.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: VestaSpace.xl),
+            PrimaryButton(
+              label: 'Create household',
+              loading: _isCreating,
+              onPressed: () {
                 if (!_isCreating) {
                   _createHousehold();
                 }

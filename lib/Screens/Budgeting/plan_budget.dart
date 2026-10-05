@@ -3,6 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 
 class PlanBudgetScreen extends StatefulWidget {
@@ -133,110 +136,90 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final v = context.vesta;
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text(
-          "Plan Your Budget",
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 0,
-      ),
-      body: _initialLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Income Section
-                    _buildSectionHeader("Monthly Income", Icons.attach_money),
-                    const SizedBox(height: 12),
-                    _buildIncomeField(),
+      appBar: const VestaAppBar(title: "Budget plan"),
+      body: VestaBackground(
+        child: _initialLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    VestaSpace.gutter,
+                    VestaSpace.xs,
+                    VestaSpace.gutter,
+                    VestaSpace.xl,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Income Section
+                      _buildSectionHeader("Monthly income"),
+                      const SizedBox(height: 10),
+                      _buildIncomeField(),
 
-                    const SizedBox(height: 32),
+                      const SizedBox(height: VestaSpace.xl),
 
-                    _buildSectionHeader("Budget Allocation", Icons.pie_chart),
-                    const SizedBox(height: 16),
+                      _buildSectionHeader("Allocation"),
+                      const SizedBox(height: 10),
 
-                    _buildPercentageField(
-                      controller: _savingController,
-                      label: "Savings",
-                      icon: Icons.savings,
-                      color: Colors.green,
-                      hint: "How much to save each month",
-                    ),
+                      _buildPercentageField(
+                        controller: _savingController,
+                        label: "Savings",
+                        icon: PhosphorIconsRegular.piggyBank,
+                        color: v.bucketSavings,
+                        hint: "How much to save each month",
+                      ),
 
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 14),
 
-                    _buildPercentageField(
-                      controller: _spendingController,
-                      label: "Essential Spending",
-                      icon: Icons.shopping_cart,
-                      color: Colors.blue,
-                      hint: "Rent, groceries, bills, etc.",
-                    ),
+                      _buildPercentageField(
+                        controller: _spendingController,
+                        label: "Necessities",
+                        icon: PhosphorIconsRegular.shoppingCart,
+                        color: v.bucketEssential,
+                        hint: "Rent, groceries, bills, etc.",
+                      ),
 
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 14),
 
-                    _buildPercentageField(
-                      controller: _luxuriesController,
-                      label: "Luxuries & Entertainment",
-                      icon: Icons.diamond,
-                      color: Colors.orange,
-                      hint: "Dining out, entertainment, etc.",
-                    ),
+                      _buildPercentageField(
+                        controller: _luxuriesController,
+                        label: "Luxuries",
+                        icon: PhosphorIconsRegular.sparkle,
+                        color: v.bucketLuxury,
+                        hint: "Dining out, entertainment, etc.",
+                      ),
 
-                    const SizedBox(height: 20),
+                      const SizedBox(height: VestaSpace.lg),
 
-                    // Total percentage indicator
-                    _buildTotalPercentageIndicator(),
+                      // Total percentage indicator
+                      _buildTotalPercentageIndicator(),
 
-                    const SizedBox(height: 32),
+                      const SizedBox(height: VestaSpace.xl),
 
-                    _savingPlanLoading
-                        ? const SizedBox(
-                            height: 50,
-                            child: Center(child: CircularProgressIndicator()),
-                          )
-                        : largeButton(
-                            context,
-                            'Save Budget Plan',
-                            _isValidPercentage
-                                ? Theme.of(context).colorScheme.secondary
-                                : Colors.grey,
-                            () {
-                              if (_isValidPercentage) {
-                                _savePlan();
+                      PrimaryButton(
+                        label: 'Save budget plan',
+                        loading: _savingPlanLoading,
+                        onPressed: _isValidPercentage
+                            ? () {
+                                if (_isValidPercentage) {
+                                  _savePlan();
+                                }
                               }
-                            },
-                          ),
-                  ],
+                            : null,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
+      ),
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.black87, size: 20),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-      ],
-    );
+  Widget _buildSectionHeader(String title) {
+    return Text(title, style: headingStyle(16));
   }
 
   Widget _buildIncomeField() {
@@ -249,50 +232,28 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
       await _loadExistingBudget();
     }
 
-    return GestureDetector(
+    return VestaCard(
       onTap: _openIncomeDialog,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[300]!),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.attach_money, color: Colors.green, size: 28),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                "JOD ${totalIncome.toStringAsFixed(2)}",
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
-                ),
-              ),
+      padding: const EdgeInsets.symmetric(horizontal: VestaSpace.lg, vertical: 14),
+      child: Row(
+        children: [
+          IconBadge(
+            PhosphorIconsRegular.handCoins,
+            size: 40,
+            circle: false,
+            color: context.vesta.pos,
+          ),
+          const SizedBox(width: VestaSpace.md),
+          Expanded(child: MoneyText(totalIncome, size: 18)),
+          OutlinedButton(
+            onPressed: _openIncomeDialog,
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              minimumSize: Size.zero,
             ),
-            ElevatedButton(
-              onPressed: _openIncomeDialog,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-              ),
-              child: Text(
-                totalIncome > 0 ? "Edit" : "Enter",
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
-        ),
+            child: Text(totalIncome > 0 ? "Edit" : "Enter"),
+          ),
+        ],
       ),
     );
   }
@@ -307,24 +268,10 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(
-        labelText: "$label Percentage",
+        labelText: label,
         hintText: hint,
         suffixText: "%",
         prefixIcon: Icon(icon, color: color),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: color),
-        ),
-        filled: true,
-        fillColor: Colors.white,
       ),
       keyboardType: TextInputType.number,
       onChanged: (value) => setState(() {}),
@@ -340,51 +287,74 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
   }
 
   Widget _buildTotalPercentageIndicator() {
+    final v = context.vesta;
     final total = _totalPercentage;
     final isValid = _isValidPercentage;
     final remaining = 100 - total;
+    final color = isValid ? v.pos : v.neg;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isValid ? Colors.green[50] : Colors.red[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isValid ? Colors.green[200]! : Colors.red[200]!,
-        ),
-      ),
+    double pct(TextEditingController c) =>
+        (double.tryParse(c.text) ?? 0).clamp(0, 100) / 100;
+
+    return VestaCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Icon(
-                isValid ? Icons.check_circle : Icons.error,
-                color: isValid ? Colors.green : Colors.red,
-                size: 20,
+                isValid
+                    ? PhosphorIconsRegular.checkCircle
+                    : PhosphorIconsRegular.warningCircle,
+                color: color,
+                size: 18,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: VestaSpace.sm),
               Text(
-                "Budget Allocation: ${total.toStringAsFixed(0)}%",
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: isValid ? Colors.green[700] : Colors.red[700],
-                ),
+                "Allocated: ${total.toStringAsFixed(0)}%",
+                style: TextStyle(fontWeight: FontWeight.w500, color: color),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: SizedBox(
+              height: 8,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (final (c, col) in [
+                    (_savingController, v.bucketSavings),
+                    (_spendingController, v.bucketEssential),
+                    (_luxuriesController, v.bucketLuxury),
+                  ])
+                    if (pct(c) > 0)
+                      Expanded(
+                        flex: (pct(c) * 1000).round(),
+                        child: ColoredBox(color: col),
+                      ),
+                  if (remaining > 0)
+                    Expanded(
+                      flex: (remaining * 10).round(),
+                      child: ColoredBox(color: v.track),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: VestaSpace.sm),
           if (remaining > 0)
             Text(
               "Unallocated: ${remaining.toStringAsFixed(0)}%",
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              style: TextStyle(fontSize: 12, color: v.muted),
             ),
           if (!isValid)
             Text(
               "Total allocation cannot exceed 100%",
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.red[700],
+                color: v.neg,
                 fontWeight: FontWeight.w500,
               ),
             ),

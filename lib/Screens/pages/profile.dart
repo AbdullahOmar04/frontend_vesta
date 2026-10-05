@@ -3,7 +3,10 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/secure_storage.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/pages/accounts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -49,7 +52,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to upload image: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -64,18 +67,20 @@ class _ProfilePageState extends State<ProfilePage> {
     final source = await showDialog<ImageSource>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Update Profile Picture"),
+        title: const Text("Profile picture"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text("Choose from Gallery"),
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(PhosphorIconsRegular.image),
+              title: const Text("Choose from gallery"),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text("Take a Photo"),
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(PhosphorIconsRegular.camera),
+              title: const Text("Take a photo"),
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
           ],
@@ -104,326 +109,297 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _confirmLogout() async {
+    final neg = context.vesta.neg;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Log out"),
+        content: const Text("Are you sure you want to log out?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: neg),
+            child: const Text("Log out"),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await SecureStorage().deleteAll();
+      await FirebaseAuth.instance.signOut();
+      if (mounted) {
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/',
+          (route) => false,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    final scheme = Theme.of(context).colorScheme;
     final uid = user?.uid;
 
     return Scaffold(
-      backgroundColor: scheme.primary,
-      appBar: AppBar(
-        backgroundColor: scheme.primary,
-        elevation: 0,
-        centerTitle: true,
-        title: Text('Profile', style: TextStyle(color: scheme.surface)),
-        automaticallyImplyLeading: false,
-      ),
-      body: uid == null
-          ? const Center(child: Text("Not logged in"))
-          : StreamBuilder<DocumentSnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection("users")
-                  .doc(uid)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+      appBar: const VestaAppBar.large(title: 'Profile'),
+      body: VestaBackground(
+        child: uid == null
+            ? const Center(child: Text("Not logged in"))
+            : StreamBuilder<DocumentSnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection("users")
+                    .doc(uid)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                final userData =
-                    snapshot.data?.data() as Map<String, dynamic>? ?? {};
-                final username =
-                    userData["username"] ?? user?.displayName ?? "User";
-                final email = userData["email"] ?? user?.email ?? "No email";
-                final phone = userData["phoneNumber"] ?? "";
-                final createdAt = userData["createdAt"] as Timestamp?;
-                final householdIds =
-                    (userData["householdIds"] as List?)?.length ?? 0;
+                  final userData =
+                      snapshot.data?.data() as Map<String, dynamic>? ?? {};
+                  final username =
+                      userData["username"] ?? user?.displayName ?? "User";
+                  final email =
+                      userData["email"] ?? user?.email ?? "No email";
+                  final phone = userData["phoneNumber"] ?? "";
+                  final createdAt = userData["createdAt"] as Timestamp?;
+                  final householdIds =
+                      (userData["householdIds"] as List?)?.length ?? 0;
+                  final dayOfMonth = userData["dayOfMonth"];
 
-                final initials = _getInitials(username);
-                final profileImageUrl =
-                    userData["profileImageUrl"] as String?;
-                final memberSince = createdAt != null
-                    ? _formatDate(createdAt.toDate())
-                    : "N/A";
+                  final initials = _getInitials(username);
+                  final profileImageUrl =
+                      userData["profileImageUrl"] as String?;
+                  final memberSince = createdAt != null
+                      ? _formatDate(createdAt.toDate())
+                      : "N/A";
 
-                return Container(
-                  height: double.infinity,
-                  decoration: BoxDecoration(
-                    color: scheme.surface,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
+                  return ListView(
+                    padding: const EdgeInsets.fromLTRB(
+                      VestaSpace.gutter,
+                      VestaSpace.xs,
+                      VestaSpace.gutter,
+                      VestaSpace.xl,
                     ),
-                  ),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 30),
+                    children: [
+                      _buildHeader(
+                        initials: initials,
+                        profileImageUrl: profileImageUrl,
+                        username: username,
+                        email: email,
+                        phone: phone,
+                        memberSince: memberSince,
+                      ),
+                      const SizedBox(height: VestaSpace.lg),
 
-                        // Avatar
-                        GestureDetector(
-                          onTap: _isUploading ? null : _showImageSourceDialog,
-                          child: Stack(
-                            children: [
-                              CircleAvatar(
-                                radius: 48,
-                                backgroundColor: scheme.primary,
-                                backgroundImage: profileImageUrl != null
-                                    ? NetworkImage(profileImageUrl)
-                                    : null,
-                                child: profileImageUrl == null
-                                    ? Text(
-                                        initials,
-                                        style: TextStyle(
-                                          color: scheme.surface,
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      )
-                                    : null,
-                              ),
-                              if (_isUploading)
-                                Positioned.fill(
-                                  child: CircleAvatar(
-                                    radius: 48,
-                                    backgroundColor: Colors.black45,
-                                    child: const CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                ),
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: CircleAvatar(
-                                  radius: 16,
-                                  backgroundColor: scheme.primary,
-                                  child: Icon(
-                                    Icons.camera_alt,
-                                    size: 16,
-                                    color: scheme.surface,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 14),
+                      // Stats row
+                      VestaCard(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        child: StreamBuilder<QuerySnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection("users")
+                              .doc(uid)
+                              .collection("accounts")
+                              .where('linked', isEqualTo: true)
+                              .snapshots(),
+                          builder: (context, accountSnap) {
+                            final accountCount =
+                                accountSnap.data?.docs.length ?? 0;
 
-                        // Name
-                        Text(
-                          username,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
+                            return StreamBuilder<QuerySnapshot>(
+                              stream: FirebaseFirestore.instance
+                                  .collection("users")
+                                  .doc(uid)
+                                  .collection("savings")
+                                  .snapshots(),
+                              builder: (context, savingsSnap) {
+                                final savingsCount =
+                                    savingsSnap.data?.docs.length ?? 0;
 
-                        // Email
-                        Text(
-                          email,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-
-                        // Phone
-                        if (phone.isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            phone,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
-
-                        const SizedBox(height: 6),
-
-                        // Member since
-                        Text(
-                          "Member since $memberSince",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade400,
-                          ),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Stats row
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 16,
-                            horizontal: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color.fromARGB(32, 162, 0, 255),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: StreamBuilder<QuerySnapshot>(
-                            stream: FirebaseFirestore.instance
-                                .collection("users")
-                                .doc(uid)
-                                .collection("accounts")
-                                .where('linked', isEqualTo: true)
-                                .snapshots(),
-                            builder: (context, accountSnap) {
-                              final accountCount =
-                                  accountSnap.data?.docs.length ?? 0;
-
-                              return StreamBuilder<QuerySnapshot>(
-                                stream: FirebaseFirestore.instance
-                                    .collection("users")
-                                    .doc(uid)
-                                    .collection("savings")
-                                    .snapshots(),
-                                builder: (context, savingsSnap) {
-                                  final savingsCount =
-                                      savingsSnap.data?.docs.length ?? 0;
-
-                                  return Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
+                                return IntrinsicHeight(
+                                  child: Row(
                                     children: [
                                       _statItem(
                                         accountCount.toString(),
                                         "Accounts",
                                       ),
-                                      Container(
-                                        height: 36,
-                                        width: 1,
-                                        color: Colors.grey.shade300,
-                                      ),
+                                      const VerticalDivider(),
                                       _statItem(
                                         householdIds.toString(),
                                         "Households",
                                       ),
-                                      Container(
-                                        height: 36,
-                                        width: 1,
-                                        color: Colors.grey.shade300,
-                                      ),
+                                      const VerticalDivider(),
                                       _statItem(
                                         savingsCount.toString(),
-                                        "Savings Goals",
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ),
-
-                        const SizedBox(height: 28),
-
-                        // Menu items
-                        _menuCard(
-                          context,
-                          children: [
-                            _menuTile(
-                              icon: Icons.account_balance,
-                              title: "Linked Accounts",
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const AccountsPage(),
-                                  ),
-                                );
-                              },
-                            ),
-                            _divider(),
-                            _menuTile(
-                              icon: Icons.calendar_month,
-                              title: "Budget Reset Day",
-                              onTap: () {
-                                inputDayOfMonth(context);
-                              },
-                            ),
-                            _divider(),
-                            _menuTile(
-                              icon: Icons.settings,
-                              title: "Settings",
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const app_settings.Settings(),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Logout
-                        _menuCard(
-                          context,
-                          children: [
-                            _menuTile(
-                              icon: Icons.logout,
-                              title: "Logout",
-                              color: Colors.red,
-                              onTap: () async {
-                                final confirmed = await showDialog<bool>(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text("Logout"),
-                                    content: const Text(
-                                      "Are you sure you want to logout?",
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, false),
-                                        child: const Text("Cancel"),
-                                      ),
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, true),
-                                        style: TextButton.styleFrom(
-                                          foregroundColor: Colors.red,
-                                        ),
-                                        child: const Text("Logout"),
+                                        "Savings goals",
                                       ),
                                     ],
                                   ),
                                 );
-                                if (confirmed == true) {
-                                  await SecureStorage().deleteAll();
-                                  await FirebaseAuth.instance.signOut();
-                                  if (context.mounted) {
-                                    Navigator.pushNamedAndRemoveUntil(
-                                      context,
-                                      '/',
-                                      (route) => false,
-                                    );
-                                  }
-                                }
                               },
-                            ),
-                          ],
+                            );
+                          },
                         ),
+                      ),
 
-                        const SizedBox(height: 30),
-                      ],
+                      const SizedBox(height: 14),
+
+                      // Menu items
+                      _menuCard([
+                        _menuTile(
+                          icon: PhosphorIconsRegular.wallet,
+                          title: "Accounts",
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const AccountsPage(),
+                              ),
+                            );
+                          },
+                        ),
+                        _menuTile(
+                          icon: PhosphorIconsRegular.calendarBlank,
+                          title: "Budget reset day",
+                          subtitle: dayOfMonth != null
+                              ? "Day $dayOfMonth of each month"
+                              : null,
+                          onTap: () {
+                            inputDayOfMonth(context);
+                          },
+                        ),
+                        _menuTile(
+                          icon: PhosphorIconsRegular.slidersHorizontal,
+                          title: "Settings",
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const app_settings.Settings(),
+                              ),
+                            );
+                          },
+                        ),
+                      ]),
+
+                      const SizedBox(height: 14),
+
+                      // Logout
+                      _menuCard([
+                        _menuTile(
+                          icon: PhosphorIconsRegular.signOut,
+                          title: "Log out",
+                          color: context.vesta.neg,
+                          showCaret: false,
+                          onTap: _confirmLogout,
+                        ),
+                      ]),
+                    ],
+                  );
+                },
+              ),
+      ),
+    );
+  }
+
+  Widget _buildHeader({
+    required String initials,
+    required String? profileImageUrl,
+    required String username,
+    required String email,
+    required String phone,
+    required String memberSince,
+  }) {
+    final v = context.vesta;
+    final scheme = Theme.of(context).colorScheme;
+    final small = TextStyle(fontSize: 13, color: v.muted);
+
+    return Row(
+      children: [
+        // Avatar
+        GestureDetector(
+          onTap: _isUploading ? null : _showImageSourceDialog,
+          child: Stack(
+            children: [
+              CircleAvatar(
+                radius: 36,
+                backgroundColor: v.tint,
+                backgroundImage: profileImageUrl != null
+                    ? NetworkImage(profileImageUrl)
+                    : null,
+                child: profileImageUrl == null
+                    ? Text(
+                        initials,
+                        style: headingStyle(24, color: v.tintText),
+                      )
+                    : null,
+              ),
+              if (_isUploading)
+                const Positioned.fill(
+                  child: CircleAvatar(
+                    radius: 36,
+                    backgroundColor: Colors.black45,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
                     ),
                   ),
-                );
-              },
-            ),
+                ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: scheme.primary,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: scheme.surface,
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    PhosphorIconsRegular.camera,
+                    size: 12,
+                    color: scheme.onPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Name
+              Text(
+                username,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: headingStyle(20),
+              ),
+              const SizedBox(height: 2),
+              Text(email, style: small, maxLines: 1, overflow: TextOverflow.ellipsis),
+              if (phone.isNotEmpty) Text(phone, style: small),
+              Text(
+                "Member since $memberSince",
+                style: TextStyle(fontSize: 12, color: v.muted),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -453,72 +429,76 @@ class _ProfilePageState extends State<ProfilePage> {
     return '${months[date.month - 1]} ${date.year}';
   }
 
-  static Widget _statItem(String value, String label) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-        ),
-      ],
-    );
-  }
-
-  static Widget _menuCard(
-    BuildContext context, {
-    required List<Widget> children,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+  Widget _statItem(String value, String label) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(value, style: amountStyle(20)),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(fontSize: 12, color: context.vesta.muted),
           ),
         ],
       ),
-      child: Column(children: children),
     );
   }
 
-  static Widget _menuTile({
+  /// One rounded card of menu rows with hairlines between them.
+  Widget _menuCard(List<Widget> rows) {
+    final v = context.vesta;
+    return VestaCard(
+      padding: EdgeInsets.zero,
+      radius: VestaRadius.lg,
+      child: Column(
+        children: [
+          for (var i = 0; i < rows.length; i++)
+            DecoratedBox(
+              decoration: BoxDecoration(
+                border: i == 0
+                    ? null
+                    : Border(top: BorderSide(color: v.divider)),
+              ),
+              child: rows[i],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _menuTile({
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    String? subtitle,
     Color? color,
+    bool showCaret = true,
   }) {
-    final c = color ?? Colors.black87;
-    return ListTile(
-      leading: Icon(icon, color: c, size: 22),
-      title: Text(
-        title,
-        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: c),
-      ),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: Colors.grey.shade400,
-        size: 20,
-      ),
+    final v = context.vesta;
+    final c = color ?? v.accentInk;
+    return InkWell(
       onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-    );
-  }
-
-  static Widget _divider() {
-    return Divider(
-      height: 1,
-      thickness: 0.5,
-      color: Colors.grey.shade200,
-      indent: 16,
-      endIndent: 16,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Icon(icon, size: 19, color: c),
+            const SizedBox(width: VestaSpace.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: TextStyle(color: color)),
+                  if (subtitle != null)
+                    Text(subtitle, style: TextStyle(fontSize: 12, color: v.muted)),
+                ],
+              ),
+            ),
+            if (showCaret)
+              Icon(PhosphorIconsRegular.caretRight, size: 16, color: v.muted),
+          ],
+        ),
+      ),
     );
   }
 }
