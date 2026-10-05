@@ -148,6 +148,7 @@ class PhosphorIconsRegular {
   static const IconData trendUp = IconData(0xe4ae, fontFamily: 'Phosphor');
   static const IconData user = IconData(0xe4c2, fontFamily: 'Phosphor');
   static const IconData userCircle = IconData(0xe4c4, fontFamily: 'Phosphor');
+  static const IconData userPlus = IconData(0xe4d0, fontFamily: 'Phosphor');
   static const IconData usersThree = IconData(0xe68e, fontFamily: 'Phosphor');
   static const IconData wallet = IconData(0xe68a, fontFamily: 'Phosphor');
   static const IconData warning = IconData(0xe4e0, fontFamily: 'Phosphor');
@@ -302,6 +303,7 @@ class PhosphorIconsFill {
   static const IconData trendUp = IconData(0xe4ae, fontFamily: 'PhosphorFill');
   static const IconData user = IconData(0xe4c2, fontFamily: 'PhosphorFill');
   static const IconData userCircle = IconData(0xe4c4, fontFamily: 'PhosphorFill');
+  static const IconData userPlus = IconData(0xe4d0, fontFamily: 'PhosphorFill');
   static const IconData usersThree = IconData(0xe68e, fontFamily: 'PhosphorFill');
   static const IconData wallet = IconData(0xe68a, fontFamily: 'PhosphorFill');
   static const IconData warning = IconData(0xe4e0, fontFamily: 'PhosphorFill');

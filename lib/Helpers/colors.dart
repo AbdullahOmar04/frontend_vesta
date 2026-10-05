@@ -270,6 +270,8 @@ TextStyle headingStyle(double size, {Color? color}) => TextStyle(
   fontSize: size,
   fontWeight: FontWeight.w500,
   fontVariations: const [FontVariation('wght', 500)],
+  // Pixelify's "fi" ligature reads as an "A" ("Shared Ainances").
+  fontFeatures: const [FontFeature.disable('liga')],
   height: 1.2,
   color: color,
 );

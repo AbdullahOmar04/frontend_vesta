@@ -993,320 +993,116 @@ Future<double?> inputHouseholBudget(
     builder: (dialogContext) {
       return StatefulBuilder(
         builder: (dialogContext, setState) {
-          return Dialog(
-            backgroundColor: Colors.transparent,
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 340),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
+          final v = dialogContext.vesta;
+          return AlertDialog(
+            title: Row(
+              children: [
+                Icon(PhosphorIconsRegular.wallet, color: v.accentInk),
+                const SizedBox(width: VestaSpace.sm),
+                const Text("Household budget"),
+              ],
+            ),
+            content: Form(
+              key: formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          const Color.fromARGB(255, 55, 54, 67),
-                          const Color.fromARGB(
-                            255,
-                            55,
-                            54,
-                            67,
-                          ).withOpacity(0.8),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.account_balance_wallet_outlined,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          "Update Household Budget",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Enter your budget for this month",
-                          style: TextStyle(color: Colors.white70, fontSize: 14),
-                        ),
-                      ],
-                    ),
+                  Text(
+                    "How much the household plans to spend this month.",
+                    style: TextStyle(fontSize: 13, color: v.muted),
                   ),
-
-                  // Content
-                  Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Form(
-                      key: formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Budget",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            controller: controller,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                            decoration: InputDecoration(
-                              prefixIcon: Container(
-                                margin: const EdgeInsets.all(8),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color.fromARGB(
-                                    255,
-                                    55,
-                                    54,
-                                    67,
-                                  ).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Text(
-                                  "JOD",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color.fromARGB(255, 55, 54, 67),
-                                  ),
-                                ),
-                              ),
-                              hintText: "Enter amount",
-                              hintStyle: TextStyle(
-                                color: Colors.grey[400],
-                                fontWeight: FontWeight.normal,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: Colors.grey[300]!,
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: Colors.grey[300]!,
-                                ),
-                              ),
-                              focusedBorder: const OutlineInputBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(12),
-                                ),
-                                borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 55, 54, 67),
-                                  width: 2,
-                                ),
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey[50],
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
-                              ),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter an amount';
-                              }
-                              final amount = double.tryParse(value.trim());
-                              if (amount == null) return 'Invalid number';
-                              if (amount <= 0) {
-                                return 'Amount must be greater than 0';
-                              }
-                              if (amount > 999999) {
-                                return 'Amount is too large';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 8),
-                          if (currentBudget > 0)
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.blue[50],
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.blue[100]!),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.info_outline,
-                                    size: 16,
-                                    color: Colors.blue[600],
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      "Current: JOD ${currentBudget.toStringAsFixed(0)}",
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.blue[600],
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: controller,
+                    autofocus: true,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
                     ),
-                  ),
-
-                  // Buttons
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextButton(
-                            onPressed: isLoading
-                                ? null
-                                : () => Navigator.of(dialogContext).pop(),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                side: BorderSide(color: Colors.grey[300]!),
-                              ),
-                            ),
-                            child: Text(
-                              "Cancel",
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: isLoading
-                                ? null
-                                : () async {
-                                    if (!formKey.currentState!.validate()) {
-                                      return;
-                                    }
-
-                                    setState(() => isLoading = true);
-
-                                    try {
-                                      final newValue = double.tryParse(
-                                        controller.text.trim(),
-                                      );
-                                      if (newValue != null) {
-                                        await FirebaseFirestore.instance
-                                            .collection("households")
-                                            .doc(householdId)
-                                            .update({"budget": newValue});
-
-                                        result = newValue;
-                                        Navigator.of(dialogContext).pop();
-                                      }
-                                    } catch (e) {
-                                      setState(() => isLoading = false);
-                                      ScaffoldMessenger.of(
-                                        dialogContext,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            "Failed to update budget. Try again.",
-                                          ),
-                                          backgroundColor: Colors.red,
-                                        ),
-                                      );
-                                    }
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color.fromARGB(
-                                255,
-                                55,
-                                54,
-                                67,
-                              ),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                    ),
-                                  )
-                                : const Text(
-                                    "Save Changes",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ],
+                    style: amountStyle(16),
+                    decoration: const InputDecoration(
+                      labelText: "Budget",
+                      prefixText: "JOD ",
+                      hintText: "Enter amount",
                     ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Please enter an amount';
+                      }
+                      final amount = double.tryParse(value.trim());
+                      if (amount == null) return 'Invalid number';
+                      if (amount <= 0) {
+                        return 'Amount must be greater than 0';
+                      }
+                      if (amount > 999999) {
+                        return 'Amount is too large';
+                      }
+                      return null;
+                    },
                   ),
+                  if (currentBudget > 0) ...[
+                    const SizedBox(height: VestaSpace.sm),
+                    Text(
+                      "Current: JOD ${currentBudget.toStringAsFixed(0)}",
+                      style: TextStyle(fontSize: 12, color: v.muted),
+                    ),
+                  ],
                 ],
               ),
             ),
+            actions: [
+              TextButton(
+                onPressed: isLoading
+                    ? null
+                    : () => Navigator.of(dialogContext).pop(),
+                child: const Text("Cancel"),
+              ),
+              FilledButton(
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        if (!formKey.currentState!.validate()) {
+                          return;
+                        }
+
+                        setState(() => isLoading = true);
+
+                        try {
+                          final newValue = double.tryParse(
+                            controller.text.trim(),
+                          );
+                          if (newValue != null) {
+                            await FirebaseFirestore.instance
+                                .collection("households")
+                                .doc(householdId)
+                                .update({"budget": newValue});
+
+                            result = newValue;
+                            Navigator.of(dialogContext).pop();
+                          }
+                        } catch (e) {
+                          setState(() => isLoading = false);
+                          ScaffoldMessenger.of(dialogContext).showSnackBar(
+                            SnackBar(
+                              content: const Text(
+                                "Failed to update budget. Try again.",
+                              ),
+                              backgroundColor: Theme.of(
+                                dialogContext,
+                              ).colorScheme.error,
+                            ),
+                          );
+                        }
+                      },
+                child: isLoading
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text("Save"),
+              ),
+            ],
           );
         },
       );
@@ -2038,129 +1834,80 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
     _fetchAddedByName();
   }
 
+  String get _title {
+    final t = widget.transaction;
+    for (final s in [t.merchantName, t.description, t.category]) {
+      if (s != null && s.trim().isNotEmpty) return s.trim();
+    }
+    return t.isDebit ? 'Expense' : 'Income';
+  }
+
+  String get _subtitle {
+    final t = widget.transaction;
+    final category = t.category != null && t.category!.isNotEmpty
+        ? t.category!
+        : 'Uncategorized';
+    return '$category · ${shortDateLabel(t.date)}';
+  }
+
+  num get _signedAmount => widget.transaction.isDebit
+      ? -widget.transaction.amount
+      : widget.transaction.amount;
+
   @override
   Widget build(BuildContext context) {
-    final isDebit = widget.transaction.isDebit;
-    final amountColor = isDebit ? Colors.red : Colors.green;
-
-    return GestureDetector(
+    final t = widget.transaction;
+    final v = context.vesta;
+    return InkWell(
       onTap: () => _showDetailsSheet(context),
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
           children: [
-            /// AMOUNT
-            Row(
-              children: [
-                Text(
-                  "${isDebit ? '- ' : '+ '}"
-                  "${widget.transaction.amount.toStringAsFixed(2)} "
-                  "${widget.transaction.currency}",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
-                    color: amountColor,
-                  ),
-                ),
-                const Spacer(),
-
-                /// ADDED BY
-                if (_addedByName != null)
+            IconBadge(categoryIcon(t.category)),
+            const SizedBox(width: VestaSpace.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_title, maxLines: 1, overflow: TextOverflow.ellipsis),
                   Text(
-                    "By $_addedByName",
-                    style: const TextStyle(fontSize: 13, color: Colors.black54),
+                    _subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
-              ],
+                  if (_addedByName != null)
+                    Row(
+                      children: [
+                        Icon(PhosphorIconsRegular.user, size: 12, color: v.muted),
+                        const SizedBox(width: VestaSpace.xs),
+                        Flexible(
+                          child: Text(
+                            _addedByName!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
             ),
-
-            const SizedBox(height: 4),
-
-            /// DATE
-            Row(
-              children: [
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+            const SizedBox(width: VestaSpace.sm),
+            _isUpdating
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : MoneyText(
+                    _signedAmount,
+                    currency: t.currency,
+                    showPlus: true,
+                    color: t.isDebit ? null : v.pos,
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    _formatDate(widget.transaction.date),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                const Icon(Icons.chevron_right),
-              ],
-            ),
-
-            const SizedBox(height: 10),
-
-            /// CATEGORY DROPDOWN
-            Stack(
-              children: [
-                DropdownButtonFormField<String>(
-                  value: widget.transaction.category?.isNotEmpty == true
-                      ? widget.transaction.category
-                      : null,
-                  hint: const Text("Category"),
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  items: [
-                    const DropdownMenuItem(
-                      value: "Unassign",
-                      child: Text("Unassign"),
-                    ),
-                    ...categoryLabels.map(
-                      (label) =>
-                          DropdownMenuItem(value: label, child: Text(label)),
-                    ),
-                  ],
-                  onChanged: _isUpdating ? null : _onCategoryChanged,
-                ),
-                if (_isUpdating)
-                  const Positioned.fill(
-                    child: Center(
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
           ],
         ),
       ),
@@ -2224,7 +1971,10 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
       widget.onCategoryChanged?.call();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text("Error: $e"),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
     } finally {
       setState(() => _isUpdating = false);
@@ -2243,123 +1993,206 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
 
   void _showDetailsSheet(BuildContext context) {
     final isDebit = widget.transaction.isDebit;
-    final typeLabel = isDebit ? "Debit" : "Credit";
+    final typeLabel = isDebit ? "Expense" : "Income";
     final sourceLabel = widget.transaction.source.name;
 
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      backgroundColor: Colors.white,
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Wrap(
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(20),
-                ),
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheet) {
+          final v = sheetContext.vesta;
+          final current = widget.transaction.category;
+
+          // Category changes go through _onCategoryChanged as before; the
+          // sheet just redraws when it starts and when it finishes.
+          Future<void> pick(String value) async {
+            final update = _onCategoryChanged(value);
+            setSheet(() {});
+            await update;
+            if (sheetContext.mounted) setSheet(() {});
+          }
+
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(
+                VestaSpace.gutter,
+                0,
+                VestaSpace.gutter,
+                VestaSpace.gutter,
               ),
-            ),
-            Text(
-              "${widget.transaction.amount.toStringAsFixed(2)} "
-              "${widget.transaction.currency}",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: isDebit ? Colors.red : Colors.green,
-              ),
-            ),
-            const SizedBox(height: 10),
-            _info("Type", typeLabel),
-            _info("Merchant", widget.transaction.merchantName ?? "—"),
-            _info(
-              "Account",
-              widget.transaction.accountLabel ??
-                  "Acc • ${widget.transaction.accountId}",
-            ),
-            _info("Source", sourceLabel),
-            if (widget.transaction.description?.isNotEmpty == true)
-              _info("Description", widget.transaction.description!),
-            if (_addedByName != null) _info("Added by", _addedByName!),
-            _info("Date", _formatDateInDetails(widget.transaction.date)),
-            Row(
-              children: [
-                Expanded(
-                  child: largeButton(
-                    context,
-                    'Delete Transaction',
-                    Colors.red,
-                    () {
-                      _deleteTransaction()
-                          .then((_) {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Transaction deleted"),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                            widget.onDeleted?.call();
-                          })
-                          .catchError((e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("Error deleting transaction: $e"),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          });
-                    },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      IconBadge(categoryIcon(current), size: 48, circle: false),
+                      const SizedBox(width: VestaSpace.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: headingStyle(17),
+                            ),
+                            Text(
+                              _subtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(sheetContext).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: VestaSpace.sm),
+                      MoneyText(
+                        _signedAmount,
+                        currency: widget.transaction.currency,
+                        size: 17,
+                        showPlus: true,
+                        color: isDebit ? null : v.pos,
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: VestaSpace.lg),
+                  VestaCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Category',
+                                style: Theme.of(sheetContext).textTheme.bodySmall,
+                              ),
+                            ),
+                            if (_isUpdating)
+                              const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            else if (current != null && current.isNotEmpty)
+                              GestureDetector(
+                                onTap: () => pick("Unassign"),
+                                child: Text(
+                                  'Remove',
+                                  style: TextStyle(fontSize: 12, color: v.accentInk),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: VestaSpace.sm),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            for (final label in categoryLabels)
+                              ChoiceTag(
+                                label: label,
+                                icon: categoryIcon(label),
+                                selected: current == label,
+                                onTap: _isUpdating || current == label
+                                    ? null
+                                    : () => pick(label),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: VestaSpace.lg),
+                        _info(sheetContext, "Type", typeLabel),
+                        _info(
+                          sheetContext,
+                          "Merchant",
+                          widget.transaction.merchantName ?? "—",
+                        ),
+                        _info(
+                          sheetContext,
+                          "Account",
+                          widget.transaction.accountLabel ?? "—",
+                        ),
+                        _info(sheetContext, "Source", sourceLabel),
+                        if (widget.transaction.description?.isNotEmpty == true)
+                          _info(
+                            sheetContext,
+                            "Description",
+                            widget.transaction.description!,
+                          ),
+                        if (_addedByName != null)
+                          _info(sheetContext, "Added by", _addedByName!),
+                        _info(
+                          sheetContext,
+                          "Date",
+                          _formatDateInDetails(widget.transaction.date),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: VestaSpace.lg),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: v.neg,
+                        side: BorderSide(color: v.neg.withValues(alpha: 0.6)),
+                      ),
+                      onPressed: () {
+                        _deleteTransaction()
+                            .then((_) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Transaction deleted"),
+                                ),
+                              );
+                              widget.onDeleted?.call();
+                            })
+                            .catchError((e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "Error deleting transaction: $e",
+                                  ),
+                                  backgroundColor: Theme.of(context).colorScheme.error,
+                                ),
+                              );
+                            });
+                      },
+                      child: const Text('Remove from household'),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _info(String title, String value) => Padding(
+  Widget _info(BuildContext context, String title, String value) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(width: 90, child: Text("$title:")),
+        SizedBox(
+          width: 96,
+          child: Text(title, style: Theme.of(context).textTheme.bodySmall),
+        ),
         Expanded(
           child: Text(
             value.isEmpty ? "—" : value,
-            style: const TextStyle(fontWeight: FontWeight.w500),
+            style: const TextStyle(fontSize: 13),
           ),
         ),
       ],
     ),
   );
-
-  static String _formatDate(DateTime dt) {
-    if (dt.millisecondsSinceEpoch == 0) return "—";
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    return "${months[dt.month - 1]} ${dt.day}, ${dt.year}";
-  }
 
   static String _formatDateInDetails(DateTime dt) {
     if (dt.millisecondsSinceEpoch == 0) return "—";

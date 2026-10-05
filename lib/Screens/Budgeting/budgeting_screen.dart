@@ -613,29 +613,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     );
   }
 
-  /// Rounds the chart's top value up to a tidy number with a tidy midpoint.
-  double _niceTop(double maxY) {
-    if (maxY <= 0) return 100;
-    final half = maxY / 2;
-    final mag = math
-        .pow(10, (math.log(half) / math.ln10).floor())
-        .toDouble();
-    for (final m in [1, 1.5, 2, 2.5, 3, 5, 10]) {
-      if (m * mag >= half) return m * mag * 2;
-    }
-    return 20 * mag;
-  }
-
-  String _compact(double value) {
-    if (value >= 1000) {
-      final k = value / 1000;
-      return '${k == k.roundToDouble() ? k.toStringAsFixed(0) : k.toStringAsFixed(1)}k';
-    }
-    return value == value.roundToDouble()
-        ? value.toStringAsFixed(0)
-        : value.toStringAsFixed(1);
-  }
-
   Widget _buildBudgetLineChart() {
     final v = context.vesta;
 
@@ -659,7 +636,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
       for (final s in series) ...s.$1.map((p) => p.y),
     ];
     final bool hasData = allY.any((y) => y > 0);
-    final top = _niceTop(allY.isEmpty ? 0 : allY.reduce(math.max));
+    final top = niceChartTop(allY.isEmpty ? 0 : allY.reduce(math.max));
 
     LineChartBarData line(List<FlSpot> spots, Color color) => LineChartBarData(
       spots: spots,
@@ -713,7 +690,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
                             reservedSize: 34,
                             interval: top / 2,
                             getTitlesWidget: (value, meta) => Text(
-                              _compact(value),
+                              compactAmount(value),
                               style: TextStyle(fontSize: 10, color: v.muted),
                             ),
                           ),

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -799,6 +801,28 @@ String shortDateLabel(DateTime dt) {
   if (diff == 1) return 'Yesterday';
   final base = '${_monthAbbr[dt.month - 1]} ${dt.day}';
   return dt.year == now.year ? base : '$base, ${dt.year}';
+}
+
+/// Rounds a chart's top value up to a tidy number with a tidy midpoint.
+double niceChartTop(double maxY) {
+  if (maxY <= 0) return 100;
+  final half = maxY / 2;
+  final mag = math.pow(10, (math.log(half) / math.ln10).floor()).toDouble();
+  for (final m in [1, 1.5, 2, 2.5, 3, 5, 10]) {
+    if (m * mag >= half) return m * mag * 2;
+  }
+  return 20 * mag;
+}
+
+/// Short axis label: 1500 -> "1.5k", 2 -> "2", 1.5 -> "1.5".
+String compactAmount(double value) {
+  if (value >= 1000) {
+    final k = value / 1000;
+    return '${k == k.roundToDouble() ? k.toStringAsFixed(0) : k.toStringAsFixed(1)}k';
+  }
+  return value == value.roundToDouble()
+      ? value.toStringAsFixed(0)
+      : value.toStringAsFixed(1);
 }
 
 /// Settings row with an icon, label, optional description and a switch.
