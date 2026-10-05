@@ -116,7 +116,9 @@ class _PlanBudgetScreenState extends State<PlanBudgetScreen> {
             "spending": double.tryParse(_spendingController.text) ?? 0,
             "luxuries": double.tryParse(_luxuriesController.text) ?? 0,
             "updatedAt": FieldValue.serverTimestamp(),
-          });
+            // Merge, so the cycle fields handleBudgetCycleOnLogin wrote
+            // (currency, startDate, endDate, createdAt) survive a save.
+          }, SetOptions(merge: true));
 
       if (mounted) {
         Navigator.pop(context, true);
