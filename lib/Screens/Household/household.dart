@@ -238,7 +238,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Error creating invite: $e"),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
