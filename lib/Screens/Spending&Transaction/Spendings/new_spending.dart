@@ -290,9 +290,13 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
         children: [
           TagChip(bucket.label, color: bucket.color),
           const SizedBox(width: VestaSpace.sm),
-          Text(
-            count == 1 ? "1 transaction" : "$count transactions",
-            style: Theme.of(context).textTheme.bodySmall,
+          Flexible(
+            child: Text(
+              count == 1 ? "1 transaction" : "$count transactions",
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ),
         ],
       ),
