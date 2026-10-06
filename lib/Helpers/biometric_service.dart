@@ -49,6 +49,10 @@ class BiometricService {
     } on PlatformException catch (e) {
       debugPrint('Biometric auth error: ${e.message}');
       return false;
+    } on LocalAuthException catch (e) {
+      // local_auth 3.x reports a cancelled or failed prompt this way
+      debugPrint('Biometric auth ended: ${e.code}');
+      return false;
     }
   }
 

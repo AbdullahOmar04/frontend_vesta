@@ -6,7 +6,7 @@ import 'package:frontend_vesta/Helpers/biometric_service.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
-import 'package:frontend_vesta/Screens/Onboarding/register.dart';
+import 'package:frontend_vesta/Screens/Onboarding/onboarding_questions.dart';
 import 'package:frontend_vesta/Screens/pages/main_screen.dart';
 
 class Login extends StatefulWidget {
@@ -429,7 +429,7 @@ class _LoginState extends State<Login> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const Register(),
+                        builder: (context) => const OnboardingQuestions(),
                       ),
                     );
                   },
