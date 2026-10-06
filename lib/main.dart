@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/security_service.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
-import 'package:frontend_vesta/Screens/Onboarding/splash.dart';
+import 'package:frontend_vesta/Screens/Onboarding/auth_gate.dart';
 import 'package:frontend_vesta/firebase_options.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -46,7 +46,7 @@ class MainApp extends StatelessWidget {
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: ThemeMode.system,
-      home: const OnboardingSplash(),
+      home: const AuthGate(),
       debugShowCheckedModeBanner: false,
     );
   }

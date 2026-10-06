@@ -12,6 +12,8 @@ import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
+import 'package:frontend_vesta/Screens/Bills/bills_data.dart';
+import 'package:frontend_vesta/Screens/Bills/bills_screen.dart';
 import 'package:frontend_vesta/Screens/Budgeting/plan_budget.dart';
 
 class PersonalBudgetScreen extends StatefulWidget {
@@ -24,7 +26,7 @@ class PersonalBudgetScreen extends StatefulWidget {
 class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
   // Core data
   Map<String, dynamic> _budgetData = {};
-  List<Map<String, dynamic>> _sosps = [];
+  List<UpcomingPayment> _upcoming = [];
   bool _isLoading = true;
   final _totalIncomeController = TextEditingController();
 
@@ -74,7 +76,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
 
     // Load remaining data in parallel
     await Future.wait([
-      _fetchSOSPsFromFirestore(),
+      _loadUpcoming(),
       _fetchCurrentCycleData(),
       _fetchChartData(),
     ]);
@@ -468,59 +470,13 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     }
   }
 
-  Future<void> _fetchSOSPsFromFirestore() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
-
+  /// Bills and the standing orders on linked accounts, soonest first.
+  Future<void> _loadUpcoming() async {
     try {
-      final accountsSnap = await FirebaseFirestore.instance
-          .collection("users")
-          .doc(uid)
-          .collection("accounts")
-          .where("linked", isEqualTo: true)
-          .get();
-
-      List<Map<String, dynamic>> all = [];
-
-      for (var account in accountsSnap.docs) {
-        final sospSnap = await FirebaseFirestore.instance
-            .collection("users")
-            .doc(uid)
-            .collection("accounts")
-            .doc(account.id)
-            .collection("sosps")
-            .get();
-
-        final accountData = account.data();
-        final accountName = (accountData['nickname'] ??
-                accountData['accountName'] ??
-                accountData['name'] ??
-                'Account ${account.id}')
-            .toString();
-
-        for (var doc in sospSnap.docs) {
-          final data = Map<String, dynamic>.from(doc.data());
-          data['associatedAccountName'] = accountName;
-          all.add(data);
-        }
-      }
-
-      // Sort by next payment date
-      all.sort((a, b) {
-        final aDate = DateTime.tryParse(
-                a["paymentSchedule"]?["nextPaymentDateTime"] ?? "") ??
-            DateTime.now();
-        final bDate = DateTime.tryParse(
-                b["paymentSchedule"]?["nextPaymentDateTime"] ?? "") ??
-            DateTime.now();
-        return aDate.compareTo(bDate);
-      });
-
-      if (mounted) {
-        setState(() => _sosps = all);
-      }
+      final upcoming = await loadUpcomingPayments();
+      if (mounted) setState(() => _upcoming = upcoming);
     } catch (e) {
-      debugPrint('⚠️ Error fetching SOSPs: $e');
+      debugPrint('⚠️ Error fetching upcoming payments: $e');
     }
   }
 
@@ -1047,89 +1003,81 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     );
   }
 
+  Future<void> _openBills() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const BillsScreen()),
+    );
+    _loadUpcoming();
+  }
+
   Widget _buildUpcomingPayments() {
     final v = context.vesta;
     return VestaCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SectionHeader(title: "Upcoming payments"),
+          SectionHeader(
+            title: "Upcoming payments",
+            actionLabel: "See all",
+            onAction: _openBills,
+          ),
           const SizedBox(height: VestaSpace.sm),
 
           if (_isLoading)
             const Center(child: CircularProgressIndicator()),
 
-          if (!_isLoading && _sosps.isEmpty)
+          if (!_isLoading && _upcoming.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: VestaSpace.md),
               child: Text(
-                "No upcoming payments",
+                "No upcoming payments. Add your bills under See all.",
                 style: TextStyle(fontSize: 13, color: v.muted),
               ),
             ),
 
-          if (!_isLoading && _sosps.isNotEmpty)
-            ..._sosps.map((sosp) => _buildPaymentItemFromData(sosp)),
+          if (!_isLoading && _upcoming.isNotEmpty)
+            ..._upcoming.take(4).map(_buildUpcomingItem),
         ],
       ),
     );
   }
 
-  Widget _buildPaymentItemFromData(Map<String, dynamic> sosp) {
-    final nickname = sosp["SOSPNickname"] ?? "Scheduled Payment";
-    final beneficiaryName =
-        sosp["SOSPBeneficiary"]?["beneficiaryName"]?["enName"] ?? nickname;
-    final accountName = sosp['associatedAccountName'] ?? 'Unknown Account';
-    final amount =
-        (sosp["paymentSchedule"]?["nextPaymentAmount"]?["amount"] ?? 0.0)
-            .toDouble();
-    final currency =
-        sosp["paymentSchedule"]?["nextPaymentAmount"]?["currency"] ?? "JOD";
-    final status = (sosp["SOSPStatus"] ?? "unknown").toString();
-    final type = (sosp["SOSPType"] ?? "departure").toString();
-    final remaining = sosp["paymentSchedule"]?["remainingPayments"];
-    final frequency =
-        sosp["paymentSchedule"]?["frequencyInfo"]?["frequency"] as String?;
+  Widget _buildUpcomingItem(UpcomingPayment p) {
+    const monthNames = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    final date = p.nextDate;
+    final formattedDate = date == null
+        ? "No date"
+        : "Next: ${date.day} ${monthNames[date.month - 1]} ${date.year}";
 
-    final nextPaymentDateStr = sosp["paymentSchedule"]?["nextPaymentDateTime"];
-    String formattedDate = "No date";
-    if (nextPaymentDateStr != null) {
-      final parsedDate = DateTime.tryParse(nextPaymentDateStr);
-      if (parsedDate != null) {
-        final monthNames = [
-          'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-        ];
-        formattedDate =
-            "Next: ${parsedDate.day} ${monthNames[parsedDate.month - 1]} ${parsedDate.year}";
-      }
-    }
-
-    final icon = type == "arrival"
+    final icon = p.isBill
+        ? categoryIcon(p.category ?? p.title)
+        : p.incoming
         ? PhosphorIconsRegular.arrowDownLeft
         : PhosphorIconsRegular.arrowUpRight;
-    final color = status == "active"
-        ? context.vesta.accentInk
-        : context.vesta.muted;
+    final active = p.isBill || p.status == "active";
 
     return _buildPaymentItem(
-      title: beneficiaryName,
-      accountName: accountName,
-      amount: amount,
-      currency: currency,
-      type: type,
-      status: status,
+      title: p.title,
+      accountName: p.accountName,
+      amount: p.amount,
+      currency: p.currency,
+      type: p.incoming ? "arrival" : "departure",
+      status: p.isBill ? (p.autopay ? "autopay" : "manual") : (p.status ?? "unknown"),
       nextPaymentDate: formattedDate,
-      remainingPayments: remaining as int?,
-      frequency: frequency,
+      remainingPayments: p.remaining,
+      frequency: p.frequency,
       icon: icon,
-      color: color,
+      color: active ? context.vesta.accentInk : context.vesta.muted,
     );
   }
 
   Widget _buildPaymentItem({
     required String title,
-    required String accountName,
+    required String? accountName,
     required double amount,
     required String currency,
     required String type,
@@ -1163,10 +1111,11 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                Text(
-                  "From $accountName",
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+                if (accountName != null)
+                  Text(
+                    "From $accountName",
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 Text(details, style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
