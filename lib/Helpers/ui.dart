@@ -629,7 +629,14 @@ class TagChip extends StatelessWidget {
             Icon(icon, size: 12, color: fg),
             const SizedBox(width: VestaSpace.xs),
           ],
-          Text(label, style: TextStyle(fontSize: 11, height: 1.2, color: fg)),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 11, height: 1.2, color: fg),
+            ),
+          ),
         ],
       ),
     );
