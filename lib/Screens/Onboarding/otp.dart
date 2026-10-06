@@ -7,6 +7,7 @@ import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/Onboarding/onboarding_questions.dart';
+import 'package:frontend_vesta/Screens/pages/main_screen.dart';
 
 const int otpValidityDurationSeconds = 120; // 2 minutes
 const int resendCooldownSeconds = 60; // 60 seconds cooldown before resend
@@ -17,6 +18,9 @@ class OTPVerificationPage extends StatefulWidget {
   final String password;
   final String phoneNumber;
 
+  /// Answers from the questions before sign-up, saved with the new account.
+  final OnboardingAnswers? answers;
+
   final String verificationId;
   final int? resendToken;
 
@@ -26,6 +30,7 @@ class OTPVerificationPage extends StatefulWidget {
     required this.email,
     required this.password,
     required this.phoneNumber,
+    this.answers,
     required this.verificationId,
     this.resendToken,
   });
@@ -229,12 +234,40 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
         throw Exception('Phone verification failed');
       }
 
+      // A number that already has an account signs straight into it. Sign
+      // back out instead of linking a second email to that account.
+      if (phoneUserCred.additionalUserInfo?.isNewUser == false) {
+        await FirebaseAuth.instance.signOut();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'This number already has a Vesta account. Log in instead.',
+            ),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+        return;
+      }
+
       final emailCred = EmailAuthProvider.credential(
         email: widget.email,
         password: widget.password,
       );
 
-      await phoneUser.linkWithCredential(emailCred);
+      try {
+        await phoneUser.linkWithCredential(emailCred);
+      } on FirebaseAuthException catch (e) {
+        // Don't leave a phone-only account behind
+        await phoneUser.delete();
+        if (e.code == 'email-already-in-use' ||
+            e.code == 'credential-already-in-use') {
+          throw Exception(
+            'That email already has a Vesta account. Log in instead.',
+          );
+        }
+        rethrow;
+      }
 
       // Optional: set display name
       await phoneUser.updateDisplayName(widget.username);
@@ -296,7 +329,16 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
         "totalExpense": 0.0,
         "dayOfMonth": 28,
         "householdIds": [],
+        // Income, focus and banks from the questions, when answered
+        ...?widget.answers?.userFields,
       });
+
+      final plan = widget.answers?.budgetPlan;
+      if (plan != null) {
+        final now = DateTime.now();
+        final monthId = "${now.year}-${now.month.toString().padLeft(2, '0')}";
+        batch.set(userDocRef.collection('budget').doc(monthId), plan);
+      }
 
       try {
         // Commit all writes atomically
@@ -320,9 +362,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
 
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(
-          builder: (_) => OnboardingQuestions(username: widget.username),
-        ),
+        MaterialPageRoute(builder: (_) => const MainScreen()),
         (route) => false,
       );
     } on FirebaseAuthException catch (e) {

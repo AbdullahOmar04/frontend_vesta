@@ -3,18 +3,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
+import 'package:frontend_vesta/Screens/Onboarding/onboarding_questions.dart';
 import 'package:frontend_vesta/Screens/Onboarding/otp.dart';
 
 class PhoneNumberPage extends StatefulWidget {
   final String username;
   final String email;
   final String password;
+  final OnboardingAnswers? answers;
 
   const PhoneNumberPage({
     super.key,
     required this.username,
     required this.email,
     required this.password,
+    this.answers,
   });
 
   @override
@@ -136,6 +139,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                 email: widget.email,
                 password: widget.password,
                 phoneNumber: fullPhone,
+                answers: widget.answers,
                 verificationId: verificationId,
                 resendToken: resendToken,
               ),
