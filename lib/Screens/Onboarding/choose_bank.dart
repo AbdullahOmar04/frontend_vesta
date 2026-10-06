@@ -2,7 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/api_calls.dart';
-import 'package:frontend_vesta/Helpers/widgets.dart';
+import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
+import 'package:frontend_vesta/Screens/Onboarding/bank_link_ui.dart';
 import 'package:frontend_vesta/Screens/pages/accounts.dart';
 import 'package:frontend_vesta/Screens/pages/main_screen.dart';
 import 'package:http/http.dart' as http;
@@ -20,122 +23,82 @@ class ChooseBank extends StatefulWidget {
 class _ChooseBankState extends State<ChooseBank> {
   @override
   Widget build(BuildContext context) {
+    final v = context.vesta;
+    // (name, name for the badge, screen)
+    final banks = <(String, String, Widget Function())>[
+      ('Bank of JoPACC LTD.', 'JoPACC', () => const Jopacc()),
+      ('Ahli Bank', 'Ahli Bank', () => const AhliLinkScreen()),
+      ('Capital Bank', 'Capital Bank', () => const CapitalLinkScreen()),
+      ('Bank Al Etihad', 'Bank Al Etihad', () => const EtihadLinkScreen()),
+      ('Housing Bank', 'Housing Bank', () => const HbtfLinkScreen()),
+    ];
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      appBar: AppBar(
-        title: Text(
-          'Choose Your Bank',
-          style: TextStyle(color: Theme.of(context).colorScheme.surface),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.surface),
-      ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
+      appBar: const VestaAppBar(title: 'Link a bank account'),
+      body: VestaBackground(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            VestaSpace.gutter,
+            VestaSpace.xs,
+            VestaSpace.gutter,
+            VestaSpace.xl,
           ),
-        ),
-        child: Column(
           children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    BankCard(
-                      context,
-                      'Bank of JoPACC LTD.',
-                      'assets/images/jopacc.png',
-                      Colors.white,
-                      () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const Jopacc()),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 4),
-                    BankCard(
-                      context,
-                      'Ahli Bank',
-                      'assets/images/ahli.jpeg',
-                      Colors.white,
-                      () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const AhliLinkScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 4),
-                    BankCard(
-                      context,
-                      'Capital Bank',
-                      'assets/images/cboj.png',
-                      Colors.white,
-                      () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const CapitalLinkScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 4),
-                    BankCard(
-                      context,
-                      'Bank Al Etihad',
-                      'assets/images/etihad.jpg',
-                      Colors.white,
-                      () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const EtihadLinkScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 4),
-                    BankCard(
-                      context,
-                      'Housing Bank',
-                      'assets/images/hbtf.png',
-                      Colors.white,
-                      () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const HbtfLinkScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: VestaSpace.md),
+              child: Text(
+                'Pick your bank. You will sign in with the bank and choose which accounts to share.',
+                style: TextStyle(fontSize: 13, color: v.muted),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: largeButton(
-                context,
-                'Not Right Now',
-                Theme.of(context).colorScheme.primary,
-                () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const MainScreen()),
-                  );
-                },
+            VestaCard(
+              padding: const EdgeInsets.symmetric(
+                horizontal: VestaSpace.lg,
+                vertical: 4,
               ),
+              child: Column(
+                children: [
+                  for (var i = 0; i < banks.length; i++)
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => banks[i].$3()),
+                        );
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: i == 0
+                              ? null
+                              : Border(top: BorderSide(color: v.divider)),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Row(
+                          children: [
+                            BankBadge(banks[i].$2),
+                            const SizedBox(width: VestaSpace.md),
+                            Expanded(child: Text(banks[i].$1)),
+                            Icon(
+                              PhosphorIconsRegular.caretRight,
+                              size: 16,
+                              color: v.muted,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: VestaSpace.xl),
+            OutlineButton(
+              label: 'Not right now',
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MainScreen()),
+                );
+              },
             ),
           ],
         ),
@@ -150,48 +113,37 @@ class ChooseBankSplash extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('')),
-      body: Container(
-        color: Theme.of(context).colorScheme.surface,
-        child: Column(
+      appBar: const VestaAppBar(title: ''),
+      body: VestaBackground(
+        child: ListView(
+          padding: const EdgeInsets.all(VestaSpace.xl),
           children: [
             Image.asset(
               'assets/images/choose_bank.png',
-              width: 250,
-              height: 250,
+              width: 220,
+              height: 220,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: VestaSpace.xl),
             Text(
-              'Link Your Bank Account',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+              'Link your bank account',
+              textAlign: TextAlign.center,
+              style: headingStyle(24),
             ),
-            const SizedBox(height: 50),
+            const SizedBox(height: VestaSpace.md),
             Text(
               'Securely connect your bank account to manage your finances all in one place.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Theme.of(context).colorScheme.secondary,
-              ),
+              style: TextStyle(fontSize: 14, color: context.vesta.muted),
             ),
-            const SizedBox(height: 60),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: largeButton(
-                context,
-                'Continue',
-                Theme.of(context).colorScheme.secondary,
-                () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ChooseBank()),
-                  );
-                },
-              ),
+            const SizedBox(height: VestaSpace.xl),
+            PrimaryButton(
+              label: 'Continue',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ChooseBank()),
+                );
+              },
             ),
           ],
         ),
@@ -256,15 +208,6 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
     }
   }
 
-  String _fmt(num amount, String currency) {
-    final f = NumberFormat.currency(
-      locale: 'en_US',
-      symbol: "$currency ",
-      decimalDigits: 2,
-    );
-    return f.format(amount);
-  }
-
   Future<void> _mockLogin() async {
     if (!_formKey.currentState!.validate()) return;
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -326,14 +269,15 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
   }
 
   Future<void> _showDifferentUsernameWarning(String existingUsername) async {
+    final v = context.vesta;
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.orange),
-            SizedBox(width: 8),
-            Text('Different Account'),
+            Icon(PhosphorIconsRegular.warningCircle, color: v.neg),
+            const SizedBox(width: 8),
+            const Expanded(child: Text('Different account')),
           ],
         ),
         content: Column(
@@ -342,17 +286,15 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
           children: [
             Text(
               'You already have linked accounts from "$existingUsername".',
-              style: const TextStyle(fontSize: 15),
             ),
             const SizedBox(height: 12),
             const Text(
               'To link accounts from a different JoPACC user, please unlink your existing accounts first.',
-              style: TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Go to My Accounts and hold on an account card to unlink it.',
-              style: TextStyle(fontSize: 13, color: Colors.grey),
+            Text(
+              'Go to Wallet and hold an account to unlink it.',
+              style: TextStyle(fontSize: 13, color: v.muted),
             ),
           ],
         ),
@@ -367,81 +309,22 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
   }
 
   Widget _buildConsentScreen() {
-    final scheme = Theme.of(context).colorScheme;
-
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 480),
-        child: Card(
-          color: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 4,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.shield_outlined, size: 28),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Share your data with Vesta?',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: scheme.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'By continuing, you allow Vesta to securely access:',
-                ),
-                const SizedBox(height: 8),
-                const Text('• Your account list and balances'),
-                const Text('• Your transactions history'),
-                const Text('• Standing orders & scheduled payments'),
-                const SizedBox(height: 12),
-                const Text(
-                  'Access is read-only and you can stop sharing at any time from your bank.',
-                  style: TextStyle(fontSize: 12, color: Colors.black54),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text('No, cancel'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: scheme.primary,
-                          foregroundColor: scheme.surface,
-                        ),
-                        onPressed: _onConsentApproved,
-                        child: const Text('Allow & continue'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return BankConsentCard(
+      bankName: 'JoPACC',
+      message: 'Share your JoPACC data with Vesta?',
+      scopes: const [
+        (PhosphorIconsRegular.wallet, 'Your account list and balances'),
+        (PhosphorIconsRegular.receipt, 'Your transaction history'),
+        (PhosphorIconsRegular.calendarDots, 'Standing orders & scheduled payments'),
+      ],
+      note:
+          'Access is read-only and you can stop sharing at any time from your bank.',
+      cancelLabel: 'No, cancel',
+      onCancel: () {
+        Navigator.of(context).pop();
+      },
+      onAllow: _syncing ? null : _onConsentApproved,
+      busy: _syncing,
     );
   }
 
@@ -531,167 +414,65 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      backgroundColor: scheme.primary,
-      appBar: AppBar(
-        backgroundColor: scheme.primary,
-        title: Text(
-          'Bank of JoPACC LTD.',
-          style: TextStyle(color: scheme.surface),
-        ),
-        iconTheme: IconThemeData(color: scheme.surface),
-        actions: [
-          if (_loggedIn)
-            IconButton(
-              onPressed: _syncing ? null : _resync,
-              icon: Icon(Icons.sync, color: scheme.surface),
-              tooltip: 'Re-sync',
-            ),
-        ],
-      ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          color: scheme.surface,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: !_loggedIn
-            ? _buildLoginForm() // STEP 1: bank login
-            : (!_consentGiven
-                  ? _buildConsentScreen() // STEP 2: consent
-                  : _buildAccountSelection()), // STEP 3: accounts in Vesta
-      ),
-
-      floatingActionButton: (_loggedIn && _consentGiven)
-          ? FloatingActionButton.extended(
-              onPressed: _selected.isEmpty ? null : _linkSelected,
-              backgroundColor: _selected.isEmpty ? Colors.grey : scheme.primary,
-              icon: const Icon(Icons.link, color: Colors.white),
-              label: const Text(
-                'Link Selected',
-                style: TextStyle(color: Colors.white),
-              ),
-            )
-          : null,
+    return BankLinkScaffold(
+      title: 'Bank of JoPACC LTD.',
+      syncing: _syncing,
+      onResync: _loggedIn ? _resync : null,
+      showLinkBar: _loggedIn && _consentGiven,
+      selectedCount: _selected.length,
+      onLink: _linkSelected,
+      body: !_loggedIn
+          ? _buildLoginForm() // STEP 1: bank login
+          : (!_consentGiven
+                ? _buildConsentScreen() // STEP 2: consent
+                : _buildAccountSelection()), // STEP 3: accounts in Vesta
     );
   }
 
   Widget _buildLoginForm() {
-    final scheme = Theme.of(context).colorScheme;
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 480),
-        child: Card(
-          color: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+    return Form(
+      key: _formKey,
+      child: BankLoginCard(
+        bankName: 'JoPACC',
+        title: 'Log in to JoPACC',
+        fields: [
+          TextFormField(
+            controller: _username,
+            decoration: const InputDecoration(labelText: 'Username'),
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? 'Enter a username' : null,
           ),
-          elevation: 4,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Login to JoPACC',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: scheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _username,
-                    decoration: const InputDecoration(
-                      labelText: 'Username',
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Enter a username'
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _password,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Password',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    height: 50,
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _loading ? null : () async { await _mockLogin(); },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: scheme.secondary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                      ),
-                      child: _loading
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
-                            )
-                          : const Text(
-                              'Login',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-              ),
-            ),
+          TextFormField(
+            controller: _password,
+            obscureText: true,
+            decoration: const InputDecoration(labelText: 'Password'),
           ),
-        ),
+        ],
+        submitLabel: 'Log in',
+        loading: _loading,
+        onSubmit: () async {
+          await _mockLogin();
+        },
       ),
     );
   }
 
   Widget _buildAccountSelection() {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    final scheme = Theme.of(context).colorScheme;
     if (uid == null) return const Center(child: Text('Not logged in'));
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (_syncing) const LinearProgressIndicator(),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            const Icon(Icons.account_balance),
-            const SizedBox(width: 8),
-            const Expanded(
-              child: Text(
-                'Select accounts to link',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const MainScreen()),
-                  (_) => false,
-                );
-              },
-              child: Text('Skip', style: TextStyle(color: scheme.primary)),
-            ),
-          ],
+        BankSelectHeader(
+          syncing: _syncing,
+          onSkip: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const MainScreen()),
+              (_) => false,
+            );
+          },
         ),
-        const SizedBox(height: 8),
         Expanded(
           child: StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
@@ -701,167 +482,17 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
                 .snapshots(),
             builder: (context, snap) {
               if (snap.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return const BankLoadingState();
               }
               if (!snap.hasData || snap.data!.docs.isEmpty) {
-                return const Center(child: Text('No accounts available'));
+                return const BankEmptyState(title: 'No accounts available');
               }
 
               final docs = snap.data!.docs;
-              return ListView.separated(
-                padding: const EdgeInsets.only(bottom: 96),
-                itemCount: docs.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 12),
-                itemBuilder: (context, i) {
-                  final doc = docs[i];
-                  final id = doc.id;
-                  final acc = doc.data() as Map<String, dynamic>? ?? {};
-                  final linked = (acc['linked'] ?? false) == true;
-
-                  final bankName =
-                      (acc["bankName"]?.toString().trim().isNotEmpty ?? false)
-                      ? acc["bankName"].toString()
-                      : "Unknown Bank";
-                  final accountType =
-                      acc["accountTypeName"]?.toString() ?? "Unknown Type";
-                  num balance = 0;
-                  final dynamic balRaw = acc["balanceAmount"];
-                  if (balRaw is num) {
-                    balance = balRaw;
-                  } else if (balRaw is String) {
-                    balance = num.tryParse(balRaw) ?? 0;
-                  }
-
-                  final currency =
-                      acc["currency"]?.toString().trim().isNotEmpty == true
-                      ? acc["currency"].toString()
-                      : "JOD";
-
-                  final iban = acc["iban"]?.toString().trim().isNotEmpty == true
-                      ? acc["iban"].toString()
-                      : "No IBAN available";
-                      
-                  final ibanDisplay = iban.length > 16
-                      ? "${iban.substring(0, 6)}...${iban.substring(iban.length - 4)}"
-                      : iban;
-
-                  final checked = _selected.contains(id) || linked;
-
-                  return InkWell(
-                    onTap: linked
-                        ? null
-                        : () {
-                            setState(() {
-                              if (checked) {
-                                _selected.remove(id);
-                              } else {
-                                _selected.add(id);
-                              }
-                            });
-                          },
-                    child: Card(
-                      color: Colors.white,
-                      elevation: 3,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Checkbox(
-                              value: checked,
-                              onChanged: linked
-                                  ? null
-                                  : (v) {
-                                      setState(() {
-                                        if (v == true) {
-                                          _selected.add(id);
-                                        } else {
-                                          _selected.remove(id);
-                                        }
-                                      });
-                                    },
-                              fillColor: WidgetStateProperty.resolveWith<Color>(
-                                (Set<WidgetState> states) {
-                                  if (states.contains(WidgetState.disabled)) {
-                                    return Colors.green;
-                                  }
-                                  return Colors.white;
-                                },
-                              ),
-                              checkColor: Colors.black,
-                            ),
-
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          bankName,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                      ),
-                                      Text(
-                                        _fmt(balance, currency),
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.green[700],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    accountType,
-                                    style: const TextStyle(color: Colors.grey),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    "IBAN: $ibanDisplay",
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.black54,
-                                    ),
-                                  ),
-                                  if (linked) ...[
-                                    const SizedBox(height: 6),
-                                    const Row(
-                                      children: [
-                                        Icon(
-                                          Icons.check_circle,
-                                          color: Colors.green,
-                                          size: 16,
-                                        ),
-                                        SizedBox(width: 6),
-                                        Text(
-                                          'Linked',
-                                          style: TextStyle(
-                                            color: Colors.green,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
+              return LinkableAccountList(
+                children: [
+                  for (final doc in docs) _jopaccRow(doc),
+                ],
               );
             },
           ),
@@ -869,8 +500,50 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
       ],
     );
   }
-}
 
+  Widget _jopaccRow(QueryDocumentSnapshot doc) {
+    final id = doc.id;
+    final acc = doc.data() as Map<String, dynamic>? ?? {};
+    final linked = (acc['linked'] ?? false) == true;
+
+    final bankName = (acc["bankName"]?.toString().trim().isNotEmpty ?? false)
+        ? acc["bankName"].toString()
+        : "Unknown Bank";
+    final accountType = acc["accountTypeName"]?.toString() ?? "Unknown Type";
+    num balance = 0;
+    final dynamic balRaw = acc["balanceAmount"];
+    if (balRaw is num) {
+      balance = balRaw;
+    } else if (balRaw is String) {
+      balance = num.tryParse(balRaw) ?? 0;
+    }
+
+    final currency = acc["currency"]?.toString().trim().isNotEmpty == true
+        ? acc["currency"].toString()
+        : "JOD";
+
+
+    final checked = _selected.contains(id) || linked;
+
+    return LinkableAccountTile(
+      title: bankName,
+      lines: [accountType, ibanLine(acc["iban"], shorten: true)],
+      balance: balance,
+      currency: currency,
+      checked: checked,
+      linked: linked,
+      onToggle: () {
+        setState(() {
+          if (checked) {
+            _selected.remove(id);
+          } else {
+            _selected.add(id);
+          }
+        });
+      },
+    );
+  }
+}
 
 // ─── Capital Bank (CBOJ) ───
 
@@ -894,15 +567,6 @@ class _CapitalLinkScreenState extends State<CapitalLinkScreen> {
   void initState() {
     super.initState();
     _startLink();
-  }
-
-  String _fmt(num amount, String currency) {
-    final f = NumberFormat.currency(
-      locale: 'en_US',
-      symbol: "$currency ",
-      decimalDigits: 2,
-    );
-    return f.format(amount);
   }
 
   Future<void> _startLink() async {
@@ -1111,81 +775,33 @@ class _CapitalLinkScreenState extends State<CapitalLinkScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      backgroundColor: scheme.primary,
-      appBar: AppBar(
-        backgroundColor: scheme.primary,
-        title: Text('Capital Bank', style: TextStyle(color: scheme.surface)),
-        iconTheme: IconThemeData(color: scheme.surface),
-        actions: [
-          if (_oauthComplete)
-            IconButton(
-              onPressed: _syncing ? null : _resync,
-              icon: Icon(Icons.sync, color: scheme.surface),
-              tooltip: 'Re-sync',
-            ),
-        ],
-      ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          color: scheme.surface,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
-        ),
-        child: _buildBody(),
-      ),
-      floatingActionButton: _oauthComplete
-          ? FloatingActionButton.extended(
-              onPressed: _selected.isEmpty ? null : _linkSelected,
-              backgroundColor: _selected.isEmpty ? Colors.grey : scheme.primary,
-              icon: const Icon(Icons.link, color: Colors.white),
-              label: const Text(
-                'Link Selected',
-                style: TextStyle(color: Colors.white),
-              ),
-            )
-          : null,
+    return BankLinkScaffold(
+      title: 'Capital Bank',
+      syncing: _syncing,
+      onResync: _oauthComplete ? _resync : null,
+      showLinkBar: _oauthComplete,
+      selectedCount: _selected.length,
+      onLink: _linkSelected,
+      body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const BankLoadingState();
     }
 
     if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text(
-                _error!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _error = null;
-                    _loading = true;
-                  });
-                  _startLink();
-                },
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
+      return BankErrorState(
+        message: _error!,
+        actionLabel: 'Retry',
+        onAction: () {
+          setState(() {
+            _error = null;
+            _loading = true;
+          });
+          _startLink();
+        },
       );
     }
 
@@ -1194,13 +810,7 @@ class _CapitalLinkScreenState extends State<CapitalLinkScreen> {
     }
 
     if (_webViewController != null) {
-      return ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
-        ),
-        child: WebViewWidget(controller: _webViewController!),
-      );
+      return WebViewWidget(controller: _webViewController!);
     }
 
     return const Center(child: Text('Something went wrong'));
@@ -1208,224 +818,90 @@ class _CapitalLinkScreenState extends State<CapitalLinkScreen> {
 
   Widget _buildAccountSelection() {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    final scheme = Theme.of(context).colorScheme;
     if (uid == null) return const Center(child: Text('Not logged in'));
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_syncing) const LinearProgressIndicator(),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.account_balance),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  'Select accounts to link',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const MainScreen()),
-                    (_) => false,
-                  );
-                },
-                child: Text('Skip', style: TextStyle(color: scheme.primary)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(uid)
-                  .collection('accounts')
-                  .where('provider', isEqualTo: 'Capital')
-                  .snapshots(),
-              builder: (context, snap) {
-                if (snap.connectionState == ConnectionState.waiting || (_syncing && (!snap.hasData || snap.data!.docs.isEmpty))) {
-                  return const Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircularProgressIndicator(),
-                        SizedBox(height: 16),
-                        Text('Retrieving your accounts...'),
-                      ],
-                    ),
-                  );
-                }
-                if (!snap.hasData || snap.data!.docs.isEmpty) {
-                  return const Center(child: Text('No accounts available'));
-                }
-
-                final docs = snap.data!.docs;
-                return ListView.separated(
-                  padding: const EdgeInsets.only(bottom: 96),
-                  itemCount: docs.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (context, i) {
-                    final doc = docs[i];
-                    final id = doc.id;
-                    final acc = doc.data() as Map<String, dynamic>? ?? {};
-                    final linked = (acc['linked'] ?? false) == true;
-
-                    final bankName =
-                        (acc["bankName"]?.toString().trim().isNotEmpty ?? false)
-                        ? acc["bankName"].toString()
-                        : "Capital Bank";
-                    final accountType =
-                        acc["accountTypeName"]?.toString() ?? "Account";
-
-                    num balance = 0;
-                    final dynamic balRaw = acc["balanceAmount"];
-                    if (balRaw is num) {
-                      balance = balRaw;
-                    } else if (balRaw is String) {
-                      balance = num.tryParse(balRaw) ?? 0;
-                    }
-                    final currency =
-                        acc["currency"]?.toString().trim().isNotEmpty == true
-                        ? acc["currency"].toString()
-                        : "JOD";
-                    final iban =
-                        acc["iban"]?.toString().trim().isNotEmpty == true
-                        ? acc["iban"].toString()
-                        : "No IBAN available";
-
-                    final checked = _selected.contains(id) || linked;
-
-                    return InkWell(
-                      onTap: linked
-                          ? null
-                          : () {
-                              setState(() {
-                                if (checked) {
-                                  _selected.remove(id);
-                                } else {
-                                  _selected.add(id);
-                                }
-                              });
-                            },
-                      child: Card(
-                        color: Colors.white,
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Checkbox(
-                                value: checked,
-                                onChanged: linked
-                                    ? null
-                                    : (v) {
-                                        setState(() {
-                                          if (v == true) {
-                                            _selected.add(id);
-                                          } else {
-                                            _selected.remove(id);
-                                          }
-                                        });
-                                      },
-                                fillColor:
-                                    WidgetStateProperty.resolveWith<Color>((
-                                      Set<WidgetState> states,
-                                    ) {
-                                      if (states.contains(
-                                        WidgetState.disabled,
-                                      )) {
-                                        return Colors.green;
-                                      }
-                                      return Colors.white;
-                                    }),
-                                checkColor: Colors.black,
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            bankName,
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ),
-                                        Text(
-                                          _fmt(balance, currency),
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w700,
-                                            color: Colors.green[700],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      accountType,
-                                      style: const TextStyle(
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      "IBAN: $iban",
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                    if (linked) ...[
-                                      const SizedBox(height: 6),
-                                      const Row(
-                                        children: [
-                                          Icon(
-                                            Icons.check_circle,
-                                            color: Colors.green,
-                                            size: 16,
-                                          ),
-                                          SizedBox(width: 6),
-                                          Text(
-                                            'Linked',
-                                            style: TextStyle(
-                                              color: Colors.green,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        BankSelectHeader(
+          syncing: _syncing,
+          onSkip: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const MainScreen()),
+              (_) => false,
+            );
+          },
+        ),
+        Expanded(
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('users')
+                .doc(uid)
+                .collection('accounts')
+                .where('provider', isEqualTo: 'Capital')
+                .snapshots(),
+            builder: (context, snap) {
+              if (snap.connectionState == ConnectionState.waiting || (_syncing && (!snap.hasData || snap.data!.docs.isEmpty))) {
+                return const BankLoadingState(
+                  message: 'Retrieving your accounts...',
                 );
-              },
-            ),
+              }
+              if (!snap.hasData || snap.data!.docs.isEmpty) {
+                return const BankEmptyState(title: 'No accounts available');
+              }
+
+              final docs = snap.data!.docs;
+              return LinkableAccountList(
+                children: [
+                  for (final doc in docs) _capitalRow(doc),
+                ],
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+
+  Widget _capitalRow(QueryDocumentSnapshot doc) {
+    final id = doc.id;
+    final acc = doc.data() as Map<String, dynamic>? ?? {};
+    final linked = (acc['linked'] ?? false) == true;
+
+    final bankName = (acc["bankName"]?.toString().trim().isNotEmpty ?? false)
+        ? acc["bankName"].toString()
+        : "Capital Bank";
+    final accountType = acc["accountTypeName"]?.toString() ?? "Account";
+
+    num balance = 0;
+    final dynamic balRaw = acc["balanceAmount"];
+    if (balRaw is num) {
+      balance = balRaw;
+    } else if (balRaw is String) {
+      balance = num.tryParse(balRaw) ?? 0;
+    }
+    final currency = acc["currency"]?.toString().trim().isNotEmpty == true
+        ? acc["currency"].toString()
+        : "JOD";
+
+    final checked = _selected.contains(id) || linked;
+
+    return LinkableAccountTile(
+      title: bankName,
+      lines: [accountType, ibanLine(acc["iban"])],
+      balance: balance,
+      currency: currency,
+      checked: checked,
+      linked: linked,
+      onToggle: () {
+        setState(() {
+          if (checked) {
+            _selected.remove(id);
+          } else {
+            _selected.add(id);
+          }
+        });
+      },
     );
   }
 }
@@ -1460,15 +936,6 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
     _passwordController.dispose();
     _otpController.dispose();
     super.dispose();
-  }
-
-  String _fmt(num amount, String currency) {
-    final f = NumberFormat.currency(
-      locale: 'en_US',
-      symbol: "$currency ",
-      decimalDigits: 2,
-    );
-    return f.format(amount);
   }
 
   /// Step 1: Send credentials → triggers OTP
@@ -1654,7 +1121,7 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
             return AlertDialog(
-              title: const Text('Create Test Account'),
+              title: const Text('Create test account'),
               content: Form(
                 key: dialogFormKey,
                 child: Column(
@@ -1664,7 +1131,6 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
                       controller: nameC,
                       decoration: const InputDecoration(
                         labelText: 'Account Name',
-                        border: OutlineInputBorder(),
                       ),
                       validator: (v) =>
                           (v == null || v.trim().isEmpty) ? 'Required' : null,
@@ -1674,16 +1140,16 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
                       controller: currencyC,
                       decoration: const InputDecoration(
                         labelText: 'Currency',
-                        border: OutlineInputBorder(),
                       ),
                       validator: (v) =>
                           (v == null || v.trim().isEmpty) ? 'Required' : null,
                     ),
                     if (dialogError != null) ...[
                       const SizedBox(height: 12),
-                      Text(dialogError!,
-                          style: const TextStyle(
-                              color: Colors.red, fontSize: 13)),
+                      Text(
+                        dialogError!,
+                        style: TextStyle(color: ctx.vesta.neg, fontSize: 13),
+                      ),
                     ],
                   ],
                 ),
@@ -1693,7 +1159,7 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
                   onPressed: creating ? null : () => Navigator.pop(ctx, false),
                   child: const Text('Cancel'),
                 ),
-                ElevatedButton(
+                FilledButton(
                   onPressed: creating
                       ? null
                       : () async {
@@ -1775,90 +1241,33 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      backgroundColor: scheme.primary,
-      appBar: AppBar(
-        backgroundColor: scheme.primary,
-        title: Text('Etihad Bank', style: TextStyle(color: scheme.surface)),
-        iconTheme: IconThemeData(color: scheme.surface),
-        actions: [
-          if (_authenticated)
-            IconButton(
-              onPressed: _syncing ? null : _resync,
-              icon: Icon(Icons.sync, color: scheme.surface),
-              tooltip: 'Re-sync',
-            ),
-        ],
-      ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          color: scheme.surface,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
-        ),
-        child: _buildBody(),
-      ),
-      floatingActionButton: _authenticated
-          ? FloatingActionButton.extended(
-              onPressed: _selected.isEmpty ? null : _linkSelected,
-              backgroundColor: _selected.isEmpty ? Colors.grey : scheme.primary,
-              icon: const Icon(Icons.link, color: Colors.white),
-              label: const Text(
-                'Link Selected',
-                style: TextStyle(color: Colors.white),
-              ),
-            )
-          : null,
+    return BankLinkScaffold(
+      title: 'Etihad Bank',
+      syncing: _syncing,
+      onResync: _authenticated ? _resync : null,
+      showLinkBar: _authenticated,
+      selectedCount: _selected.length,
+      onLink: _linkSelected,
+      body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
     if (_syncing && !_authenticated) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Syncing accounts...'),
-          ],
-        ),
-      );
+      return const BankLoadingState(message: 'Syncing accounts...');
     }
 
     if (_error != null && !_authenticated) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text(
-                _error!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _error = null;
-                    _otpSent = false;
-                    _authenticated = false;
-                  });
-                },
-                child: const Text('Try Again'),
-              ),
-            ],
-          ),
-        ),
+      return BankErrorState(
+        message: _error!,
+        actionLabel: 'Try again',
+        onAction: () {
+          setState(() {
+            _error = null;
+            _otpSent = false;
+            _authenticated = false;
+          });
+        },
       );
     }
 
@@ -1874,85 +1283,40 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
   }
 
   Widget _buildLoginForm() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
-            const Text(
-              'Login to your Etihad Bank account',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    return Form(
+      key: _formKey,
+      child: BankLoginCard(
+        bankName: 'Bank Al Etihad',
+        title: 'Log in to Etihad Bank',
+        subtitle:
+            'Enter your online banking credentials to securely link your account.',
+        fields: [
+          TextFormField(
+            controller: _usernameController,
+            decoration: const InputDecoration(
+              labelText: 'Username',
+              prefixIcon: Icon(PhosphorIconsRegular.user),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'Enter your online banking credentials to securely link your account.',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? 'Username is required' : null,
+          ),
+          TextFormField(
+            controller: _passwordController,
+            obscureText: true,
+            decoration: const InputDecoration(
+              labelText: 'Password',
+              prefixIcon: Icon(PhosphorIconsRegular.lockSimple),
             ),
-            const SizedBox(height: 32),
-            TextFormField(
-              controller: _usernameController,
-              decoration: const InputDecoration(
-                labelText: 'Username',
-                prefixIcon: Icon(Icons.person),
-                border: OutlineInputBorder(),
-              ),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Username is required' : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                prefixIcon: Icon(Icons.lock),
-                border: OutlineInputBorder(),
-              ),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Password is required' : null,
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: _loading ? null : _loginInit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: _loading
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('Login', style: TextStyle(fontSize: 16)),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Center(
-              child: TextButton(
-                onPressed: _loading ? null : _showCreateUserDialog,
-                child: Text(
-                  'Create Sandbox Account',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.secondary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ],
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? 'Password is required' : null,
+          ),
+        ],
+        submitLabel: 'Log in',
+        loading: _loading,
+        onSubmit: _loginInit,
+        footer: TextButton(
+          onPressed: _loading ? null : _showCreateUserDialog,
+          child: const Text('Create sandbox account'),
         ),
       ),
     );
@@ -1976,23 +1340,22 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
             return AlertDialog(
-              title: const Text('Create Sandbox User'),
+              title: const Text('Create sandbox user'),
               content: SingleChildScrollView(
                 child: Form(
                   key: dialogFormKey,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
+                      Text(
                         'Create a test account on the Etihad Bank sandbox.',
-                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                        style: TextStyle(fontSize: 13, color: ctx.vesta.muted),
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: usernameC,
                         decoration: const InputDecoration(
                           labelText: 'Username',
-                          border: OutlineInputBorder(),
                         ),
                         validator: (v) =>
                             (v == null || v.trim().isEmpty) ? 'Required' : null,
@@ -2003,7 +1366,6 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
                         obscureText: true,
                         decoration: const InputDecoration(
                           labelText: 'Password',
-                          border: OutlineInputBorder(),
                         ),
                         validator: (v) =>
                             (v == null || v.trim().isEmpty) ? 'Required' : null,
@@ -2014,7 +1376,6 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
                         keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
                           labelText: 'Email',
-                          border: OutlineInputBorder(),
                         ),
                         validator: (v) =>
                             (v == null || v.trim().isEmpty) ? 'Required' : null,
@@ -2024,7 +1385,6 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
                         controller: firstNameC,
                         decoration: const InputDecoration(
                           labelText: 'First Name',
-                          border: OutlineInputBorder(),
                         ),
                         validator: (v) =>
                             (v == null || v.trim().isEmpty) ? 'Required' : null,
@@ -2034,7 +1394,6 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
                         controller: lastNameC,
                         decoration: const InputDecoration(
                           labelText: 'Last Name',
-                          border: OutlineInputBorder(),
                         ),
                         validator: (v) =>
                             (v == null || v.trim().isEmpty) ? 'Required' : null,
@@ -2045,7 +1404,6 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
                         keyboardType: TextInputType.phone,
                         decoration: const InputDecoration(
                           labelText: 'Phone Number',
-                          border: OutlineInputBorder(),
                         ),
                         validator: (v) =>
                             (v == null || v.trim().isEmpty) ? 'Required' : null,
@@ -2054,7 +1412,7 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
                         const SizedBox(height: 12),
                         Text(
                           dialogError!,
-                          style: const TextStyle(color: Colors.red, fontSize: 13),
+                          style: TextStyle(color: ctx.vesta.neg, fontSize: 13),
                         ),
                       ],
                     ],
@@ -2066,7 +1424,7 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
                   onPressed: creating ? null : () => Navigator.pop(ctx, false),
                   child: const Text('Cancel'),
                 ),
-                ElevatedButton(
+                FilledButton(
                   onPressed: creating
                       ? null
                       : () async {
@@ -2122,314 +1480,127 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
   }
 
   Widget _buildOtpForm() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 16),
-          const Text(
-            'Enter OTP',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    return BankLoginCard(
+      bankName: 'Bank Al Etihad',
+      title: 'Enter the code',
+      subtitle:
+          'An OTP has been sent to your registered phone number. Enter it below to complete the login.',
+      fields: [
+        TextFormField(
+          controller: _otpController,
+          keyboardType: TextInputType.number,
+          maxLength: 6,
+          style: amountStyle(18).copyWith(letterSpacing: 4),
+          decoration: const InputDecoration(
+            labelText: 'OTP code',
+            prefixIcon: Icon(PhosphorIconsRegular.chatText),
+            counterText: '',
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'An OTP has been sent to your registered phone number. Enter it below to complete the login.',
-            style: TextStyle(fontSize: 14, color: Colors.grey),
-          ),
-          const SizedBox(height: 32),
-          TextFormField(
-            controller: _otpController,
-            keyboardType: TextInputType.number,
-            maxLength: 6,
-            decoration: const InputDecoration(
-              labelText: 'OTP Code',
-              prefixIcon: Icon(Icons.sms),
-              border: OutlineInputBorder(),
-            ),
-          ),
-          if (_error != null) ...[
-            const SizedBox(height: 8),
-            Text(_error!, style: const TextStyle(color: Colors.red)),
-          ],
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: _loading ? null : _loginComplete,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: _loading
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text('Verify', style: TextStyle(fontSize: 16)),
-            ),
-          ),
-        ],
-      ),
+        ),
+        if (_error != null)
+          Text(_error!, style: TextStyle(fontSize: 13, color: context.vesta.neg)),
+      ],
+      submitLabel: 'Verify',
+      loading: _loading,
+      onSubmit: _loginComplete,
     );
   }
 
   Widget _buildAccountSelection() {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    final scheme = Theme.of(context).colorScheme;
     if (uid == null) return const Center(child: Text('Not logged in'));
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_syncing) const LinearProgressIndicator(),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.account_balance),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  'Select accounts to link',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const MainScreen()),
-                    (_) => false,
-                  );
-                },
-                child: Text('Skip', style: TextStyle(color: scheme.primary)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(uid)
-                  .collection('accounts')
-                  .where('provider', isEqualTo: 'Etihad')
-                  .snapshots(),
-              builder: (context, snap) {
-                if (snap.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (!snap.hasData || snap.data!.docs.isEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.account_balance_outlined,
-                              size: 48, color: Colors.grey),
-                          const SizedBox(height: 12),
-                          const Text(
-                            'No accounts found',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Create a sandbox test account to continue.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 13, color: Colors.grey),
-                          ),
-                          const SizedBox(height: 20),
-                          ElevatedButton.icon(
-                            onPressed:
-                                _syncing ? null : _showCreateAccountDialog,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.primary,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                            ),
-                            icon: const Icon(Icons.add),
-                            label: const Text('Create Test Account'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-
-                final docs = snap.data!.docs;
-                return ListView.separated(
-                  padding: const EdgeInsets.only(bottom: 96),
-                  itemCount: docs.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (context, i) {
-                    final doc = docs[i];
-                    final id = doc.id;
-                    final acc = doc.data() as Map<String, dynamic>? ?? {};
-                    final linked = (acc['linked'] ?? false) == true;
-
-                    final bankName =
-                        (acc["bankName"]?.toString().trim().isNotEmpty ?? false)
-                            ? acc["bankName"].toString()
-                            : (acc["name"]?.toString().trim().isNotEmpty ?? false)
-                                ? acc["name"].toString()
-                                : "Etihad Bank";
-
-                    final customerName =
-                        acc["customerName"]?.toString() ?? "Account";
-
-                    num balance = 0;
-                    final dynamic balRaw =
-                        acc["availableBalance"] ?? acc["currentBalance"];
-                    if (balRaw is num) {
-                      balance = balRaw;
-                    } else if (balRaw is String) {
-                      balance = num.tryParse(balRaw) ?? 0;
-                    }
-                    final currency =
-                        acc["currency"]?.toString().trim().isNotEmpty == true
-                            ? acc["currency"].toString()
-                            : "JOD";
-                    final iban =
-                        acc["iban"]?.toString().trim().isNotEmpty == true
-                            ? acc["iban"].toString()
-                            : "No IBAN available";
-
-                    final checked = _selected.contains(id) || linked;
-
-                    return InkWell(
-                      onTap: linked
-                          ? null
-                          : () {
-                              setState(() {
-                                if (checked) {
-                                  _selected.remove(id);
-                                } else {
-                                  _selected.add(id);
-                                }
-                              });
-                            },
-                      child: Card(
-                        color: Colors.white,
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Checkbox(
-                                value: checked,
-                                onChanged: linked
-                                    ? null
-                                    : (v) {
-                                        setState(() {
-                                          if (v == true) {
-                                            _selected.add(id);
-                                          } else {
-                                            _selected.remove(id);
-                                          }
-                                        });
-                                      },
-                                fillColor:
-                                    WidgetStateProperty.resolveWith<Color>((
-                                  Set<WidgetState> states,
-                                ) {
-                                  if (states.contains(WidgetState.disabled)) {
-                                    return Colors.green;
-                                  }
-                                  return Colors.white;
-                                }),
-                                checkColor: Colors.black,
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            bankName,
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ),
-                                        Text(
-                                          _fmt(balance, currency),
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w700,
-                                            color: Colors.green[700],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      customerName,
-                                      style: const TextStyle(color: Colors.grey),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      "IBAN: $iban",
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                    if (linked) ...[
-                                      const SizedBox(height: 6),
-                                      const Row(
-                                        children: [
-                                          Icon(
-                                            Icons.check_circle,
-                                            color: Colors.green,
-                                            size: 16,
-                                          ),
-                                          SizedBox(width: 6),
-                                          Text(
-                                            'Linked',
-                                            style: TextStyle(
-                                              color: Colors.green,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        BankSelectHeader(
+          syncing: _syncing,
+          onSkip: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const MainScreen()),
+              (_) => false,
+            );
+          },
+        ),
+        Expanded(
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('users')
+                .doc(uid)
+                .collection('accounts')
+                .where('provider', isEqualTo: 'Etihad')
+                .snapshots(),
+            builder: (context, snap) {
+              if (snap.connectionState == ConnectionState.waiting) {
+                return const BankLoadingState();
+              }
+              if (!snap.hasData || snap.data!.docs.isEmpty) {
+                return BankEmptyState(
+                  title: 'No accounts found',
+                  message: 'Create a sandbox test account to continue.',
+                  action: PrimaryButton(
+                    label: 'Create test account',
+                    onPressed: _syncing ? null : _showCreateAccountDialog,
+                  ),
                 );
-              },
-            ),
+              }
+
+              final docs = snap.data!.docs;
+              return LinkableAccountList(
+                children: [
+                  for (final doc in docs) _etihadRow(doc),
+                ],
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+
+  Widget _etihadRow(QueryDocumentSnapshot doc) {
+    final id = doc.id;
+    final acc = doc.data() as Map<String, dynamic>? ?? {};
+    final linked = (acc['linked'] ?? false) == true;
+
+    final bankName = (acc["bankName"]?.toString().trim().isNotEmpty ?? false)
+        ? acc["bankName"].toString()
+        : (acc["name"]?.toString().trim().isNotEmpty ?? false)
+        ? acc["name"].toString()
+        : "Etihad Bank";
+
+    final customerName = acc["customerName"]?.toString() ?? "Account";
+
+    num balance = 0;
+    final dynamic balRaw = acc["availableBalance"] ?? acc["currentBalance"];
+    if (balRaw is num) {
+      balance = balRaw;
+    } else if (balRaw is String) {
+      balance = num.tryParse(balRaw) ?? 0;
+    }
+    final currency = acc["currency"]?.toString().trim().isNotEmpty == true
+        ? acc["currency"].toString()
+        : "JOD";
+
+    final checked = _selected.contains(id) || linked;
+
+    return LinkableAccountTile(
+      title: bankName,
+      badgeName: 'Bank Al Etihad',
+      lines: [customerName, ibanLine(acc["iban"])],
+      balance: balance,
+      currency: currency,
+      checked: checked,
+      linked: linked,
+      onToggle: () {
+        setState(() {
+          if (checked) {
+            _selected.remove(id);
+          } else {
+            _selected.add(id);
+          }
+        });
+      },
     );
   }
 }
@@ -2466,40 +1637,23 @@ class HbtfAccountTags extends StatelessWidget {
 
   final Map<String, dynamic> account;
 
-  Widget _chip(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final status = hbtfInactiveStatus(account);
     final isLoan = hbtfIsLoan(account);
     if (status == null && !isLoan) return const SizedBox.shrink();
 
+    final v = context.vesta;
     return Wrap(
       spacing: 6,
       runSpacing: 4,
       children: [
-        if (isLoan) _chip('Loan · not counted in total balance', Colors.blueGrey),
-        if (status == 'DORMANT') _chip('Dormant', Colors.orange.shade800),
+        if (isLoan) TagChip.pill('Loan · not in total balance', color: v.muted),
+        if (status == 'DORMANT') TagChip.pill('Dormant', color: v.neg),
         if (status != null && status != 'DORMANT')
-          _chip(
+          TagChip.pill(
             '${status[0]}${status.substring(1).toLowerCase()}',
-            Colors.grey.shade700,
+            color: v.muted,
           ),
       ],
     );
@@ -2522,6 +1676,7 @@ class HbtfConnectionStatus extends StatelessWidget {
       stream: FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
       builder: (context, snap) {
         if (!snap.hasData) return const SizedBox.shrink();
+        final v = context.vesta;
         final userData = snap.data!.data();
         final state = hbtfLinkState(userData);
 
@@ -2533,16 +1688,14 @@ class HbtfConnectionStatus extends StatelessWidget {
           );
           return Row(
             children: [
-              const Icon(Icons.check_circle, color: Colors.green, size: 16),
+              Icon(PhosphorIconsFill.checkCircle, color: v.pos, size: 14),
               const SizedBox(width: 6),
-              Text(
-                expiresAt == null
-                    ? 'Connected'
-                    : 'Connected · until ${DateFormat('d MMM yyyy').format(expiresAt.toLocal())}',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.green,
-                  fontWeight: FontWeight.w600,
+              Flexible(
+                child: Text(
+                  expiresAt == null
+                      ? 'Connected'
+                      : 'Connected · until ${DateFormat('d MMM yyyy').format(expiresAt.toLocal())}',
+                  style: TextStyle(fontSize: 12, color: v.pos),
                 ),
               ),
             ],
@@ -2558,18 +1711,21 @@ class HbtfConnectionStatus extends StatelessWidget {
 
         return InkWell(
           onTap: reconnect,
+          borderRadius: BorderRadius.circular(VestaRadius.sm),
           child: Row(
             children: [
-              Icon(Icons.link_off, color: Colors.orange.shade800, size: 16),
+              Icon(PhosphorIconsRegular.linkSimple, color: v.accentInk, size: 14),
               const SizedBox(width: 6),
-              Text(
-                state == HbtfLinkState.expired
-                    ? 'Access expired · Reconnect'
-                    : 'Not connected · Link Housing Bank',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.orange.shade800,
-                  fontWeight: FontWeight.w600,
+              Flexible(
+                child: Text(
+                  state == HbtfLinkState.expired
+                      ? 'Access expired · Reconnect'
+                      : 'Not connected · Link Housing Bank',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: v.accentInk,
+                  ),
                 ),
               ),
             ],
@@ -2620,15 +1776,6 @@ class _HbtfLinkScreenState extends State<HbtfLinkScreen>
     if (state == AppLifecycleState.resumed && _awaitingApproval) {
       _checkApproval(fromResume: true);
     }
-  }
-
-  String _fmt(num amount, String currency) {
-    final f = NumberFormat.currency(
-      locale: 'en_US',
-      symbol: "$currency ",
-      decimalDigits: 2,
-    );
-    return f.format(amount);
   }
 
   void _snack(String message) {
@@ -2872,60 +2019,20 @@ class _HbtfLinkScreenState extends State<HbtfLinkScreen>
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      backgroundColor: scheme.primary,
-      appBar: AppBar(
-        backgroundColor: scheme.primary,
-        title: Text('Housing Bank', style: TextStyle(color: scheme.surface)),
-        iconTheme: IconThemeData(color: scheme.surface),
-        actions: [
-          if (_linked)
-            IconButton(
-              onPressed: _syncing ? null : _resync,
-              icon: Icon(Icons.sync, color: scheme.surface),
-              tooltip: 'Re-sync',
-            ),
-        ],
-      ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          color: scheme.surface,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
-        ),
-        child: _buildBody(),
-      ),
-      floatingActionButton: _linked
-          ? FloatingActionButton.extended(
-              onPressed: _selected.isEmpty ? null : _linkSelected,
-              backgroundColor: _selected.isEmpty ? Colors.grey : scheme.primary,
-              icon: const Icon(Icons.link, color: Colors.white),
-              label: const Text(
-                'Link Selected',
-                style: TextStyle(color: Colors.white),
-              ),
-            )
-          : null,
+    return BankLinkScaffold(
+      title: 'Housing Bank',
+      syncing: _syncing,
+      onResync: _linked ? _resync : null,
+      showLinkBar: _linked,
+      selectedCount: _selected.length,
+      onLink: _linkSelected,
+      body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
     if (_loading) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text(_loadingMessage),
-          ],
-        ),
-      );
+      return BankLoadingState(message: _loadingMessage);
     }
 
     if (_error != null) {
@@ -2933,31 +2040,11 @@ class _HbtfLinkScreenState extends State<HbtfLinkScreen>
           _errorKind == HbtfErrorKind.consentExpired ||
           _errorKind == HbtfErrorKind.notLinked ||
           _errorKind == HbtfErrorKind.noConsent;
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                reconnect ? Icons.link_off : Icons.error_outline,
-                size: 48,
-                color: reconnect ? Colors.orange.shade800 : Colors.red,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                _error!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _retry,
-                child: Text(reconnect ? 'Link Housing Bank' : 'Retry'),
-              ),
-            ],
-          ),
-        ),
+      return BankErrorState(
+        message: _error!,
+        reconnect: reconnect,
+        actionLabel: reconnect ? 'Link Housing Bank' : 'Retry',
+        onAction: _retry,
       );
     }
 
@@ -2973,323 +2060,122 @@ class _HbtfLinkScreenState extends State<HbtfLinkScreen>
   }
 
   Widget _buildAwaitingApproval() {
-    final scheme = Theme.of(context).colorScheme;
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
-          child: Card(
-            color: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            elevation: 4,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.verified_user_outlined, size: 28),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Approve in the Iskan app',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: scheme.primary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    "We've opened Housing Bank's Iskan app (or your browser). "
-                    'Approve the request to share your accounts with Vesta, then come back here.',
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Access is read-only.',
-                    style: TextStyle(fontSize: 12, color: Colors.black54),
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _checkingApproval ? null : _checkApproval,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: scheme.primary,
-                        foregroundColor: scheme.surface,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: _checkingApproval
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text(
-                              "I've approved it",
-                              style: TextStyle(fontSize: 16),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                          onPressed: _checkingApproval ? null : _startLink,
-                          child: const Text('Start over'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextButton(
-                          onPressed: _checkingApproval
-                              ? null
-                              : _openApprovalLink,
-                          child: const Text('Open Iskan again'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
+    return BankConsentCard(
+      bankName: hbtfProviderLabel,
+      title: 'Approve in the Iskan app',
+      message:
+          "We've opened Housing Bank's Iskan app (or your browser). "
+          'Approve the request to share your accounts with Vesta, then come back here.',
+      scopes: const [
+        (PhosphorIconsRegular.wallet, 'Your account list and balances'),
+        (PhosphorIconsRegular.receipt, 'Your transaction history'),
+      ],
+      note: 'Access is read-only.',
+      cancelLabel: 'Start over',
+      onCancel: _checkingApproval ? null : _startLink,
+      allowLabel: "I've approved it",
+      onAllow: _checkingApproval ? null : _checkApproval,
+      busy: _checkingApproval,
+      extraActions: [
+        TextButton(
+          onPressed: _checkingApproval ? null : _openApprovalLink,
+          child: const Text('Open Iskan again'),
         ),
-      ),
+      ],
     );
   }
 
   Widget _buildAccountSelection() {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    final scheme = Theme.of(context).colorScheme;
     if (uid == null) return const Center(child: Text('Not logged in'));
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_syncing) const LinearProgressIndicator(),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.account_balance),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  'Select accounts to link',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const MainScreen()),
-                    (_) => false,
-                  );
-                },
-                child: Text('Skip', style: TextStyle(color: scheme.primary)),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 8),
-            child: HbtfConnectionStatus(onReconnect: _startLink),
-          ),
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(uid)
-                  .collection('accounts')
-                  .where('provider', isEqualTo: hbtfProviderLabel)
-                  .snapshots(),
-              builder: (context, snap) {
-                if (snap.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (!snap.hasData || snap.data!.docs.isEmpty) {
-                  return const Center(
-                    child: Text('No Housing Bank accounts found'),
-                  );
-                }
-
-                final docs = snap.data!.docs;
-                return ListView.separated(
-                  padding: const EdgeInsets.only(bottom: 96),
-                  itemCount: docs.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (context, i) {
-                    final doc = docs[i];
-                    final id = doc.id;
-                    final acc = doc.data() as Map<String, dynamic>? ?? {};
-                    final linked = (acc['linked'] ?? false) == true;
-                    final isLoan = hbtfIsLoan(acc);
-
-                    final accountType =
-                        acc["accountTypeName"]?.toString().trim().isNotEmpty ==
-                            true
-                        ? acc["accountTypeName"].toString()
-                        : "Account";
-
-                    num balance = 0;
-                    final dynamic balRaw = acc["balanceAmount"];
-                    if (balRaw is num) {
-                      balance = balRaw;
-                    } else if (balRaw is String) {
-                      balance = num.tryParse(balRaw) ?? 0;
-                    }
-                    final currency =
-                        acc["currency"]?.toString().trim().isNotEmpty == true
-                        ? acc["currency"].toString()
-                        : "JOD";
-
-                    final checked = _selected.contains(id) || linked;
-
-                    return InkWell(
-                      onTap: linked
-                          ? null
-                          : () {
-                              setState(() {
-                                if (checked) {
-                                  _selected.remove(id);
-                                } else {
-                                  _selected.add(id);
-                                }
-                              });
-                            },
-                      child: Card(
-                        color: Colors.white,
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Checkbox(
-                                value: checked,
-                                onChanged: linked
-                                    ? null
-                                    : (v) {
-                                        setState(() {
-                                          if (v == true) {
-                                            _selected.add(id);
-                                          } else {
-                                            _selected.remove(id);
-                                          }
-                                        });
-                                      },
-                                fillColor:
-                                    WidgetStateProperty.resolveWith<Color>((
-                                      Set<WidgetState> states,
-                                    ) {
-                                      if (states.contains(
-                                        WidgetState.disabled,
-                                      )) {
-                                        return Colors.green;
-                                      }
-                                      return Colors.white;
-                                    }),
-                                checkColor: Colors.black,
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const Expanded(
-                                          child: Text(
-                                            hbtfProviderLabel,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ),
-                                        Text(
-                                          _fmt(balance, currency),
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w700,
-                                            color: isLoan
-                                                ? Colors.black87
-                                                : Colors.green[700],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      accountType,
-                                      style: const TextStyle(
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      hbtfAccountRef(acc),
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    HbtfAccountTags(account: acc),
-                                    if (linked) ...[
-                                      const SizedBox(height: 6),
-                                      const Row(
-                                        children: [
-                                          Icon(
-                                            Icons.check_circle,
-                                            color: Colors.green,
-                                            size: 16,
-                                          ),
-                                          SizedBox(width: 6),
-                                          Text(
-                                            'Linked',
-                                            style: TextStyle(
-                                              color: Colors.green,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        BankSelectHeader(
+          syncing: _syncing,
+          onSkip: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const MainScreen()),
+              (_) => false,
+            );
+          },
+          below: HbtfConnectionStatus(onReconnect: _startLink),
+        ),
+        Expanded(
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('users')
+                .doc(uid)
+                .collection('accounts')
+                .where('provider', isEqualTo: hbtfProviderLabel)
+                .snapshots(),
+            builder: (context, snap) {
+              if (snap.connectionState == ConnectionState.waiting) {
+                return const BankLoadingState();
+              }
+              if (!snap.hasData || snap.data!.docs.isEmpty) {
+                return const BankEmptyState(
+                  title: 'No Housing Bank accounts found',
                 );
-              },
-            ),
+              }
+
+              final docs = snap.data!.docs;
+              return LinkableAccountList(
+                children: [
+                  for (final doc in docs) _hbtfRow(doc),
+                ],
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+
+  Widget _hbtfRow(QueryDocumentSnapshot doc) {
+    final id = doc.id;
+    final acc = doc.data() as Map<String, dynamic>? ?? {};
+    final linked = (acc['linked'] ?? false) == true;
+    final isLoan = hbtfIsLoan(acc);
+
+    final accountType =
+        acc["accountTypeName"]?.toString().trim().isNotEmpty == true
+        ? acc["accountTypeName"].toString()
+        : "Account";
+
+    num balance = 0;
+    final dynamic balRaw = acc["balanceAmount"];
+    if (balRaw is num) {
+      balance = balRaw;
+    } else if (balRaw is String) {
+      balance = num.tryParse(balRaw) ?? 0;
+    }
+    final currency = acc["currency"]?.toString().trim().isNotEmpty == true
+        ? acc["currency"].toString()
+        : "JOD";
+
+    final checked = _selected.contains(id) || linked;
+    final showTags = isLoan || hbtfInactiveStatus(acc) != null;
+
+    return LinkableAccountTile(
+      title: hbtfProviderLabel,
+      lines: [accountType, hbtfAccountRef(acc)],
+      balance: balance,
+      currency: currency,
+      neutralBalance: isLoan,
+      checked: checked,
+      linked: linked,
+      extra: showTags ? HbtfAccountTags(account: acc) : null,
+      onToggle: () {
+        setState(() {
+          if (checked) {
+            _selected.remove(id);
+          } else {
+            _selected.add(id);
+          }
+        });
+      },
     );
   }
 }
@@ -3316,15 +2202,6 @@ class _AhliLinkScreenState extends State<AhliLinkScreen> {
   void initState() {
     super.initState();
     _startLink();
-  }
-
-  String _fmt(num amount, String currency) {
-    final f = NumberFormat.currency(
-      locale: 'en_US',
-      symbol: "$currency ",
-      decimalDigits: 2,
-    );
-    return f.format(amount);
   }
 
   Future<void> _startLink() async {
@@ -3556,81 +2433,33 @@ class _AhliLinkScreenState extends State<AhliLinkScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      backgroundColor: scheme.primary,
-      appBar: AppBar(
-        backgroundColor: scheme.primary,
-        title: Text('Ahli Bank', style: TextStyle(color: scheme.surface)),
-        iconTheme: IconThemeData(color: scheme.surface),
-        actions: [
-          if (_oauthComplete)
-            IconButton(
-              onPressed: _syncing ? null : _resync,
-              icon: Icon(Icons.sync, color: scheme.surface),
-              tooltip: 'Re-sync',
-            ),
-        ],
-      ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          color: scheme.surface,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
-        ),
-        child: _buildBody(),
-      ),
-      floatingActionButton: _oauthComplete
-          ? FloatingActionButton.extended(
-              onPressed: _selected.isEmpty ? null : _linkSelected,
-              backgroundColor: _selected.isEmpty ? Colors.grey : scheme.primary,
-              icon: const Icon(Icons.link, color: Colors.white),
-              label: const Text(
-                'Link Selected',
-                style: TextStyle(color: Colors.white),
-              ),
-            )
-          : null,
+    return BankLinkScaffold(
+      title: 'Ahli Bank',
+      syncing: _syncing,
+      onResync: _oauthComplete ? _resync : null,
+      showLinkBar: _oauthComplete,
+      selectedCount: _selected.length,
+      onLink: _linkSelected,
+      body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const BankLoadingState();
     }
 
     if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text(
-                _error!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _error = null;
-                    _loading = true;
-                  });
-                  _startLink();
-                },
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
+      return BankErrorState(
+        message: _error!,
+        actionLabel: 'Retry',
+        onAction: () {
+          setState(() {
+            _error = null;
+            _loading = true;
+          });
+          _startLink();
+        },
       );
     }
 
@@ -3640,13 +2469,7 @@ class _AhliLinkScreenState extends State<AhliLinkScreen> {
 
     // Show WebView for OAuth
     if (_webViewController != null) {
-      return ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
-        ),
-        child: WebViewWidget(controller: _webViewController!),
-      );
+      return WebViewWidget(controller: _webViewController!);
     }
 
     return const Center(child: Text('Something went wrong'));
@@ -3654,215 +2477,88 @@ class _AhliLinkScreenState extends State<AhliLinkScreen> {
 
   Widget _buildAccountSelection() {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    final scheme = Theme.of(context).colorScheme;
     if (uid == null) return const Center(child: Text('Not logged in'));
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_syncing) const LinearProgressIndicator(),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.account_balance),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  'Select accounts to link',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const MainScreen()),
-                    (_) => false,
-                  );
-                },
-                child: Text('Skip', style: TextStyle(color: scheme.primary)),
-              ),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        BankSelectHeader(
+          syncing: _syncing,
+          onSkip: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const MainScreen()),
+              (_) => false,
+            );
+          },
+        ),
+        Expanded(
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('users')
+                .doc(uid)
+                .collection('accounts')
+                .where('provider', isEqualTo: 'Ahli')
+                .snapshots(),
+            builder: (context, snap) {
+              if (snap.connectionState == ConnectionState.waiting) {
+                return const BankLoadingState();
+              }
+              if (!snap.hasData || snap.data!.docs.isEmpty) {
+                return const BankEmptyState(title: 'No accounts available');
+              }
+
+              final docs = snap.data!.docs;
+              return LinkableAccountList(
+                children: [
+                  for (final doc in docs) _ahliRow(doc),
+                ],
+              );
+            },
           ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(uid)
-                  .collection('accounts')
-                  .where('provider', isEqualTo: 'Ahli')
-                  .snapshots(),
-              builder: (context, snap) {
-                if (snap.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (!snap.hasData || snap.data!.docs.isEmpty) {
-                  return const Center(child: Text('No accounts available'));
-                }
+        ),
+      ],
+    );
+  }
 
-                final docs = snap.data!.docs;
-                return ListView.separated(
-                  padding: const EdgeInsets.only(bottom: 96),
-                  itemCount: docs.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (context, i) {
-                    final doc = docs[i];
-                    final id = doc.id;
-                    final acc = doc.data() as Map<String, dynamic>? ?? {};
-                    final linked = (acc['linked'] ?? false) == true;
+  Widget _ahliRow(QueryDocumentSnapshot doc) {
+    final id = doc.id;
+    final acc = doc.data() as Map<String, dynamic>? ?? {};
+    final linked = (acc['linked'] ?? false) == true;
 
-                    final bankName =
-                        (acc["bankName"]?.toString().trim().isNotEmpty ?? false)
-                        ? acc["bankName"].toString()
-                        : "Ahli Bank";
-                    final accountType =
-                        acc["accountTypeName"]?.toString() ?? "Account";
+    final bankName = (acc["bankName"]?.toString().trim().isNotEmpty ?? false)
+        ? acc["bankName"].toString()
+        : "Ahli Bank";
+    final accountType = acc["accountTypeName"]?.toString() ?? "Account";
 
-                    num balance = 0;
-                    final dynamic balRaw = acc["balanceAmount"];
-                    if (balRaw is num) {
-                      balance = balRaw;
-                    } else if (balRaw is String) {
-                      balance = num.tryParse(balRaw) ?? 0;
-                    }
-                    final currency =
-                        acc["currency"]?.toString().trim().isNotEmpty == true
-                        ? acc["currency"].toString()
-                        : "JOD";
-                    final iban =
-                        acc["iban"]?.toString().trim().isNotEmpty == true
-                        ? acc["iban"].toString()
-                        : "No IBAN available";
+    num balance = 0;
+    final dynamic balRaw = acc["balanceAmount"];
+    if (balRaw is num) {
+      balance = balRaw;
+    } else if (balRaw is String) {
+      balance = num.tryParse(balRaw) ?? 0;
+    }
+    final currency = acc["currency"]?.toString().trim().isNotEmpty == true
+        ? acc["currency"].toString()
+        : "JOD";
 
-                    final checked = _selected.contains(id) || linked;
+    final checked = _selected.contains(id) || linked;
 
-                    return InkWell(
-                      onTap: linked
-                          ? null
-                          : () {
-                              setState(() {
-                                if (checked) {
-                                  _selected.remove(id);
-                                } else {
-                                  _selected.add(id);
-                                }
-                              });
-                            },
-                      child: Card(
-                        color: Colors.white,
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Checkbox(
-                                value: checked,
-                                onChanged: linked
-                                    ? null
-                                    : (v) {
-                                        setState(() {
-                                          if (v == true) {
-                                            _selected.add(id);
-                                          } else {
-                                            _selected.remove(id);
-                                          }
-                                        });
-                                      },
-                                fillColor:
-                                    WidgetStateProperty.resolveWith<Color>((
-                                      Set<WidgetState> states,
-                                    ) {
-                                      if (states.contains(
-                                        WidgetState.disabled,
-                                      )) {
-                                        return Colors.green;
-                                      }
-                                      return Colors.white;
-                                    }),
-                                checkColor: Colors.black,
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            bankName,
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ),
-                                        Text(
-                                          _fmt(balance, currency),
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w700,
-                                            color: Colors.green[700],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      accountType,
-                                      style: const TextStyle(
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      "IBAN: $iban",
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                    if (linked) ...[
-                                      const SizedBox(height: 6),
-                                      const Row(
-                                        children: [
-                                          Icon(
-                                            Icons.check_circle,
-                                            color: Colors.green,
-                                            size: 16,
-                                          ),
-                                          SizedBox(width: 6),
-                                          Text(
-                                            'Linked',
-                                            style: TextStyle(
-                                              color: Colors.green,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+    return LinkableAccountTile(
+      title: bankName,
+      lines: [accountType, ibanLine(acc["iban"])],
+      balance: balance,
+      currency: currency,
+      checked: checked,
+      linked: linked,
+      onToggle: () {
+        setState(() {
+          if (checked) {
+            _selected.remove(id);
+          } else {
+            _selected.add(id);
+          }
+        });
+      },
     );
   }
 }
