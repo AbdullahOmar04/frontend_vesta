@@ -7,6 +7,8 @@ import 'package:frontend_vesta/Helpers/account_balance.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/insights.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/spending_categories.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transactions.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
@@ -199,7 +201,19 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const VestaAppBar(title: "Spendings"),
+      appBar: VestaAppBar(
+        title: "Spendings",
+        actions: [
+          IconButton(
+            tooltip: 'Insights',
+            icon: const Icon(PhosphorIconsRegular.chartLineUp),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const InsightsPage()),
+            ),
+          ),
+        ],
+      ),
       body: VestaBackground(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
@@ -290,9 +304,13 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
         children: [
           TagChip(bucket.label, color: bucket.color),
           const SizedBox(width: VestaSpace.sm),
-          Text(
-            count == 1 ? "1 transaction" : "$count transactions",
-            style: Theme.of(context).textTheme.bodySmall,
+          Flexible(
+            child: Text(
+              count == 1 ? "1 transaction" : "$count transactions",
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ),
         ],
       ),

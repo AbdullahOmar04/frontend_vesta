@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
-import 'package:frontend_vesta/Screens/pages/main_screen.dart';
+import 'package:frontend_vesta/Screens/Onboarding/onboarding_questions.dart';
 
 const int otpValidityDurationSeconds = 120; // 2 minutes
 const int resendCooldownSeconds = 60; // 60 seconds cooldown before resend
@@ -320,7 +320,9 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
 
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const MainScreen()),
+        MaterialPageRoute(
+          builder: (_) => OnboardingQuestions(username: widget.username),
+        ),
         (route) => false,
       );
     } on FirebaseAuthException catch (e) {
