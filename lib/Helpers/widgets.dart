@@ -287,43 +287,6 @@ Widget largeButton(
   );
 }
 
-// ignore: non_constant_identifier_names
-Widget BankCard(
-  BuildContext context,
-  String bankName,
-  String logoPath,
-  Color color,
-  VoidCallback onPressed,
-) {
-  return Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: SizedBox(
-      height: 100,
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Image.asset(logoPath, width: 60, height: 60),
-            const SizedBox(width: 20),
-            Text(
-              bankName,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
 Future<void> inputDayOfMonth(BuildContext context) async {
   final formKey = GlobalKey<FormState>();
   bool isLoading = false;
