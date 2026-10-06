@@ -3,10 +3,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
+import 'package:frontend_vesta/Screens/Onboarding/onboarding_questions.dart';
 import 'package:frontend_vesta/Screens/Onboarding/phone_number.dart';
 
 class Register extends StatefulWidget {
-  const Register({super.key});
+  const Register({super.key, this.answers});
+
+  /// Answers from the questions before sign-up, including the username.
+  final OnboardingAnswers? answers;
 
   @override
   State<Register> createState() => _RegisterState();
@@ -21,6 +25,10 @@ class _RegisterState extends State<Register> {
   bool _obscurePassword = true;
   bool _obscureRepeatPassword = true;
 
+  /// Hidden when the questions already chose a username; shown again if
+  /// that name was taken in the meantime.
+  late bool _showUsername = widget.answers == null;
+
   // Password validation state
   bool _hasMinLength = false;
   bool _hasUppercase = false;
@@ -31,6 +39,7 @@ class _RegisterState extends State<Register> {
   void initState() {
     super.initState();
     _password.addListener(_validatePassword);
+    _username.text = widget.answers?.username ?? '';
   }
 
   @override
@@ -173,7 +182,10 @@ class _RegisterState extends State<Register> {
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
-        setState(() => _loading = false);
+        setState(() {
+          _loading = false;
+          _showUsername = true;
+        });
         return;
       }
 
@@ -211,7 +223,12 @@ class _RegisterState extends State<Register> {
         context,
         MaterialPageRoute(
           builder: (_) =>
-              PhoneNumberPage(username: username, email: email, password: pass),
+              PhoneNumberPage(
+                username: username,
+                email: email,
+                password: pass,
+                answers: widget.answers,
+              ),
         ),
       );
     } catch (e) {
@@ -253,15 +270,20 @@ class _RegisterState extends State<Register> {
             Text('Create your account', style: headingStyle(24)),
             const SizedBox(height: VestaSpace.xs),
             Text(
-              'Next we will verify your phone number.',
+              _showUsername
+                  ? 'Next we will verify your phone number.'
+                  : "You'll use these to log in as "
+                        '${_username.text.trim()}. Next we will verify your phone number.',
               style: TextStyle(fontSize: 14, color: v.muted),
             ),
             const SizedBox(height: VestaSpace.xl),
-            TextField(
-              controller: _username,
-              decoration: const InputDecoration(labelText: 'Username'),
-            ),
-            const SizedBox(height: 14),
+            if (_showUsername) ...[
+              TextField(
+                controller: _username,
+                decoration: const InputDecoration(labelText: 'Username'),
+              ),
+              const SizedBox(height: 14),
+            ],
             TextField(
               controller: _email,
               keyboardType: TextInputType.emailAddress,

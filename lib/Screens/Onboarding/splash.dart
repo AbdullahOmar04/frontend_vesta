@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/Onboarding/login.dart';
-import 'package:frontend_vesta/Screens/Onboarding/register.dart';
+import 'package:frontend_vesta/Screens/Onboarding/onboarding_questions.dart';
 
 class OnboardingSplash extends StatelessWidget {
   const OnboardingSplash({super.key});
@@ -73,7 +73,9 @@ class OnboardingSplash extends StatelessWidget {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => Register()),
+                          MaterialPageRoute(
+                            builder: (context) => const OnboardingQuestions(),
+                          ),
                         );
                       },
                     ),

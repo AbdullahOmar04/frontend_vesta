@@ -1,20 +1,39 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
-import 'package:frontend_vesta/Screens/pages/main_screen.dart';
+import 'package:frontend_vesta/Screens/Onboarding/register.dart';
 
-/// The things a new user can pick to work on first, after the prototype
-/// (its "bills" option is left out until the app has bills).
+/// The things a new user can pick to work on first, after the prototype.
 const _focusOptions = [
   ('spend', 'Manage my spendings', PhosphorIconsRegular.receipt),
   ('goals', 'Start saving goals', PhosphorIconsRegular.piggyBank),
+  ('bills', 'Manage bills and scheduled payments', PhosphorIconsRegular.calendarCheck),
   ('shared', 'Manage shared finances', PhosphorIconsRegular.usersThree),
   ('budget', 'Build a monthly budget', PhosphorIconsRegular.chartPieSlice),
   ('clarity', 'Get financial clarity', PhosphorIconsRegular.eye),
+];
+
+/// Banks a new user can say they use. Nothing gets connected; it is kept
+/// on the user doc for later features.
+const _jordanBanks = [
+  'Arab Bank',
+  'Housing Bank',
+  'Bank al Etihad',
+  'Capital Bank',
+  'Cairo Amman Bank',
+  'Jordan Ahli Bank',
+  'Jordan Kuwait Bank',
+  'Bank of Jordan',
+  'Jordan Islamic Bank',
+  'Safwa Islamic Bank',
+  'Arab Jordan Investment Bank',
+  'Investbank',
+  'Jordan Commercial Bank',
+  'Société Générale de Banque – Jordanie',
+  'Bank ABC',
 ];
 
 /// Suggested starting split, as budget percentages: (label, examples, %).
@@ -24,101 +43,159 @@ const _split = [
   ('Savings', 'Goals and extra payments', 20.0),
 ];
 
-/// A few questions right after sign-up, after the prototype's onboarding:
-/// a welcome, monthly income with a suggested budget split, and what to
-/// work on first. Skip goes straight to the app without saving anything.
-class OnboardingQuestions extends StatefulWidget {
-  const OnboardingQuestions({super.key, required this.username});
+/// What a new user answered before creating their account. Nothing is
+/// saved until the account exists: the OTP step writes it together with
+/// the new user doc.
+class OnboardingAnswers {
+  const OnboardingAnswers({
+    required this.username,
+    this.income = 0,
+    this.useSplit = false,
+    this.focus = const [],
+    this.banks = const [],
+  });
 
   final String username;
+  final double income;
+  final bool useSplit;
+  final List<String> focus;
+  final List<String> banks;
+
+  /// Fields for the new user doc.
+  Map<String, dynamic> get userFields => {
+    'totalIncome': income,
+    'focus': focus,
+    'banksUsed': banks,
+  };
+
+  /// This month's plan, when the user kept the suggested split. Shaped like
+  /// a plan saved from Budgeting, plus the createdAt and currency that let
+  /// handleBudgetCycleOnLogin carry it into the next cycle.
+  Map<String, dynamic>? get budgetPlan => useSplit && income > 0
+      ? {
+          'income': income,
+          'spending': _split[0].$3,
+          'luxuries': _split[1].$3,
+          'saving': _split[2].$3,
+          'currency': 'JOD',
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        }
+      : null;
+}
+
+/// A few questions before sign-up, after the prototype's onboarding: a
+/// username, monthly income with a suggested budget split, what to work on
+/// first, and which banks the user has. Then the account is created.
+class OnboardingQuestions extends StatefulWidget {
+  const OnboardingQuestions({super.key});
 
   @override
   State<OnboardingQuestions> createState() => _OnboardingQuestionsState();
 }
 
 class _OnboardingQuestionsState extends State<OnboardingQuestions> {
-  static const _steps = 3;
+  static const _steps = 4;
 
   int _step = 0;
+  final _usernameCtrl = TextEditingController();
+  String? _usernameError;
+  bool _checkingUsername = false;
   final _incomeCtrl = TextEditingController();
   bool _useSplit = true;
   final Set<String> _focus = {};
-  bool _saving = false;
+  final Set<String> _banks = {};
 
+  String get _username => _usernameCtrl.text.trim();
   double get _income => double.tryParse(_incomeCtrl.text.trim()) ?? 0;
 
   @override
   void dispose() {
+    _usernameCtrl.dispose();
     _incomeCtrl.dispose();
     super.dispose();
   }
 
-  void _openApp() {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const MainScreen()),
-      (_) => false,
-    );
-  }
-
   bool get _canContinue => switch (_step) {
+    0 => _username.isNotEmpty && !_checkingUsername,
     1 => _income > 0,
     2 => _focus.isNotEmpty,
     _ => true,
   };
 
-  Future<void> _next() async {
-    FocusScope.of(context).unfocus();
-    if (_step < _steps - 1) {
-      setState(() => _step++);
-      return;
+  /// Same rules and lookup as the sign-up form, so a name accepted here is
+  /// not refused there.
+  Future<bool> _usernameAvailable() async {
+    final username = _username;
+    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(username)) {
+      setState(() => _usernameError =
+          'Use only letters, numbers and underscores');
+      return false;
     }
-    await _finish();
+    setState(() {
+      _checkingUsername = true;
+      _usernameError = null;
+    });
+    try {
+      bool taken;
+      try {
+        final doc = await FirebaseFirestore.instance
+            .collection('usernames')
+            .doc(username.toLowerCase())
+            .get();
+        taken = doc.exists;
+      } catch (_) {
+        final query = await FirebaseFirestore.instance
+            .collection('users')
+            .where('username', isEqualTo: username)
+            .limit(1)
+            .get();
+        taken = query.docs.isNotEmpty;
+      }
+      if (!mounted) return false;
+      setState(() => _usernameError = taken ? 'That username is taken' : null);
+      return !taken;
+    } catch (e) {
+      if (mounted) {
+        setState(() => _usernameError = "Couldn't check the username: $e");
+      }
+      return false;
+    } finally {
+      if (mounted) setState(() => _checkingUsername = false);
+    }
   }
 
-  /// Saves the income and focus on the user doc, and the split as this
-  /// month's plan the same way the Budgeting screen saves one.
-  Future<void> _finish() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return _openApp();
-    setState(() => _saving = true);
+  OnboardingAnswers _answers() => OnboardingAnswers(
+    username: _username,
+    income: _income,
+    useSplit: _useSplit,
+    focus: _focus.toList(),
+    banks: _banks.toList(),
+  );
 
-    try {
-      final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
-      final income = _income;
-      final batch = FirebaseFirestore.instance.batch();
+  void _createAccount(OnboardingAnswers? answers) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => Register(answers: answers)),
+    );
+  }
 
-      batch.update(userRef, {
-        'totalIncome': income,
-        'focus': _focus.toList(),
-      });
-
-      if (_useSplit) {
-        final now = DateTime.now();
-        final monthId = "${now.year}-${now.month.toString().padLeft(2, '0')}";
-        final budgetRef = userRef.collection('budget').doc(monthId);
-        final exists = (await budgetRef.get()).exists;
-        batch.set(budgetRef, {
-          'income': income,
-          'spending': _split[0].$3,
-          'luxuries': _split[1].$3,
-          'saving': _split[2].$3,
-          'updatedAt': FieldValue.serverTimestamp(),
-          // A new month's doc needs createdAt, or the plan is never copied
-          // into the next cycle (see handleBudgetCycleOnLogin)
-          if (!exists) 'currency': 'JOD',
-          if (!exists) 'createdAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-      }
-
-      await batch.commit();
-      if (mounted) _openApp();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Couldn't save your answers: $e")),
-      );
+  Future<void> _next() async {
+    FocusScope.of(context).unfocus();
+    if (_step == 0 && !await _usernameAvailable()) return;
+    if (_step < _steps - 1) {
+      setState(() => _step++);
+    } else {
+      _createAccount(_answers());
     }
+  }
+
+  /// Past the username step, Skip keeps the username and drops the rest.
+  void _skip() {
+    FocusScope.of(context).unfocus();
+    _createAccount(
+      _step == 0 ? null : OnboardingAnswers(username: _username),
+    );
   }
 
   @override
@@ -126,7 +203,7 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
     return PopScope(
       canPop: _step == 0,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && _step > 0 && !_saving) setState(() => _step--);
+        if (!didPop && _step > 0) setState(() => _step--);
       },
       child: Scaffold(
         body: VestaBackground(
@@ -147,7 +224,8 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
                       switch (_step) {
                         0 => _welcome(),
                         1 => _incomeStep(),
-                        _ => _focusStep(),
+                        2 => _focusStep(),
+                        _ => _banksStep(),
                       },
                     ],
                   ),
@@ -160,13 +238,9 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
                     VestaSpace.lg,
                   ),
                   child: PrimaryButton(
-                    label: switch (_step) {
-                      0 => "Let's go",
-                      1 => 'Continue',
-                      _ => 'Finish',
-                    },
-                    loading: _saving,
-                    onPressed: _canContinue && !_saving ? _next : null,
+                    label: _step == _steps - 1 ? 'Create your account' : 'Continue',
+                    loading: _checkingUsername,
+                    onPressed: _canContinue ? _next : null,
                   ),
                 ),
               ],
@@ -182,18 +256,23 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
     final v = context.vesta;
     final accent = Theme.of(context).colorScheme.primary;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(VestaSpace.sm, VestaSpace.sm, VestaSpace.sm, 0),
+      padding: const EdgeInsets.fromLTRB(
+        VestaSpace.sm,
+        VestaSpace.sm,
+        VestaSpace.sm,
+        0,
+      ),
       child: Row(
         children: [
           SizedBox(
             width: 48,
-            child: _step > 0
-                ? IconButton(
-                    onPressed: _saving ? null : () => setState(() => _step--),
-                    icon: const Icon(PhosphorIconsRegular.arrowLeft),
-                    tooltip: 'Back',
-                  )
-                : null,
+            child: IconButton(
+              onPressed: () => _step == 0
+                  ? Navigator.of(context).maybePop()
+                  : setState(() => _step--),
+              icon: const Icon(PhosphorIconsRegular.arrowLeft),
+              tooltip: 'Back',
+            ),
           ),
           Expanded(
             child: Row(
@@ -213,10 +292,7 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
               ],
             ),
           ),
-          TextButton(
-            onPressed: _saving ? null : _openApp,
-            child: const Text('Skip'),
-          ),
+          TextButton(onPressed: _skip, child: const Text('Skip')),
         ],
       ),
     );
@@ -247,6 +323,19 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
           'in one place, and a coach that keeps an eye on your spending.',
           style: TextStyle(fontSize: 15, color: v.muted),
         ),
+        const SizedBox(height: VestaSpace.xl),
+        TextField(
+          controller: _usernameCtrl,
+          autocorrect: false,
+          textInputAction: TextInputAction.next,
+          decoration: InputDecoration(
+            labelText: 'Choose a username',
+            prefixIcon: const Icon(PhosphorIconsRegular.userCircle),
+            errorText: _usernameError,
+          ),
+          onChanged: (_) => setState(() => _usernameError = null),
+          onSubmitted: (_) => _canContinue ? _next() : null,
+        ),
       ],
     );
   }
@@ -260,7 +349,7 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Nice to meet you, ${widget.username}. '
+          'Nice to meet you, $_username. '
           'What lands in your account each month?',
           style: headingStyle(22),
         ),
@@ -285,6 +374,19 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
             hintText: '0',
           ),
           onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: VestaSpace.sm),
+        Row(
+          children: [
+            Icon(PhosphorIconsRegular.lockSimple, size: 14, color: v.muted),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                'Stays on your phone until you create your account.',
+                style: TextStyle(fontSize: 12, color: v.muted),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: VestaSpace.xl),
         VestaCard(
@@ -373,8 +475,6 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
 
   Widget _focusStep() {
     final v = context.vesta;
-    final accent = Theme.of(context).colorScheme.primary;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -386,11 +486,10 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
         ),
         const SizedBox(height: VestaSpace.xl),
         for (final (id, label, icon) in _focusOptions) ...[
-          _FocusOption(
+          _ChoiceRow(
             label: label,
-            icon: icon,
+            leading: Icon(icon, size: 20),
             selected: _focus.contains(id),
-            accent: accent,
             onTap: () => setState(() {
               if (_focus.contains(id)) {
                 _focus.remove(id);
@@ -404,26 +503,54 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
       ],
     );
   }
+
+  Widget _banksStep() {
+    final v = context.vesta;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Which banks do you use?', style: headingStyle(22)),
+        const SizedBox(height: VestaSpace.sm),
+        Text(
+          'Pick any that apply. Nothing gets connected; it helps us set '
+          'Vesta up around your accounts.',
+          style: TextStyle(fontSize: 14, color: v.muted),
+        ),
+        const SizedBox(height: VestaSpace.xl),
+        for (final bank in _jordanBanks) ...[
+          _ChoiceRow(
+            label: bank,
+            leading: BankBadge(bank, size: 28),
+            selected: _banks.contains(bank),
+            onTap: () => setState(() {
+              if (!_banks.remove(bank)) _banks.add(bank);
+            }),
+          ),
+          const SizedBox(height: 10),
+        ],
+      ],
+    );
+  }
 }
 
-class _FocusOption extends StatelessWidget {
-  const _FocusOption({
+/// A tappable option with a round tick on the right.
+class _ChoiceRow extends StatelessWidget {
+  const _ChoiceRow({
     required this.label,
-    required this.icon,
+    required this.leading,
     required this.selected,
-    required this.accent,
     required this.onTap,
   });
 
   final String label;
-  final IconData icon;
+  final Widget leading;
   final bool selected;
-  final Color accent;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final v = context.vesta;
+    final accent = Theme.of(context).colorScheme.primary;
     return Material(
       color: selected ? v.tint : Theme.of(context).colorScheme.surfaceContainer,
       shape: RoundedRectangleBorder(
@@ -434,10 +561,13 @@ class _FocusOption extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
             children: [
-              Icon(icon, size: 20, color: selected ? v.tintText : null),
+              IconTheme.merge(
+                data: IconThemeData(color: selected ? v.tintText : null),
+                child: leading,
+              ),
               const SizedBox(width: VestaSpace.md),
               Expanded(
                 child: Text(
