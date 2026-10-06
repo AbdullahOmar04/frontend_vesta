@@ -7,6 +7,7 @@ import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/new_spending.dart';
 import 'package:frontend_vesta/Screens/pages/accounts.dart';
+import 'package:frontend_vesta/Screens/pages/coach_card.dart';
 import 'package:frontend_vesta/Screens/Budgeting/budgeting_screen.dart';
 import 'package:frontend_vesta/Screens/Household/household.dart';
 import 'package:frontend_vesta/Screens/Savings/savings.dart';
@@ -139,6 +140,7 @@ class _HomePageState extends State<HomePage> {
                                 totalIncome,
                                 totalExpense,
                               ),
+                              const CoachCard(),
                               const SizedBox(height: VestaSpace.xl),
                               _tiles(),
                             ],
