@@ -39,11 +39,6 @@ flutter:
   assets:
     - .env
     - assets/images/choose_bank.png
-    - assets/images/jopacc.png
-    - assets/images/ahli.jpeg
-    - assets/images/cboj.png
-    - assets/images/etihad.jpg
-    - assets/images/hbtf.png
     - assets/images/LOGO_APP-ICON-DARK.png
     - assets/images/vesta_head.png
 
