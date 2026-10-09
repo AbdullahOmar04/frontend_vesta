@@ -155,29 +155,16 @@ class _AccountsPageState extends State<AccountsPage> {
                               );
                             },
                           ),
-                          OutlineIconButton(
-                            icon: PhosphorIconsRegular.plus,
-                            tooltip: 'Add account',
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const AddAccountPage(),
-                                ),
-                              );
+                          AddRemoveButtons(
+                            onAdd: () => showAddAccountSheet(context),
+                            addTooltip: 'Add account',
+                            removing: _removing,
+                            canRemove: accounts.isNotEmpty,
+                            removeTooltip: 'Remove an account',
+                            onToggleRemove: () {
+                              setState(() => _removing = !_removing);
                             },
                           ),
-                          if (accounts.isNotEmpty)
-                            OutlineIconButton(
-                              icon: _removing
-                                  ? PhosphorIconsRegular.check
-                                  : PhosphorIconsRegular.minus,
-                              color: _removing ? null : context.vesta.neg,
-                              tooltip: _removing ? 'Done' : 'Remove an account',
-                              onPressed: () {
-                                setState(() => _removing = !_removing);
-                              },
-                            ),
                         ],
                       ),
                       const SizedBox(height: 10),
@@ -252,11 +239,12 @@ class _AccountsPageState extends State<AccountsPage> {
 
     final accountType = acc["accountTypeName"]?.toString() ?? "Unknown Type";
 
-    // Manually added accounts have no IBAN, so only the type is shown
+    // Bank accounts end in their IBAN; manual ones in the last 4 digits
+    // the user gave, if any
     final iban = acc["iban"]?.toString().trim() ?? "";
-    final subtitle = iban.length >= 4
-        ? "$accountType · •••• ${iban.substring(iban.length - 4)}"
-        : accountType;
+    final mask = acc["mask"]?.toString().trim() ?? "";
+    final last4 = iban.length >= 4 ? iban.substring(iban.length - 4) : mask;
+    final subtitle = last4.isNotEmpty ? "$accountType · •••• $last4" : accountType;
 
     final balance = _balanceOf(acc);
 
@@ -276,24 +264,10 @@ class _AccountsPageState extends State<AccountsPage> {
             if (_removing && isHbtf)
               const SizedBox(width: 26 + VestaSpace.md)
             else if (_removing) ...[
-              Material(
-                color: v.neg.withValues(alpha: 0.16),
-                shape: const CircleBorder(),
-                child: InkWell(
-                  customBorder: const CircleBorder(),
-                  onTap: _unlinking
-                      ? null
-                      : () => _showDeleteDialog(accountId, bankName),
-                  child: SizedBox(
-                    width: 26,
-                    height: 26,
-                    child: Icon(
-                      PhosphorIconsRegular.minus,
-                      size: 14,
-                      color: v.neg,
-                    ),
-                  ),
-                ),
+              RemoveBadge(
+                onTap: _unlinking
+                    ? null
+                    : () => _showDeleteDialog(accountId, bankName),
               ),
               const SizedBox(width: VestaSpace.md),
             ],

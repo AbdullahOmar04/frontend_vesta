@@ -27,6 +27,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
   // Core data
   Map<String, dynamic> _budgetData = {};
   List<UpcomingPayment> _upcoming = [];
+  bool _removingBills = false;
   bool _isLoading = true;
   final _totalIncomeController = TextEditingController();
 
@@ -42,9 +43,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
   double _luxurySpending = 0.0;
   double _savingsBudget = 0.0;
   double _savingsTransfers = 0.0;
-  double _expectedIncome = 0.0;
-  double _actualIncome = 0.0;
-  double _uncategorizedSpending = 0.0;
 
   int _budgetResetDay = 28;
 
@@ -378,9 +376,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
           _luxurySpending = luxurySpending;
           _savingsBudget = savingsBudget;
           _savingsTransfers = savingsTransfers;
-          _expectedIncome = totalIncome;
-          _actualIncome = actualIncome;
-          _uncategorizedSpending = uncategorizedSpending;
         });
       }
 
@@ -854,26 +849,6 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
             spentAmount: _luxurySpending,
             color: v.bucketLuxury,
           ),
-
-          // Income tracking
-          if (_actualIncome > 0 || _expectedIncome > 0) _buildIncomeTracker(),
-
-          if (_uncategorizedSpending > 0)
-            _buildBreakdownItem(
-              "Uncategorized spending",
-              _uncategorizedSpending,
-              v.neg,
-              PhosphorIconsRegular.warningCircle,
-            ),
-
-          // Unallocated
-          if (remaining > 0)
-            _buildBreakdownItem(
-              "Unallocated",
-              remaining,
-              v.muted,
-              PhosphorIconsRegular.question,
-            ),
         ],
       ),
     );
@@ -937,78 +912,29 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     );
   }
 
-  Widget _buildIncomeTracker() {
-    final v = context.vesta;
-    final percent = _expectedIncome > 0
-        ? (_actualIncome / _expectedIncome).clamp(0.0, 1.0)
-        : 0.0;
-    final isOnTrack = _actualIncome >= _expectedIncome;
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Divider(),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Icon(PhosphorIconsRegular.handCoins, size: 16, color: v.pos),
-              const SizedBox(width: VestaSpace.sm),
-              const Expanded(
-                child: Text(
-                  "Income",
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: VestaSpace.sm),
-              MoneyText(_actualIncome, color: isOnTrack ? v.pos : null),
-              Text(
-                " / ${formatMoney(_expectedIncome)}",
-                style: TextStyle(fontSize: 12, color: v.muted),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          VestaProgressBar(value: percent, height: 4, color: v.pos),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBreakdownItem(
-    String label,
-    double amount,
-    Color color,
-    IconData icon,
-  ) {
-    if (amount <= 0) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 10),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: VestaSpace.sm),
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(fontSize: 13, color: context.vesta.muted),
-            ),
-          ),
-          MoneyText(amount, size: 13, color: color),
-        ],
-      ),
-    );
-  }
-
   Future<void> _openBills() async {
     await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const BillsScreen()),
     );
     _loadUpcoming();
+  }
+
+  Future<void> _addBill() async {
+    if (await showBillSheet(context)) _loadUpcoming();
+  }
+
+  Future<void> _removeBill(UpcomingPayment bill) async {
+    if (!await confirmDeleteBill(context, bill.title)) return;
+    try {
+      await deleteBill(bill.billId!);
+      _loadUpcoming();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Couldn't delete the bill: $e")),
+      );
+    }
   }
 
   Widget _buildUpcomingPayments() {
@@ -1019,8 +945,17 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
         children: [
           SectionHeader(
             title: "Upcoming payments",
-            actionLabel: "See all",
-            onAction: _openBills,
+            trailing: [
+              AddRemoveButtons(
+                onAdd: _addBill,
+                addTooltip: 'Add a bill',
+                removing: _removingBills,
+                canRemove: _upcoming.any((p) => p.isBill),
+                removeTooltip: 'Remove a bill',
+                onToggleRemove: () =>
+                    setState(() => _removingBills = !_removingBills),
+              ),
+            ],
           ),
           const SizedBox(height: VestaSpace.sm),
 
@@ -1031,13 +966,22 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: VestaSpace.md),
               child: Text(
-                "No upcoming payments. Add your bills under See all.",
+                "No upcoming payments yet. Tap + to add a bill.",
                 style: TextStyle(fontSize: 13, color: v.muted),
               ),
             ),
 
           if (!_isLoading && _upcoming.isNotEmpty)
             ..._upcoming.take(4).map(_buildUpcomingItem),
+
+          if (!_isLoading && _upcoming.length > 4)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: _openBills,
+                child: Text("See all ${_upcoming.length}"),
+              ),
+            ),
         ],
       ),
     );
@@ -1072,6 +1016,8 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
       frequency: p.frequency,
       icon: icon,
       color: active ? context.vesta.accentInk : context.vesta.muted,
+      onTap: _openBills,
+      onRemove: _removingBills && p.isBill ? () => _removeBill(p) : null,
     );
   }
 
@@ -1087,6 +1033,8 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     String? frequency,
     required IconData icon,
     required Color color,
+    VoidCallback? onTap,
+    VoidCallback? onRemove,
   }) {
     final v = context.vesta;
     final bool isIncoming = type == "arrival";
@@ -1099,45 +1047,56 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
       statusText,
     ].join(" · ");
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          IconBadge(icon, size: 40, circle: false, color: color),
-          const SizedBox(width: VestaSpace.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(VestaRadius.md),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (onRemove != null) ...[
+              Padding(
+                padding: const EdgeInsets.only(top: 7),
+                child: RemoveBadge(onTap: onRemove),
+              ),
+              const SizedBox(width: VestaSpace.md),
+            ],
+            IconBadge(icon, size: 40, circle: false, color: color),
+            const SizedBox(width: VestaSpace.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  if (accountName != null)
+                    Text(
+                      "From $accountName",
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  Text(details, style: Theme.of(context).textTheme.bodySmall),
+                ],
+              ),
+            ),
+            const SizedBox(width: VestaSpace.sm),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                if (accountName != null)
+                MoneyText(
+                  isIncoming ? amount : -amount,
+                  currency: currency,
+                  showPlus: true,
+                  color: isIncoming ? v.pos : null,
+                ),
+                if (remainingPayments != null)
                   Text(
-                    "From $accountName",
+                    "$remainingPayments left",
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
-                Text(details, style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
-          ),
-          const SizedBox(width: VestaSpace.sm),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              MoneyText(
-                isIncoming ? amount : -amount,
-                currency: currency,
-                showPlus: true,
-                color: isIncoming ? v.pos : null,
-              ),
-              if (remainingPayments != null)
-                Text(
-                  "$remainingPayments left",
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -7,7 +7,6 @@ import 'package:frontend_vesta/Helpers/account_balance.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
-import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/insights.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/spending_categories.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transactions.dart';
@@ -201,19 +200,7 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: VestaAppBar(
-        title: "Spendings",
-        actions: [
-          IconButton(
-            tooltip: 'Insights',
-            icon: const Icon(PhosphorIconsRegular.chartLineUp),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const InsightsPage()),
-            ),
-          ),
-        ],
-      ),
+      appBar: const VestaAppBar(title: "Spendings"),
       body: VestaBackground(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
@@ -438,7 +425,12 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
     String cycleMonthName = monthNames[now.month];
     final small = TextStyle(fontSize: 12, color: v.muted);
 
+    // The card opens Insights, as in the prototype
     return VestaCard(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const InsightsPage()),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

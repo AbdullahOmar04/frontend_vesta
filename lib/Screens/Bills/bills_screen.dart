@@ -7,6 +7,40 @@ import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Bills/bills_data.dart';
 import 'package:intl/intl.dart';
 
+/// Opens the add/edit bill sheet; true when something was saved or deleted.
+Future<bool> showBillSheet(BuildContext context, [UpcomingPayment? bill]) async {
+  final changed = await showModalBottomSheet<bool>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (_) => _BillSheet(bill: bill),
+  );
+  return changed == true;
+}
+
+/// Asks before a bill is deleted.
+Future<bool> confirmDeleteBill(BuildContext context, String title) async {
+  final sure = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Delete this bill?'),
+      content: Text('"$title" will be removed.'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, true),
+          style: TextButton.styleFrom(foregroundColor: ctx.vesta.neg),
+          child: const Text('Delete'),
+        ),
+      ],
+    ),
+  );
+  return sure == true;
+}
+
 /// Bills & subscriptions, after the prototype: what is still due this
 /// month, the monthly subscriptions total, and every bill and standing
 /// order by due date. Bills can be added, edited and marked autopay;
@@ -20,6 +54,7 @@ class BillsScreen extends StatefulWidget {
 
 class _BillsScreenState extends State<BillsScreen> {
   bool _loading = true;
+  bool _removing = false;
   List<UpcomingPayment> _payments = [];
 
   @override
@@ -44,13 +79,20 @@ class _BillsScreenState extends State<BillsScreen> {
   }
 
   Future<void> _edit([UpcomingPayment? bill]) async {
-    final changed = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (_) => _BillSheet(bill: bill),
-    );
-    if (changed == true) _load();
+    if (await showBillSheet(context, bill)) _load();
+  }
+
+  Future<void> _remove(UpcomingPayment bill) async {
+    if (!await confirmDeleteBill(context, bill.title)) return;
+    try {
+      await deleteBill(bill.billId!);
+      _load();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Couldn't delete the bill: $e")),
+      );
+    }
   }
 
   Future<void> _toggleAutopay(UpcomingPayment bill, bool on) async {
@@ -68,16 +110,7 @@ class _BillsScreenState extends State<BillsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: VestaAppBar(
-        title: 'Bills & subscriptions',
-        actions: [
-          IconButton(
-            tooltip: 'Add a bill',
-            icon: const Icon(PhosphorIconsRegular.plus),
-            onPressed: () => _edit(),
-          ),
-        ],
-      ),
+      appBar: const VestaAppBar(title: 'Bills & subscriptions'),
       body: VestaBackground(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
@@ -171,12 +204,32 @@ class _BillsScreenState extends State<BillsScreen> {
             padding: EdgeInsets.zero,
             child: Column(
               children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(VestaSpace.lg, 12, 10, 4),
+                  child: SectionHeader(
+                    title: 'Bills',
+                    trailing: [
+                      AddRemoveButtons(
+                        onAdd: () => _edit(),
+                        addTooltip: 'Add a bill',
+                        removing: _removing,
+                        canRemove: rows.any((p) => p.isBill),
+                        removeTooltip: 'Remove a bill',
+                        onToggleRemove: () =>
+                            setState(() => _removing = !_removing),
+                      ),
+                    ],
+                  ),
+                ),
                 for (var i = 0; i < rows.length; i++) ...[
                   if (i > 0) Divider(height: 1, color: v.divider),
                   _PaymentRow(
                     payment: rows[i],
                     done: doneThisMonth(rows[i]),
                     today: today,
+                    onRemove: _removing && rows[i].isBill
+                        ? () => _remove(rows[i])
+                        : null,
                     onTap: rows[i].isBill ? () => _edit(rows[i]) : null,
                     onAutopay: rows[i].isBill
                         ? (on) => _toggleAutopay(rows[i], on)
@@ -244,12 +297,16 @@ class _PaymentRow extends StatelessWidget {
     required this.today,
     this.onTap,
     this.onAutopay,
+    this.onRemove,
   });
 
   final UpcomingPayment payment;
   final bool done;
   final DateTime today;
   final VoidCallback? onTap;
+
+  /// Set while the list is in remove mode (bills only).
+  final VoidCallback? onRemove;
   final ValueChanged<bool>? onAutopay;
 
   String _status() {
@@ -301,6 +358,10 @@ class _PaymentRow extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(VestaSpace.lg, 12, 10, 12),
           child: Row(
             children: [
+              if (onRemove != null) ...[
+                RemoveBadge(onTap: onRemove),
+                const SizedBox(width: VestaSpace.md),
+              ],
               SizedBox(
                 width: 36,
                 child: Column(
@@ -434,25 +495,7 @@ class _BillSheetState extends State<_BillSheet> {
   }
 
   Future<void> _delete() async {
-    final sure = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete this bill?'),
-        content: Text('"${widget.bill!.title}" will be removed.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: ctx.vesta.neg),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-    if (sure != true) return;
+    if (!await confirmDeleteBill(context, widget.bill!.title)) return;
     setState(() => _saving = true);
     try {
       await deleteBill(widget.bill!.billId!);

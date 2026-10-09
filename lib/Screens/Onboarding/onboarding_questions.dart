@@ -16,26 +16,6 @@ const _focusOptions = [
   ('clarity', 'Get financial clarity', PhosphorIconsRegular.eye),
 ];
 
-/// Banks a new user can say they use. Nothing gets connected; it is kept
-/// on the user doc for later features.
-const _jordanBanks = [
-  'Arab Bank',
-  'Housing Bank',
-  'Bank al Etihad',
-  'Capital Bank',
-  'Cairo Amman Bank',
-  'Jordan Ahli Bank',
-  'Jordan Kuwait Bank',
-  'Bank of Jordan',
-  'Jordan Islamic Bank',
-  'Safwa Islamic Bank',
-  'Arab Jordan Investment Bank',
-  'Investbank',
-  'Jordan Commercial Bank',
-  'Société Générale de Banque – Jordanie',
-  'Bank ABC',
-];
-
 /// Suggested starting split, as budget percentages: (label, examples, %).
 const _split = [
   ('Necessities', 'Rent, groceries, bills', 50.0),
@@ -517,7 +497,7 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
           style: TextStyle(fontSize: 14, color: v.muted),
         ),
         const SizedBox(height: VestaSpace.xl),
-        for (final bank in _jordanBanks) ...[
+        for (final bank in jordanBanks) ...[
           _ChoiceRow(
             label: bank,
             leading: BankBadge(bank, size: 28),

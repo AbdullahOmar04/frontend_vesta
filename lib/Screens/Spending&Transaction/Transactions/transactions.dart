@@ -2,14 +2,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/account_balance.dart';
 import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
-import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/new_spending.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/add_transaction.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
+import 'package:frontend_vesta/Screens/pages/accounts.dart';
 import 'package:intl/intl.dart';
 
 enum DateFilter { all, today, lastWeek, lastMonth, customMonth }
@@ -28,6 +29,7 @@ class _TransactionsState extends State<Transactions> {
 
   bool _loading = true;
   bool _syncing = false;
+  bool _removing = false;
   String? _error;
 
   List<TransactionModel> _allTransactions = [];
@@ -310,8 +312,8 @@ class _TransactionsState extends State<Transactions> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: widget.showBack
-          ? VestaAppBar(title: 'Transactions', actions: _appBarActions())
-          : VestaAppBar.large(title: 'Transactions', actions: _appBarActions()),
+          ? const VestaAppBar(title: 'Transactions')
+          : const VestaAppBar.large(title: 'Transactions'),
       body: VestaBackground(
         child: Column(
           children: [
@@ -320,70 +322,107 @@ class _TransactionsState extends State<Transactions> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: 'Add transaction',
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddTransaction()),
-          ).then((_) => _loadTransactions());
-        },
-        child: const Icon(PhosphorIconsRegular.plus),
-      ),
     );
   }
 
-  List<Widget> _appBarActions() {
-    return [
-      if (_syncing)
-        const Padding(
-          padding: EdgeInsets.only(right: 8),
-          child: Center(
-            child: SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ),
+  void _addTransaction() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AddTransaction()),
+    ).then((_) => _loadTransactions());
+  }
+
+  /// Remove mode's delete: same balance helper as the transaction's own
+  /// details sheet, so the account balance is put back.
+  Future<void> _removeTransaction(TransactionModel transaction) async {
+    final sure = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete this transaction?'),
+        content: Text(
+          'It will be removed and ${formatMoney(transaction.amount)} '
+          '${transaction.isDebit ? 'returned to' : 'taken off'} the account balance.',
         ),
-      IconButton(
-        icon: const Icon(PhosphorIconsRegular.chartPieSlice),
-        tooltip: 'Spending analysis',
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const NewSpendingAnalysis(),
-            ),
-          ).then((_) => _loadTransactions());
-        },
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: ctx.vesta.neg),
+            child: const Text('Delete'),
+          ),
+        ],
       ),
-    ];
+    );
+    if (sure != true) return;
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    try {
+      await deleteTransactionAndRevertBalance(
+        uid: uid,
+        accountId: transaction.accountId,
+        transactionId: transaction.id,
+        type: transaction.type,
+        amount: transaction.amount,
+      );
+      await calcTotalBalance();
+      _loadTransactions();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Couldn't delete the transaction: $e")),
+      );
+    }
   }
 
   Widget _buildFilterSection() {
     return Column(
       children: [
-        // Date filter chips
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.fromLTRB(
-            VestaSpace.gutter,
-            VestaSpace.xs,
-            VestaSpace.gutter,
-            VestaSpace.sm,
-          ),
+        // Date filter chips, then the add/remove pair as in the prototype
+        Padding(
+          padding: const EdgeInsets.only(right: VestaSpace.gutter),
           child: Row(
             children: [
-              _buildDateChip(DateFilter.all),
-              const SizedBox(width: 6),
-              _buildDateChip(DateFilter.today),
-              const SizedBox(width: 6),
-              _buildDateChip(DateFilter.lastWeek),
-              const SizedBox(width: 6),
-              _buildDateChip(DateFilter.lastMonth),
-              const SizedBox(width: 6),
-              _buildMonthChip(),
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.fromLTRB(
+                    VestaSpace.gutter,
+                    VestaSpace.xs,
+                    VestaSpace.sm,
+                    VestaSpace.sm,
+                  ),
+                  child: Row(
+                    children: [
+                      _buildDateChip(DateFilter.all),
+                      const SizedBox(width: 6),
+                      _buildDateChip(DateFilter.today),
+                      const SizedBox(width: 6),
+                      _buildDateChip(DateFilter.lastWeek),
+                      const SizedBox(width: 6),
+                      _buildDateChip(DateFilter.lastMonth),
+                      const SizedBox(width: 6),
+                      _buildMonthChip(),
+                    ],
+                  ),
+                ),
+              ),
+              if (_syncing)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              AddRemoveButtons(
+                onAdd: _addTransaction,
+                addTooltip: 'Add transaction',
+                removing: _removing,
+                canRemove: _filteredTransactions.isNotEmpty,
+                removeTooltip: 'Remove a transaction',
+                onToggleRemove: () => setState(() => _removing = !_removing),
+              ),
             ],
           ),
         ),
@@ -509,11 +548,21 @@ class _TransactionsState extends State<Transactions> {
         return CardSegment(
           last: i == count,
           divider: i > 1,
-          child: TransactionCard(
-            key: ValueKey(transaction.id),
-            transaction: transaction,
-            accountName: accountNames[transaction.accountId],
-            onDeleted: _loadTransactions,
+          child: Row(
+            children: [
+              if (_removing) ...[
+                RemoveBadge(onTap: () => _removeTransaction(transaction)),
+                const SizedBox(width: VestaSpace.sm),
+              ],
+              Expanded(
+                child: TransactionCard(
+                  key: ValueKey(transaction.id),
+                  transaction: transaction,
+                  accountName: accountNames[transaction.accountId],
+                  onDeleted: _loadTransactions,
+                ),
+              ),
+            ],
           ),
         );
       },
