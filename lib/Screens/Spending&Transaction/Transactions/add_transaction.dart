@@ -8,14 +8,33 @@ import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
 import 'package:frontend_vesta/Screens/pages/accounts.dart';
 
-class AddTransaction extends StatefulWidget {
-  const AddTransaction({super.key});
-
-  @override
-  State<AddTransaction> createState() => AddTransactionState();
+/// The prototype's "Add a transaction" sheet: paste a bank SMS, or type the
+/// transaction in by hand.
+Future<void> showAddTransactionSheet(BuildContext context) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (_) => const _AddTransactionSheet(),
+  );
 }
 
-class AddTransactionState extends State<AddTransaction> {
+// The sheet's tabs, in the prototype's order: (label, icon)
+const _tabs = [
+  ('SMS', PhosphorIconsRegular.chatText),
+  ('Manual', PhosphorIconsRegular.pencilSimpleLine),
+];
+const _smsTab = 0;
+const _manualTab = 1;
+
+class _AddTransactionSheet extends StatefulWidget {
+  const _AddTransactionSheet();
+
+  @override
+  State<_AddTransactionSheet> createState() => _AddTransactionSheetState();
+}
+
+class _AddTransactionSheetState extends State<_AddTransactionSheet> {
   final _amountCtrl = TextEditingController();
   final _merchantCtrl = TextEditingController();
   final _noteCtrl = TextEditingController();
@@ -25,6 +44,10 @@ class AddTransactionState extends State<AddTransaction> {
 
   bool _loading = true;
   bool _saving = false;
+
+  int _tab = _manualTab;
+  String? _smsError;
+  bool _fromSms = false;
 
   List<Map<String, dynamic>> _accounts = [];
   List<String> _categories = [];
@@ -111,21 +134,22 @@ class AddTransactionState extends State<AddTransaction> {
     if (user == null) return;
 
     final uid = user.uid;
+    final messenger = ScaffoldMessenger.of(context);
 
     final rawAmount = _amountCtrl.text.trim();
     final amount = double.tryParse(rawAmount);
 
     if (amount == null || amount <= 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Enter a valid amount.")));
+      messenger.showSnackBar(
+        const SnackBar(content: Text("Enter a valid amount.")),
+      );
       return;
     }
 
     if (_selectedAccountId == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Select an account.")));
+      messenger.showSnackBar(
+        const SnackBar(content: Text("Select an account.")),
+      );
       return;
     }
 
@@ -168,14 +192,14 @@ class AddTransactionState extends State<AddTransaction> {
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("Transaction added.")));
+        messenger.showSnackBar(
+          const SnackBar(content: Text("Transaction added.")),
+        );
       }
     } catch (e) {
       debugPrint("⚠️ Error saving transaction: $e");
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(
             content: Text("Error: $e"),
             backgroundColor: Theme.of(context).colorScheme.error,
@@ -189,48 +213,43 @@ class AddTransactionState extends State<AddTransaction> {
 
   // ============ SMS PASTE FEATURE ============
 
-  void _openSmsPasteDialog() {
-    _smsCtrl.clear();
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return VestaDialog(
-          title: "Paste bank SMS",
-          content: TextField(
-            controller: _smsCtrl,
-            maxLines: 6,
-            decoration: const InputDecoration(
-              hintText: "Paste the SMS message from your bank here...",
-            ),
-          ),
-          confirmLabel: "Parse",
-          onConfirm: () {
-            final smsText = _smsCtrl.text.trim();
-            if (smsText.isEmpty) {
-              return;
-            }
-            _fillFromSms(smsText);
-            Navigator.pop(ctx);
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("SMS parsed. Fields updated.")),
-            );
-          },
-        );
-      },
-    );
+  /// A message in the format [_fillFromSms] reads, dated yesterday.
+  String _sampleSms() {
+    final d = DateTime.now().subtract(const Duration(days: 1));
+    String two(int n) => n.toString().padLeft(2, '0');
+    return 'A purchase transaction from Corner Market amount JOD 18.750 was '
+        'made with your card ending 7754 on '
+        '${two(d.day)}/${two(d.month)}/${d.year} 14:05.';
   }
 
-  void _fillFromSms(String sms) {
+  void _readSms() {
+    final smsText = _smsCtrl.text.trim();
+    if (smsText.isEmpty) return;
+    if (!_fillFromSms(smsText)) {
+      setState(() {
+        _smsError =
+            "We couldn't find an amount in this message. Try the Manual tab.";
+      });
+      return;
+    }
+    setState(() {
+      _smsError = null;
+      _fromSms = true;
+      _tab = _manualTab;
+    });
+  }
+
+  /// Fills the manual fields from [sms]. False when no amount was found, in
+  /// which case nothing is changed.
+  bool _fillFromSms(String sms) {
     final lower = sms.toLowerCase();
 
     final amountMatch = RegExp(
       r'JOD\s+(\d+(\.\d+)?)',
       caseSensitive: false,
     ).firstMatch(sms);
-    if (amountMatch != null) {
-      _amountCtrl.text = amountMatch.group(1)!; // "3.000"
-    }
+    if (amountMatch == null) return false;
+    _amountCtrl.text = amountMatch.group(1)!; // "3.000"
 
     final merchantMatch = RegExp(
       r'from\s+(.+?)\s+amount',
@@ -278,194 +297,358 @@ class AddTransactionState extends State<AddTransaction> {
         _date = parsedDate;
       }
     });
+    return true;
   }
 
   // ============ UI ============
 
   @override
   Widget build(BuildContext context) {
-    const gap = SizedBox(height: 14);
-    final bodyLarge = Theme.of(context).textTheme.bodyLarge;
-
-    return Scaffold(
-      appBar: const VestaAppBar(title: 'Add transaction'),
-      body: VestaBackground(
-        child: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                  VestaSpace.gutter,
-                  VestaSpace.xs,
-                  VestaSpace.gutter,
-                  VestaSpace.xl,
+    final v = context.vesta;
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(
+          VestaSpace.gutter,
+          0,
+          VestaSpace.gutter,
+          VestaSpace.xl,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text('Add a transaction', style: headingStyle(20)),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // SMS paste button
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: TextButton.icon(
-                        onPressed: _openSmsPasteDialog,
-                        icon: const Icon(PhosphorIconsRegular.chatText, size: 18),
-                        label: const Text("Paste SMS from bank"),
-                      ),
-                    ),
-                    const SizedBox(height: VestaSpace.sm),
+                IconButton(
+                  tooltip: 'Close',
+                  onPressed: () => Navigator.pop(context),
+                  icon: Icon(PhosphorIconsRegular.x, color: v.muted),
+                ),
+              ],
+            ),
+            const SizedBox(height: VestaSpace.md),
+            _TabSwitch(
+              selected: _tab,
+              onSelect: (i) => setState(() => _tab = i),
+            ),
+            const SizedBox(height: VestaSpace.lg),
+            if (_loading)
+              const SizedBox(
+                height: 200,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_tab == _smsTab)
+              _buildSmsTab()
+            else
+              _buildManualTab(),
+          ],
+        ),
+      ),
+    );
+  }
 
-                    // Account
-                    if (_accounts.isNotEmpty)
-                      DropdownButtonFormField<String>(
-                        initialValue: _selectedAccountId,
-                        style: bodyLarge,
-                        decoration: const InputDecoration(labelText: "Account"),
-                        items: _accounts
-                            .map(
-                              (a) => DropdownMenuItem(
-                                value: a['id'] as String,
-                                child: Text(
-                                  a['type'] is String &&
-                                          (a['type'] as String).isNotEmpty
-                                      ? "${a['name']} · ${a['type']}"
-                                      : a['name'] as String,
-                                ),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (val) {
-                          setState(() => _selectedAccountId = val);
-                        },
-                      )
-                    else
-                      Text(
-                        "No accounts yet. Add one in Wallet first.",
-                        style: TextStyle(color: context.vesta.neg),
-                      ),
-                    gap,
-
-                    // Amount
-                    TextField(
-                      controller: _amountCtrl,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: const InputDecoration(labelText: "Amount"),
-                    ),
-                    gap,
-
-                    // Type
-                    Row(
-                      children: [
-                        ChoiceTag(
-                          label: "Expense",
-                          icon: PhosphorIconsRegular.arrowUpRight,
-                          selected: _type == TransactionType.debit,
-                          onTap: () {
-                            setState(() => _type = TransactionType.debit);
-                          },
-                        ),
-                        const SizedBox(width: VestaSpace.sm),
-                        ChoiceTag(
-                          label: "Income",
-                          icon: PhosphorIconsRegular.arrowDownLeft,
-                          selected: _type == TransactionType.credit,
-                          onTap: () {
-                            setState(() => _type = TransactionType.credit);
-                          },
-                        ),
-                      ],
-                    ),
-                    gap,
-
-                    // Date
-                    InkWell(
-                      borderRadius: BorderRadius.circular(VestaRadius.md),
-                      onTap: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: _date.isAfter(DateTime.now()) ? DateTime.now() : _date,
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime.now(),
-                        );
-                        if (picked != null) {
-                          final now = DateTime.now();
-                          setState(() {
-                            _date = DateTime(
-                              picked.year,
-                              picked.month,
-                              picked.day,
-                              now.hour,
-                              now.minute,
-                            );
-                          });
-                        }
-                      },
-                      child: InputDecorator(
-                        decoration: InputDecoration(
-                          labelText: "Date",
-                          suffixIcon: Icon(
-                            PhosphorIconsRegular.calendarBlank,
-                            color: context.vesta.accentInk,
-                          ),
-                        ),
-                        child: Text(
-                          "${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}",
-                          style: bodyLarge,
-                        ),
-                      ),
-                    ),
-                    gap,
-
-                    // Merchant
-                    TextField(
-                      controller: _merchantCtrl,
-                      decoration: const InputDecoration(
-                        labelText: "Merchant / From",
-                      ),
-                    ),
-                    gap,
-
-                    // Category
-                    if (_categories.isNotEmpty)
-                      DropdownButtonFormField<String>(
-                        initialValue: _selectedCategory,
-                        style: bodyLarge,
-                        decoration: const InputDecoration(labelText: "Category"),
-                        items: _categories
-                            .map(
-                              (c) => DropdownMenuItem(value: c, child: Text(c)),
-                            )
-                            .toList(),
-                        onChanged: (val) {
-                          setState(() => _selectedCategory = val);
-                        },
-                      ),
-                    if (_categories.isNotEmpty) gap,
-
-                    // Note
-                    TextField(
-                      controller: _noteCtrl,
-                      minLines: 1,
-                      maxLines: 3,
-                      decoration: const InputDecoration(
-                        labelText: "Note (optional)",
-                      ),
-                    ),
-                    const SizedBox(height: VestaSpace.xl),
-
-                    PrimaryButton(
-                      label: 'Add transaction',
-                      loading: _saving,
-                      onPressed: () {
-                        if (!_saving) {
-                          _save();
-                        }
-                      },
-                    ),
-                  ],
+  Widget _buildSmsTab() {
+    final v = context.vesta;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Paste your bank SMS',
+          style: TextStyle(fontSize: 12, color: v.muted),
+        ),
+        const SizedBox(height: 6),
+        TextField(
+          controller: _smsCtrl,
+          minLines: 4,
+          maxLines: 6,
+          onChanged: (_) => setState(() => _smsError = null),
+          decoration: const InputDecoration(
+            hintText:
+                'e.g. A purchase from Corner Market amount JOD 18.750 on '
+                '21/10/2026 14:05',
+          ),
+        ),
+        const SizedBox(height: VestaSpace.md),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: GestureDetector(
+            onTap: () => setState(() {
+              _smsCtrl.text = _sampleSms();
+              _smsError = null;
+            }),
+            child: Text(
+              'Try a sample message',
+              style: TextStyle(fontSize: 12, color: v.accentInk),
+            ),
+          ),
+        ),
+        if (_smsError != null) ...[
+          const SizedBox(height: VestaSpace.md),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(PhosphorIconsRegular.warningCircle, size: 15, color: v.neg),
+              const SizedBox(width: VestaSpace.sm),
+              Expanded(
+                child: Text(
+                  _smsError!,
+                  style: TextStyle(fontSize: 12, color: v.neg),
                 ),
               ),
+            ],
+          ),
+        ],
+        const SizedBox(height: VestaSpace.md),
+        PrimaryButton(
+          label: 'Read message',
+          onPressed: _smsCtrl.text.trim().isEmpty ? null : _readSms,
+        ),
+        const SizedBox(height: VestaSpace.md),
+        Text(
+          "We'll fill in the details so you can check them before saving.",
+          style: TextStyle(fontSize: 12, color: v.muted),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildManualTab() {
+    const gap = SizedBox(height: 14);
+    final v = context.vesta;
+    final bodyLarge = Theme.of(context).textTheme.bodyLarge;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_fromSms) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            decoration: BoxDecoration(
+              color: v.tint,
+              borderRadius: BorderRadius.circular(VestaRadius.md),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  PhosphorIconsRegular.checkCircle,
+                  size: 15,
+                  color: v.tintText,
+                ),
+                const SizedBox(width: VestaSpace.sm),
+                Expanded(
+                  child: Text(
+                    'Filled from your SMS. Check the details below.',
+                    style: TextStyle(fontSize: 12, color: v.tintText),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          gap,
+        ],
+
+        // Account
+        if (_accounts.isNotEmpty)
+          DropdownButtonFormField<String>(
+            initialValue: _selectedAccountId,
+            style: bodyLarge,
+            decoration: const InputDecoration(labelText: "Account"),
+            items: _accounts
+                .map(
+                  (a) => DropdownMenuItem(
+                    value: a['id'] as String,
+                    child: Text(
+                      a['type'] is String && (a['type'] as String).isNotEmpty
+                          ? "${a['name']} · ${a['type']}"
+                          : a['name'] as String,
+                    ),
+                  ),
+                )
+                .toList(),
+            onChanged: (val) {
+              setState(() => _selectedAccountId = val);
+            },
+          )
+        else
+          Text(
+            "No accounts yet. Add one in Wallet first.",
+            style: TextStyle(color: v.neg),
+          ),
+        gap,
+
+        // Amount
+        TextField(
+          controller: _amountCtrl,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(labelText: "Amount"),
+        ),
+        gap,
+
+        // Type
+        Row(
+          children: [
+            ChoiceTag(
+              label: "Expense",
+              icon: PhosphorIconsRegular.arrowUpRight,
+              selected: _type == TransactionType.debit,
+              onTap: () {
+                setState(() => _type = TransactionType.debit);
+              },
+            ),
+            const SizedBox(width: VestaSpace.sm),
+            ChoiceTag(
+              label: "Income",
+              icon: PhosphorIconsRegular.arrowDownLeft,
+              selected: _type == TransactionType.credit,
+              onTap: () {
+                setState(() => _type = TransactionType.credit);
+              },
+            ),
+          ],
+        ),
+        gap,
+
+        // Date
+        InkWell(
+          borderRadius: BorderRadius.circular(VestaRadius.md),
+          onTap: () async {
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: _date.isAfter(DateTime.now())
+                  ? DateTime.now()
+                  : _date,
+              firstDate: DateTime(2020),
+              lastDate: DateTime.now(),
+            );
+            if (picked != null) {
+              final now = DateTime.now();
+              setState(() {
+                _date = DateTime(
+                  picked.year,
+                  picked.month,
+                  picked.day,
+                  now.hour,
+                  now.minute,
+                );
+              });
+            }
+          },
+          child: InputDecorator(
+            decoration: InputDecoration(
+              labelText: "Date",
+              suffixIcon: Icon(
+                PhosphorIconsRegular.calendarBlank,
+                color: v.accentInk,
+              ),
+            ),
+            child: Text(
+              "${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}",
+              style: bodyLarge,
+            ),
+          ),
+        ),
+        gap,
+
+        // Merchant
+        TextField(
+          controller: _merchantCtrl,
+          decoration: const InputDecoration(labelText: "Merchant / From"),
+        ),
+        gap,
+
+        // Category
+        if (_categories.isNotEmpty)
+          DropdownButtonFormField<String>(
+            initialValue: _selectedCategory,
+            style: bodyLarge,
+            decoration: const InputDecoration(labelText: "Category"),
+            items: _categories
+                .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                .toList(),
+            onChanged: (val) {
+              setState(() => _selectedCategory = val);
+            },
+          ),
+        if (_categories.isNotEmpty) gap,
+
+        // Note
+        TextField(
+          controller: _noteCtrl,
+          minLines: 1,
+          maxLines: 3,
+          decoration: const InputDecoration(labelText: "Note (optional)"),
+        ),
+        const SizedBox(height: VestaSpace.xl),
+
+        PrimaryButton(
+          label: 'Add transaction',
+          loading: _saving,
+          onPressed: () {
+            if (!_saving) {
+              _save();
+            }
+          },
+        ),
+      ],
+    );
+  }
+}
+
+/// The prototype's icon tabs: a sunken track with the chosen tab raised.
+class _TabSwitch extends StatelessWidget {
+  const _TabSwitch({required this.selected, required this.onSelect});
+
+  final int selected;
+  final ValueChanged<int> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final v = context.vesta;
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          for (var i = 0; i < _tabs.length; i++) ...[
+            if (i > 0) const SizedBox(width: 3),
+            Expanded(
+              child: Tooltip(
+                message: _tabs[i].$1,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(9),
+                  onTap: () => onSelect(i),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: i == selected
+                          ? theme.colorScheme.surfaceContainer
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                    child: Icon(
+                      _tabs[i].$2,
+                      size: 20,
+                      color: i == selected
+                          ? theme.colorScheme.onSurface
+                          : v.muted,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
