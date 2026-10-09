@@ -4,19 +4,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Household/create_household.dart';
+import 'package:frontend_vesta/Screens/Household/household_actions.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/new_spending.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/spending_categories.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transactions.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 
 const List<String> categoryLabels = [
   'Food And Drinks',
@@ -24,6 +25,9 @@ const List<String> categoryLabels = [
   'Entertainment',
   'Others',
 ];
+
+/// A household member as the screens show them.
+typedef _Member = ({String uid, String name, String? photo});
 
 class HouseholdDetailPage extends StatefulWidget {
   final String householdId;
@@ -48,6 +52,9 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
   double _manualHouseholdBudget = 0;
 
   bool _loading = true;
+
+  /// 0 = Budget, 1 = Spendings
+  int _tab = 0;
 
   @override
   void initState() {
@@ -257,6 +264,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
   Widget build(BuildContext context) {
     final latestTransactions = _getLatestTransactions();
     final categoryNetAmounts = _calculateCategoryNetAmounts();
+    final uid = _auth.currentUser?.uid;
 
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       stream: _db.collection('households').doc(widget.householdId).snapshots(),
@@ -275,42 +283,614 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
           data?['members'] ?? [],
         );
 
-        return Scaffold(
-          appBar: VestaAppBar(
-            title: householdName,
-            actions: [
-              IconButton(
-                icon: const Icon(PhosphorIconsRegular.userPlus),
-                onPressed: _createAndShareInviteLink,
-                tooltip: "Invite member",
+        // Deleted, or this user was removed while the screen was open
+        if (data == null || !memberUids.contains(uid)) {
+          return _noLongerMember();
+        }
+
+        final ownerUid = householdOwner(data);
+        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: _db
+              .collection('users')
+              .where(FieldPath.documentId, whereIn: memberUids)
+              .snapshots(),
+          builder: (context, usersSnapshot) {
+            final profiles = {
+              for (final d in usersSnapshot.data?.docs ?? const [])
+                d.id: d.data(),
+            };
+            // The owner first, then everyone else in joining order
+            final ordered = [
+              ...memberUids.where((m) => m == ownerUid),
+              ...memberUids.where((m) => m != ownerUid),
+            ];
+            final members = <_Member>[
+              for (final m in ordered)
+                (
+                  uid: m,
+                  name: (profiles[m]?['username'] ?? 'Member').toString(),
+                  photo: profiles[m]?['profileImageUrl'] as String?,
+                ),
+            ];
+
+            return Scaffold(
+              appBar: VestaAppBar(
+                title: householdName,
+                actions: [
+                  HeaderButton(
+                    label: 'Manage',
+                    onPressed: () =>
+                        _openManage(householdName, members, ownerUid),
+                  ),
+                ],
               ),
-              HeaderButton(
-                label: "Rename",
-                onPressed: () => _editHouseholdName(householdName),
+              body: VestaBackground(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(
+                    VestaSpace.gutter,
+                    VestaSpace.xs,
+                    VestaSpace.gutter,
+                    VestaSpace.xl,
+                  ),
+                  children: [
+                    _membersHeader(members, ownerUid),
+                    const SizedBox(height: VestaSpace.lg),
+                    _tabSwitcher(),
+                    const SizedBox(height: 14),
+                    if (_tab == 0) ...[
+                      _buildChart(),
+                      const SizedBox(height: 14),
+                      _buildBudgetTrackerBar(),
+                    ] else ...[
+                      _buildMemberSpending(members),
+                      const SizedBox(height: 14),
+                      _buildSpendingCategoriesSection(categoryNetAmounts),
+                      const SizedBox(height: 14),
+                      _buildLatestTransactionsSection(latestTransactions),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _noLongerMember() {
+    final v = context.vesta;
+    return Scaffold(
+      appBar: const VestaAppBar(title: 'Household'),
+      body: VestaBackground(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(VestaSpace.xl),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(PhosphorIconsRegular.houseLine, size: 44, color: v.muted),
+                const SizedBox(height: VestaSpace.md),
+                Text(
+                  "You're no longer in this household",
+                  textAlign: TextAlign.center,
+                  style: headingStyle(18),
+                ),
+                const SizedBox(height: VestaSpace.sm),
+                Text(
+                  'It was deleted, or its owner removed you.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 13, color: v.muted),
+                ),
+                const SizedBox(height: VestaSpace.xl),
+                PrimaryButton(
+                  label: 'Back to Shared finances',
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Overlapping avatars and "Name (owner) · Name", after the prototype.
+  Widget _membersHeader(List<_Member> members, String? ownerUid) {
+    final v = context.vesta;
+    final palette = _memberColors(v);
+    const size = 56.0;
+    const overlap = 18.0;
+    final shown = members.take(4).toList();
+    final extra = members.length - shown.length;
+
+    Widget avatar(int i, _Member m) {
+      return Container(
+        width: size,
+        height: size,
+        padding: const EdgeInsets.all(2),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: palette[i % palette.length], width: 2),
+          color: Theme.of(context).scaffoldBackgroundColor,
+        ),
+        child: CircleAvatar(
+          backgroundColor: v.raised,
+          backgroundImage: m.photo != null ? NetworkImage(m.photo!) : null,
+          child: m.photo == null
+              ? Text(
+                  m.name.isNotEmpty ? m.name[0].toUpperCase() : '?',
+                  style: headingStyle(18),
+                )
+              : null,
+        ),
+      );
+    }
+
+    final slots = shown.length + (extra > 0 ? 1 : 0);
+    return Column(
+      children: [
+        SizedBox(
+          width: size + (slots - 1) * (size - overlap),
+          height: size,
+          child: Stack(
+            children: [
+              for (var i = 0; i < shown.length; i++)
+                Positioned(
+                  left: i * (size - overlap),
+                  child: avatar(i, shown[i]),
+                ),
+              if (extra > 0)
+                Positioned(
+                  left: shown.length * (size - overlap),
+                  child: CircleAvatar(
+                    radius: size / 2,
+                    backgroundColor: v.raised,
+                    child: Text('+$extra', style: headingStyle(16)),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: VestaSpace.sm),
+        Text(
+          [
+            for (final m in members)
+              m.uid == ownerUid ? '${m.name} (owner)' : m.name,
+          ].join(' · '),
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13, color: v.muted),
+        ),
+      ],
+    );
+  }
+
+  List<Color> _memberColors(VestaColors v) =>
+      [v.pxPurple, v.pxBlue, v.pxYellow, v.pxGreen, v.pxTeal];
+
+  /// Budget / Spendings switch. The prototype's Savings tab waits for
+  /// shared savings data.
+  Widget _tabSwitcher() {
+    final v = context.vesta;
+    final accent = Theme.of(context).colorScheme.primary;
+    const labels = ['Budget', 'Spendings'];
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(VestaRadius.lg),
+        border: Border.all(color: v.edge),
+      ),
+      child: Row(
+        children: [
+          for (var i = 0; i < labels.length; i++)
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _tab = i),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: _tab == i ? v.tint : Colors.transparent,
+                    borderRadius: BorderRadius.circular(VestaRadius.button),
+                    border: Border.all(
+                      color: _tab == i ? accent : Colors.transparent,
+                    ),
+                  ),
+                  child: Text(
+                    labels[i],
+                    textAlign: TextAlign.center,
+                    style: headingStyle(
+                      14,
+                      color: _tab == i ? v.tintText : v.muted,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// This budget cycle's start and end (inclusive), as the cycle loader
+  /// works them out.
+  ({DateTime start, DateTime end}) _cycleRange() {
+    final now = DateTime.now();
+    final DateTime start;
+    final DateTime endDay;
+    if (now.day >= _budgetResetDay) {
+      start = DateTime(now.year, now.month, _budgetResetDay);
+      endDay = DateTime(now.year, now.month + 1, _budgetResetDay)
+          .subtract(const Duration(days: 1));
+    } else {
+      start = DateTime(now.year, now.month - 1, _budgetResetDay);
+      endDay = DateTime(now.year, now.month, _budgetResetDay)
+          .subtract(const Duration(days: 1));
+    }
+    return (
+      start: start,
+      end: DateTime(endDay.year, endDay.month, endDay.day, 23, 59, 59),
+    );
+  }
+
+  /// The prototype's Spendings card: spent so far against the household
+  /// budget, and each member's share of it (by who added the transaction).
+  Widget _buildMemberSpending(List<_Member> members) {
+    final v = context.vesta;
+    final me = _auth.currentUser?.uid;
+    final cycle = _cycleRange();
+    final perMember = <String, double>{};
+    for (final t in _allTransactions) {
+      if (!t.isDebit) continue;
+      if (t.date.isBefore(cycle.start) || t.date.isAfter(cycle.end)) continue;
+      final who = t.assignedBy ?? '';
+      perMember[who] = (perMember[who] ?? 0) + t.amount.abs();
+    }
+    final spent = perMember.values.fold(0.0, (s, a) => s + a);
+    final budget = _currentCycleHouseholdBudget > 0.01
+        ? _currentCycleHouseholdBudget
+        : 0.0;
+    final left = budget - spent;
+    final today = DateTime.now();
+    final daysLeft =
+        DateTime(cycle.end.year, cycle.end.month, cycle.end.day)
+            .difference(DateTime(today.year, today.month, today.day))
+            .inDays +
+        1;
+    final palette = _memberColors(v);
+    final monthName = DateFormat('MMMM').format(today);
+
+    return VestaCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Spent in $monthName so far',
+                  style: TextStyle(fontSize: 12, color: v.muted),
+                ),
+              ),
+              if (budget > 0)
+                Text(
+                  '${(spent / budget * 100).round()}% used',
+                  style: TextStyle(fontSize: 12, color: v.muted),
+                ),
+            ],
+          ),
+          const SizedBox(height: VestaSpace.sm),
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.end,
+            spacing: 6,
+            children: [
+              MoneyText.hero(spent, size: 30),
+              if (budget > 0)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 3),
+                  child: Text(
+                    'of ${formatMoney(budget)}',
+                    style: TextStyle(fontSize: 13, color: v.muted),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: VestaSpace.md),
+          VestaProgressBar(
+            value: budget > 0 ? spent / budget : 0,
+            height: 10,
+            color: budget > 0 && spent > budget
+                ? v.neg
+                : Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(height: VestaSpace.md),
+          for (var i = 0; i < members.length; i++)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 11,
+                    backgroundColor: palette[i % palette.length],
+                    child: Text(
+                      members[i].name.isNotEmpty
+                          ? members[i].name[0].toUpperCase()
+                          : '?',
+                      style: TextStyle(fontSize: 11, color: v.pxInk),
+                    ),
+                  ),
+                  const SizedBox(width: VestaSpace.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                members[i].uid == me
+                                    ? '${members[i].name} (you)'
+                                    : members[i].name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            MoneyText(perMember[members[i].uid] ?? 0),
+                            const SizedBox(width: VestaSpace.sm),
+                            SizedBox(
+                              width: 36,
+                              child: Text(
+                                spent > 0
+                                    ? '${((perMember[members[i].uid] ?? 0) / spent * 100).round()}%'
+                                    : '0%',
+                                textAlign: TextAlign.right,
+                                style: TextStyle(fontSize: 12, color: v.muted),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        VestaProgressBar(
+                          value: spent > 0
+                              ? (perMember[members[i].uid] ?? 0) / spent
+                              : 0,
+                          height: 3,
+                          color: palette[i % palette.length],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: VestaSpace.sm),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  budget <= 0
+                      ? 'No household budget yet'
+                      : left >= 0
+                      ? '${formatMoney(left)} left'
+                      : '${formatMoney(-left)} over',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: left < 0 && budget > 0 ? v.neg : v.muted,
+                  ),
+                ),
+              ),
+              Text(
+                daysLeft == 1 ? '1 day to go' : '$daysLeft days to go',
+                style: TextStyle(fontSize: 12, color: v.muted),
               ),
             ],
           ),
-          body: VestaBackground(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(
-                VestaSpace.gutter,
-                VestaSpace.xs,
-                VestaSpace.gutter,
-                VestaSpace.xl,
-              ),
-              children: [
-                /// --- Member Avatars & Names ---
-                _buildMembersList(memberUids),
-                const SizedBox(height: 14),
+        ],
+      ),
+    );
+  }
 
-                /// --- Household Spending Overview ---
-                _buildChart(),
-                const SizedBox(height: 14),
-                _buildBudgetTrackerBar(),
-                const SizedBox(height: 14),
-                _buildSpendingCategoriesSection(categoryNetAmounts),
-                const SizedBox(height: 14),
-                _buildLatestTransactionsSection(latestTransactions),
+  /// Members, invite, rename, budget, and Delete (owner) or Leave (others).
+  Future<void> _openManage(
+    String householdName,
+    List<_Member> members,
+    String? ownerUid,
+  ) async {
+    final me = _auth.currentUser?.uid;
+    final isOwner = ownerUid != null && ownerUid == me;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        final v = sheetContext.vesta;
+        final palette = _memberColors(v);
+        return SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(
+              VestaSpace.gutter,
+              0,
+              VestaSpace.gutter,
+              VestaSpace.xl,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Manage household', style: headingStyle(20)),
+                const SizedBox(height: VestaSpace.lg),
+                VestaCard(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: VestaSpace.lg,
+                    vertical: VestaSpace.md,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SectionHeader(title: 'Members'),
+                      const SizedBox(height: VestaSpace.xs),
+                      for (var i = 0; i < members.length; i++)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 16,
+                                backgroundColor: palette[i % palette.length],
+                                backgroundImage: members[i].photo != null
+                                    ? NetworkImage(members[i].photo!)
+                                    : null,
+                                child: members[i].photo == null
+                                    ? Text(
+                                        members[i].name.isNotEmpty
+                                            ? members[i].name[0].toUpperCase()
+                                            : '?',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: v.pxInk,
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(width: VestaSpace.md),
+                              Expanded(
+                                child: Text(
+                                  members[i].uid == me
+                                      ? '${members[i].name} (you)'
+                                      : members[i].name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (members[i].uid == ownerUid)
+                                TagChip.pill('Owner', color: v.accentInk),
+                              if (isOwner && members[i].uid != ownerUid)
+                                TextButton(
+                                  onPressed: () async {
+                                    final messenger = ScaffoldMessenger.of(
+                                      context,
+                                    );
+                                    final removed = await removeHouseholdMember(
+                                      sheetContext,
+                                      householdId: widget.householdId,
+                                      memberUid: members[i].uid,
+                                      memberName: members[i].name,
+                                    );
+                                    if (!removed || !sheetContext.mounted) {
+                                      return;
+                                    }
+                                    Navigator.pop(sheetContext);
+                                    messenger.showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          '${members[i].name} was removed',
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: v.neg,
+                                  ),
+                                  child: const Text('Remove'),
+                                ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: VestaSpace.md),
+                VestaCard(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: VestaSpace.lg,
+                    vertical: VestaSpace.xs,
+                  ),
+                  child: Column(
+                    children: [
+                      ListRow(
+                        title: 'Invite a member',
+                        leading: Icon(
+                          PhosphorIconsRegular.userPlus,
+                          color: v.accentInk,
+                        ),
+                        onTap: () {
+                          Navigator.pop(sheetContext);
+                          _createAndShareInviteLink();
+                        },
+                      ),
+                      ListRow(
+                        title: 'Rename household',
+                        leading: Icon(
+                          PhosphorIconsRegular.pencilSimple,
+                          color: v.accentInk,
+                        ),
+                        onTap: () {
+                          Navigator.pop(sheetContext);
+                          _editHouseholdName(householdName);
+                        },
+                      ),
+                      ListRow(
+                        title: 'Household budget',
+                        subtitle: _manualHouseholdBudget > 0
+                            ? formatMoney(_manualHouseholdBudget)
+                            : 'Not set',
+                        leading: Icon(
+                          PhosphorIconsRegular.wallet,
+                          color: v.accentInk,
+                        ),
+                        onTap: () {
+                          Navigator.pop(sheetContext);
+                          _editBudget();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: VestaSpace.lg),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: v.neg,
+                    side: BorderSide(color: v.neg.withValues(alpha: 0.6)),
+                    minimumSize: const Size.fromHeight(48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(VestaRadius.button),
+                    ),
+                  ),
+                  icon: Icon(
+                    isOwner
+                        ? PhosphorIconsRegular.trash
+                        : PhosphorIconsRegular.signOut,
+                    size: 18,
+                  ),
+                  label: Text(isOwner ? 'Delete household' : 'Leave household'),
+                  onPressed: () async {
+                    final done = isOwner
+                        ? await deleteHousehold(
+                            sheetContext,
+                            householdId: widget.householdId,
+                            name: householdName,
+                            members: members.map((m) => m.uid).toList(),
+                          )
+                        : await leaveHousehold(
+                            sheetContext,
+                            householdId: widget.householdId,
+                            name: householdName,
+                          );
+                    if (!done || !sheetContext.mounted) return;
+                    Navigator.pop(sheetContext);
+                    if (mounted) Navigator.pop(context);
+                  },
+                ),
+                if (!isOwner)
+                  Padding(
+                    padding: const EdgeInsets.only(top: VestaSpace.sm),
+                    child: Text(
+                      'Only the owner can remove members or delete the household.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 12, color: v.muted),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -583,116 +1163,102 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
     }
   }
 
+  /// Edits the household budget, then refreshes the figures that use it.
+  Future<void> _editBudget() async {
+    final newBudget = await inputHouseholBudget(
+      context,
+      widget.householdId,
+      _manualHouseholdBudget,
+    );
+    if (newBudget == null || !mounted) return;
+
+    setState(() {
+      _manualHouseholdBudget = newBudget;
+      _currentCycleHouseholdBudget = newBudget;
+    });
+    await _fetchHouseholdCycleData(widget.householdId);
+    await _fetchHouseholdChartData(widget.householdId);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Budget updated to ${formatMoney(newBudget)}"),
+      ),
+    );
+  }
+
+  /// The prototype's "Budget plan for (month)" card: the household budget
+  /// against what has been spent this cycle.
   Widget _buildBudgetTrackerBar() {
     final v = context.vesta;
     // The cycle loader stores 0.01 when no budget is set, to avoid dividing
     // by zero, so anything at or below that counts as no budget.
     final hasBudget = _currentCycleHouseholdBudget > 0.01;
-    final used = hasBudget
-        ? _currentCycleHouseholdSpending / _currentCycleHouseholdBudget
-        : 0.0;
-    final left = _currentCycleHouseholdBudget - _currentCycleHouseholdSpending;
+    final budget = hasBudget ? _currentCycleHouseholdBudget : 0.0;
+    final spent = _currentCycleHouseholdSpending;
+    final left = budget - spent;
+    final over = hasBudget && spent > budget;
+    final monthName = DateFormat('MMMM').format(DateTime.now());
 
-    final now = DateTime.now();
-    final monthNames = [
-      '',
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    String cycleMonthName = monthNames[now.month];
-    final small = TextStyle(fontSize: 12, color: v.muted);
-    final leftColor = used > 1 ? v.neg : v.muted;
-
-    return VestaCard(
-      onTap: () async {
-        final newBudget = await inputHouseholBudget(
-          context,
-          widget.householdId,
-          _manualHouseholdBudget,
-        );
-
-        if (newBudget != null && mounted) {
-          // 1) Update local state for the bar
-          setState(() {
-            _manualHouseholdBudget = newBudget;
-            _currentCycleHouseholdBudget = newBudget;
-          });
-
-          // 2) Recompute cycle spending + chart lines using new budget
-          await _fetchHouseholdCycleData(widget.householdId);
-          await _fetchHouseholdChartData(widget.householdId);
-
-          if (!mounted) return;
-
-          // 3) Confirm to user
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                "Budget updated to JOD ${newBudget.toStringAsFixed(0)}",
-              ),
-            ),
-          );
-        }
-      },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title row
-          Row(
+    Widget stat(String label, double amount, Color? color) {
+      return Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(VestaSpace.md),
+          decoration: BoxDecoration(
+            color: v.raised,
+            borderRadius: BorderRadius.circular(VestaRadius.button),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  "Household budget for $cycleMonthName",
-                  style: small,
-                ),
+              Text(label, style: TextStyle(fontSize: 12, color: v.muted)),
+              const SizedBox(height: VestaSpace.xs),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: MoneyText(amount, size: 20, color: color),
               ),
-              Icon(PhosphorIconsRegular.pencilSimple, size: 16, color: v.accentInk),
             ],
           ),
-          const SizedBox(height: VestaSpace.sm),
-          Wrap(
-            crossAxisAlignment: WrapCrossAlignment.end,
-            spacing: 6,
-            children: [
-              MoneyText.hero(_currentCycleHouseholdSpending, size: 30),
-              if (hasBudget)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Text(
-                    "of ${formatMoney(_currentCycleHouseholdBudget)}",
-                    style: TextStyle(fontSize: 13, color: v.muted),
-                  ),
-                ),
+        ),
+      );
+    }
+
+    return VestaCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SectionHeader(
+            title: 'Budget plan for $monthName',
+            trailing: [
+              OutlineIconButton(
+                icon: PhosphorIconsRegular.pencilSimple,
+                tooltip: 'Edit budget',
+                onPressed: _editBudget,
+              ),
             ],
           ),
           const SizedBox(height: VestaSpace.md),
-
-          // Progress bar
+          Row(
+            children: [
+              stat('Total budget', budget, v.pos),
+              const SizedBox(width: 10),
+              stat('Spent so far', spent, over ? v.neg : null),
+            ],
+          ),
+          const SizedBox(height: VestaSpace.lg),
           VestaProgressBar(
-            value: used,
-            height: 12,
-            color: used > 1 ? v.neg : Theme.of(context).colorScheme.primary,
+            value: hasBudget ? spent / budget : 0,
+            height: 8,
+            color: over ? v.neg : Theme.of(context).colorScheme.primary,
           ),
           const SizedBox(height: VestaSpace.sm),
-
-          // Labels
           Text(
             !hasBudget
-                ? "No budget set yet. Tap to add one."
+                ? 'No budget set yet. Tap the pencil to add one.'
                 : left >= 0
-                ? "${formatMoney(left)} left"
-                : "${formatMoney(-left)} over",
-            style: small.copyWith(color: leftColor),
+                ? '${formatMoney(left)} left this cycle'
+                : '${formatMoney(-left)} over this cycle',
+            style: TextStyle(fontSize: 12, color: over ? v.neg : v.muted),
           ),
         ],
       ),
@@ -959,81 +1525,6 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
     );
   }
 
-  Widget _buildMembersList(List<String> memberUids) {
-    if (memberUids.isEmpty) {
-      return const Center(child: Text("No members found."));
-    }
-
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: _db
-          .collection('users')
-          .where(
-            FieldPath.documentId,
-            whereIn: memberUids.isNotEmpty ? memberUids : ['_'],
-          )
-          .snapshots(),
-      builder: (context, userSnapshot) {
-        if (!userSnapshot.hasData) {
-          return const SizedBox(
-            height: 96,
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        final userDocs = userSnapshot.data!.docs;
-        // Light avatar colours that keep the dark initial readable.
-        final v = context.vesta;
-        final palette = [v.pxBlue, v.pxGreen, v.pxYellow, v.pxTeal];
-
-        return VestaCard(
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-          child: SizedBox(
-            height: 76,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: userDocs.length,
-              itemBuilder: (context, index) {
-                final userData = userDocs[index].data();
-                final username = userData['username'] ?? 'No Name';
-                final profileImageUrl =
-                    userData['profileImageUrl'] as String?;
-                final color = palette[index % palette.length];
-
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundColor: color,
-                        backgroundImage: profileImageUrl != null
-                            ? NetworkImage(profileImageUrl)
-                            : null,
-                        child: profileImageUrl == null
-                            ? Text(
-                                username.isNotEmpty
-                                    ? username[0].toUpperCase()
-                                    : '?',
-                                style: headingStyle(
-                                  18,
-                                  color: context.vesta.pxInk,
-                                ),
-                              )
-                            : null,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(username, style: const TextStyle(fontSize: 12)),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   IconData _getIconForCategory(String category) {
     switch (category.toLowerCase()) {
       case "food and drinks":
@@ -1073,6 +1564,8 @@ class HouseholdPage extends StatefulWidget {
 class _HouseholdPageState extends State<HouseholdPage> {
   final _db = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
+  bool _removing = false;
+  String? _healedFor;
 
   void _openCreateHousehold() {
     Navigator.push(
@@ -1115,6 +1608,7 @@ class _HouseholdPageState extends State<HouseholdPage> {
   }
 
   Widget _buildHouseholdList(List<String> householdIds) {
+    final uid = _auth.currentUser?.uid;
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: _db
           .collection('households')
@@ -1125,16 +1619,22 @@ class _HouseholdPageState extends State<HouseholdPage> {
           return const Center(child: CircularProgressIndicator());
         }
         if (householdSnapshot.hasError) {
-          return Center(child: Text(kDebugMode
-              ? "Error: ${householdSnapshot.error}"
-              : "Something went wrong. Please try again later."));
-        }
-        if (!householdSnapshot.hasData ||
-            householdSnapshot.data!.docs.isEmpty) {
-          return const Center(child: Text("Could not find households."));
+          // Usually a household we were removed from; tidy the list and the
+          // user doc stream rebuilds this
+          _heal(householdIds);
+          return const Center(child: CircularProgressIndicator());
         }
 
-        final householdDocs = householdSnapshot.data!.docs;
+        final all = householdSnapshot.data?.docs ?? [];
+        // Only households this user is still a member of
+        final householdDocs = all
+            .where(
+              (d) => List<String>.from(d.data()['members'] ?? []).contains(uid),
+            )
+            .toList();
+        if (householdDocs.length != householdIds.length) _heal(householdIds);
+        if (householdDocs.isEmpty) return _buildEmptyState();
+
         final v = context.vesta;
 
         return ListView(
@@ -1152,17 +1652,25 @@ class _HouseholdPageState extends State<HouseholdPage> {
               ),
               child: Column(
                 children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8, bottom: 4),
+                    child: SectionHeader(
+                      title: 'Shared households',
+                      trailing: [
+                        AddRemoveButtons(
+                          onAdd: _openCreateHousehold,
+                          addTooltip: 'New household',
+                          removing: _removing,
+                          removeTooltip: 'Leave or delete a household',
+                          onToggleRemove: () =>
+                              setState(() => _removing = !_removing),
+                        ),
+                      ],
+                    ),
+                  ),
                   for (var index = 0; index < householdDocs.length; index++)
-                    _householdRow(householdDocs, index, v),
+                    _householdRow(householdDocs[index], index, v),
                 ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: VestaSpace.md),
-              child: Text(
-                "Hold a household to delete it.",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: v.muted),
               ),
             ),
           ],
@@ -1171,69 +1679,58 @@ class _HouseholdPageState extends State<HouseholdPage> {
     );
   }
 
+  /// Drops households this user was removed from (or that were deleted)
+  /// from their own list, once per set of ids.
+  void _heal(List<String> householdIds) {
+    final key = householdIds.join(',');
+    if (_healedFor == key) return;
+    _healedFor = key;
+    healHouseholdIds(householdIds);
+  }
+
+  /// The owner deletes; anyone else leaves.
+  Future<void> _removeOrLeave(
+    String householdId,
+    Map<String, dynamic> household,
+  ) async {
+    final name = (household['householdName'] ?? 'this household').toString();
+    if (isHouseholdOwner(household)) {
+      await deleteHousehold(
+        context,
+        householdId: householdId,
+        name: name,
+        members: List<String>.from(household['members'] ?? []),
+      );
+    } else {
+      await leaveHousehold(context, householdId: householdId, name: name);
+    }
+  }
+
   Widget _householdRow(
-    List<QueryDocumentSnapshot<Map<String, dynamic>>> householdDocs,
+    QueryDocumentSnapshot<Map<String, dynamic>> householdDoc,
     int index,
     VestaColors v,
   ) {
-    final household = householdDocs[index].data();
-    final householdId = householdDocs[index].id;
-
-    final members = List<String>.from(household['members'] ?? []);
-    final memberCount = members.length;
+    final household = householdDoc.data();
+    final householdId = householdDoc.id;
+    final memberCount = List<String>.from(household['members'] ?? []).length;
+    final budget = (household['budget'] as num?)?.toDouble() ?? 0;
+    final spent = (household['totalExpense'] as num?)?.toDouble() ?? 0;
+    final owner = isHouseholdOwner(household);
 
     return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HouseholdDetailPage(householdId: householdId),
-          ),
-        );
-      },
-      onLongPress: () {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Delete household'),
-            content: const Text(
-              'Are you sure you want to delete this household? This action cannot be undone.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () async {
-                  // Remove household reference from ALL members
-                  for (final memberUid in members) {
-                    final userDocRef = _db
-                        .collection('users')
-                        .doc(memberUid);
-                    await userDocRef.update({
-                      'householdIds': FieldValue.arrayRemove([
-                        householdId,
-                      ]),
-                    });
-                  }
-
-                  // Delete the household document itself
-                  await _db
-                      .collection('households')
-                      .doc(householdId)
-                      .delete();
-
-                  Navigator.pop(context); // Close dialog
-                  setState(() {}); // Refresh list
-                },
-                style: TextButton.styleFrom(foregroundColor: v.neg),
-                child: const Text('Delete'),
-              ),
-            ],
-          ),
-        );
-      },
+      onTap: _removing
+          ? null
+          : () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      HouseholdDetailPage(householdId: householdId),
+                ),
+              );
+            },
+      onLongPress: () => _removeOrLeave(householdId, household),
       child: Container(
         decoration: BoxDecoration(
           border: index == 0
@@ -1243,6 +1740,10 @@ class _HouseholdPageState extends State<HouseholdPage> {
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
+            if (_removing) ...[
+              RemoveBadge(onTap: () => _removeOrLeave(householdId, household)),
+              const SizedBox(width: VestaSpace.md),
+            ],
             IconBadge(
               PhosphorIconsRegular.houseLine,
               size: 40,
@@ -1254,23 +1755,41 @@ class _HouseholdPageState extends State<HouseholdPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    household['householdName'] ?? 'Unnamed Household',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          household['householdName'] ?? 'Unnamed household',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Text(
+                        memberCount == 1 ? '1 member' : '$memberCount members',
+                        style: TextStyle(fontSize: 12, color: v.muted),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 6),
+                  VestaProgressBar(
+                    value: budget > 0 ? spent / budget : 0,
+                    height: 4,
+                    color: spent > budget && budget > 0
+                        ? v.neg
+                        : Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(height: 6),
                   Text(
-                    household['live_text'] ?? 'Tap to open',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    budget > 0
+                        ? '${formatMoney(spent)} of ${formatMoney(budget)}'
+                        : (owner
+                              ? 'No budget yet. Open to set one.'
+                              : 'No budget set yet'),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
               ),
             ),
-            Icon(PhosphorIconsRegular.usersThree, size: 16, color: v.muted),
-            const SizedBox(width: VestaSpace.xs),
-            Text('$memberCount', style: TextStyle(fontSize: 13, color: v.muted)),
             const SizedBox(width: VestaSpace.sm),
             Icon(PhosphorIconsRegular.caretRight, size: 16, color: v.muted),
           ],
@@ -1295,16 +1814,7 @@ class _HouseholdPageState extends State<HouseholdPage> {
     final String uid = currentUser.uid;
 
     return Scaffold(
-      appBar: VestaAppBar(
-        title: 'Shared finances',
-        actions: [
-          IconButton(
-            icon: const Icon(PhosphorIconsRegular.plus),
-            tooltip: 'New household',
-            onPressed: _openCreateHousehold,
-          ),
-        ],
-      ),
+      appBar: const VestaAppBar(title: 'Shared finances'),
       body: VestaBackground(
         child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           stream: _db
