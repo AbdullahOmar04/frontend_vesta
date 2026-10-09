@@ -58,117 +58,95 @@ class _LoginState extends State<Login> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Reset password'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Enter your email address and we\'ll send you a link to reset your password.',
-                style: TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  hintText: 'example@email.com',
-                ),
-              ),
-            ],
+        builder: (context, setDialogState) => VestaDialog(
+          title: 'Reset password',
+          message:
+              "Enter your email and we'll send you a link to reset your password.",
+          content: TextField(
+            controller: emailController,
+            keyboardType: TextInputType.emailAddress,
+            decoration: InputDecoration(
+              labelText: 'Email',
+              hintText: 'example@email.com',
+            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: isLoading ? null : () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: isLoading
-                  ? null
-                  : () async {
-                      final email = emailController.text.trim();
-                      if (email.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Please enter your email address'),
-                            backgroundColor: Theme.of(context).colorScheme.error,
-                          ),
-                        );
-                        return;
-                      }
+          confirmLabel: 'Send reset link',
+          onConfirm: isLoading
+              ? null
+              : () async {
+                  final email = emailController.text.trim();
+                  if (email.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Please enter your email address'),
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                    );
+                    return;
+                  }
 
-                      // Validate email format
-                      final emailRegex = RegExp(
-                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                  // Validate email format
+                  final emailRegex = RegExp(
+                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                  );
+                  if (!emailRegex.hasMatch(email)) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Please enter a valid email address'),
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                    );
+                    return;
+                  }
+
+                  setDialogState(() => isLoading = true);
+
+                  try {
+                    await FirebaseAuth.instance.sendPasswordResetEmail(
+                      email: email,
+                    );
+                    if (dialogContext.mounted) {
+                      Navigator.pop(dialogContext);
+                    }
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Password reset email sent. Please check your inbox.',
+                          ),
+                        ),
                       );
-                      if (!emailRegex.hasMatch(email)) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Please enter a valid email address'),
-                            backgroundColor: Theme.of(context).colorScheme.error,
-                          ),
-                        );
-                        return;
-                      }
-
-                      setDialogState(() => isLoading = true);
-
-                      try {
-                        await FirebaseAuth.instance.sendPasswordResetEmail(
-                          email: email,
-                        );
-                        if (dialogContext.mounted) {
-                          Navigator.pop(dialogContext);
-                        }
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Password reset email sent. Please check your inbox.',
-                              ),
-                            ),
-                          );
-                        }
-                      } on FirebaseAuthException catch (e) {
-                        setDialogState(() => isLoading = false);
-                        debugPrint('Password reset Firebase error: ${e.code}');
-                        // Show user-friendly message without exposing internal details
-                        String message =
-                            'Failed to send reset email. Please try again.';
-                        if (e.code == 'too-many-requests') {
-                          message =
-                              'Too many attempts. Please try again later.';
-                        }
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(message),
-                            backgroundColor: Theme.of(context).colorScheme.error,
-                          ),
-                        );
-                      } catch (e) {
-                        setDialogState(() => isLoading = false);
-                        debugPrint('Password reset error: $e');
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'An error occurred. Please try again later.',
-                            ),
-                            backgroundColor: Theme.of(context).colorScheme.error,
-                          ),
-                        );
-                      }
-                    },
-              child: isLoading
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Send reset link'),
-            ),
-          ],
+                    }
+                  } on FirebaseAuthException catch (e) {
+                    setDialogState(() => isLoading = false);
+                    debugPrint('Password reset Firebase error: ${e.code}');
+                    // Show user-friendly message without exposing internal details
+                    String message =
+                        'Failed to send reset email. Please try again.';
+                    if (e.code == 'too-many-requests') {
+                      message =
+                          'Too many attempts. Please try again later.';
+                    }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(message),
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                    );
+                  } catch (e) {
+                    setDialogState(() => isLoading = false);
+                    debugPrint('Password reset error: $e');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'An error occurred. Please try again later.',
+                        ),
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                    );
+                  }
+                },
+          loading: isLoading,
         ),
       ),
     );

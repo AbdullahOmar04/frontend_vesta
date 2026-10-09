@@ -24,37 +24,15 @@ class _AccountsPageState extends State<AccountsPage> {
   bool _removing = false;
 
   Future<void> _showDeleteDialog(String accountId, String bankName) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Account'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Are you sure you want to delete "$bankName"?'),
-            const SizedBox(height: 12),
-            Text(
-              'This will also delete all transactions associated with this account.',
-              style: TextStyle(color: context.vesta.neg, fontSize: 13),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: context.vesta.neg),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    final confirmed = await confirmDialog(
+      context,
+      title: 'Delete $bankName?',
+      message:
+          'This also deletes every transaction in the account. It cannot be undone.',
+      confirmLabel: 'Delete',
     );
 
-    if (confirmed == true) {
+    if (confirmed) {
       await _deleteAccount(accountId);
     }
   }

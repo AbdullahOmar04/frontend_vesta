@@ -46,14 +46,10 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(PhosphorIconsRegular.warningCircle, color: context.vesta.neg),
-            const SizedBox(width: 8),
-            const Text('Phone Number Blocked'),
-          ],
-        ),
+      builder: (context) => VestaDialog(
+        title: 'Phone Number Blocked',
+        icon: PhosphorIconsRegular.warningCircle,
+        iconColor: context.vesta.neg,
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,12 +74,9 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
             Text('3. Try again after the waiting period'),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-        ],
+        cancelLabel: null,
+        confirmLabel: 'OK',
+        onConfirm: () => Navigator.of(context).pop(),
       ),
     );
   }

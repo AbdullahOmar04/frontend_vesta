@@ -110,14 +110,10 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(PhosphorIconsRegular.warningCircle, color: context.vesta.neg),
-            const SizedBox(width: 8),
-            const Text('Phone Number Blocked'),
-          ],
-        ),
+      builder: (context) => VestaDialog(
+        title: 'Phone Number Blocked',
+        icon: PhosphorIconsRegular.warningCircle,
+        iconColor: context.vesta.neg,
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,19 +138,13 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
             Text('3. Try again with the correct OTP'),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop(); // Go back to previous screen
-            },
-            child: const Text('Go Back'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-        ],
+        cancelLabel: 'Go Back',
+        onCancel: () {
+          Navigator.of(context).pop();
+          Navigator.of(context).pop(); // Go back to previous screen
+        },
+        confirmLabel: 'OK',
+        onConfirm: () => Navigator.of(context).pop(),
       ),
     );
   }

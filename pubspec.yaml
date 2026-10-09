@@ -53,9 +53,10 @@ flutter:
           weight: 500
         - asset: assets/fonts/Poppins-SemiBold.ttf
           weight: 600
-    - family: PixelifySans
+    - family: PPNeueBit
       fonts:
-        - asset: assets/fonts/PixelifySans.ttf
+        - asset: assets/fonts/PPNeueBit-Bold.otf
+          weight: 700
     - family: Phosphor
       fonts:
         - asset: assets/fonts/Phosphor.ttf

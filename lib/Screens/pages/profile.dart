@@ -66,8 +66,8 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _showImageSourceDialog() async {
     final source = await showDialog<ImageSource>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Profile picture"),
+      builder: (context) => VestaDialog(
+        title: "Profile picture",
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -85,12 +85,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-        ],
       ),
     );
 
@@ -110,26 +104,14 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _confirmLogout() async {
-    final neg = context.vesta.neg;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Log out"),
-        content: const Text("Are you sure you want to log out?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel"),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: neg),
-            child: const Text("Log out"),
-          ),
-        ],
-      ),
+    final confirmed = await confirmDialog(
+      context,
+      title: 'Log out of Vesta?',
+      message: "You'll need to log in again to see your money.",
+      confirmLabel: 'Log out',
+      icon: PhosphorIconsRegular.signOut,
     );
-    if (confirmed == true) {
+    if (confirmed) {
       await SecureStorage().deleteAll();
       await FirebaseAuth.instance.signOut();
       if (mounted) {

@@ -213,8 +213,8 @@ class _CustomGoalDialogState extends State<_CustomGoalDialog> {
     final v = context.vesta;
     final scheme = Theme.of(context).colorScheme;
 
-    return AlertDialog(
-      title: const Text('Custom goal'),
+    return VestaDialog(
+      title: 'Custom goal',
       content: SizedBox(
         width: 320,
         child: SingleChildScrollView(
@@ -269,13 +269,8 @@ class _CustomGoalDialogState extends State<_CustomGoalDialog> {
           ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(onPressed: _createGoal, child: const Text('Create')),
-      ],
+      confirmLabel: 'Create',
+      onConfirm: _createGoal,
     );
   }
 }

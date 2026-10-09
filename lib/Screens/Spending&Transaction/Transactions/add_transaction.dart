@@ -194,8 +194,8 @@ class AddTransactionState extends State<AddTransaction> {
     showDialog(
       context: context,
       builder: (ctx) {
-        return AlertDialog(
-          title: const Text("Paste bank SMS"),
+        return VestaDialog(
+          title: "Paste bank SMS",
           content: TextField(
             controller: _smsCtrl,
             maxLines: 6,
@@ -203,27 +203,19 @@ class AddTransactionState extends State<AddTransaction> {
               hintText: "Paste the SMS message from your bank here...",
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () {
-                final smsText = _smsCtrl.text.trim();
-                if (smsText.isEmpty) {
-                  return;
-                }
-                _fillFromSms(smsText);
-                Navigator.pop(ctx);
+          confirmLabel: "Parse",
+          onConfirm: () {
+            final smsText = _smsCtrl.text.trim();
+            if (smsText.isEmpty) {
+              return;
+            }
+            _fillFromSms(smsText);
+            Navigator.pop(ctx);
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("SMS parsed. Fields updated.")),
-                );
-              },
-              child: const Text("Parse"),
-            ),
-          ],
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("SMS parsed. Fields updated.")),
+            );
+          },
         );
       },
     );

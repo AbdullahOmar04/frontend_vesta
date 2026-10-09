@@ -4,6 +4,8 @@ import 'package:app_links/app_links.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 
 /// This service class handles all deep link logic.
 /// It should be initialized ONCE in your main app widget.
@@ -132,41 +134,35 @@ class DeepLinkService {
       if (!activeContext.mounted) return;
       showDialog(
         context: activeContext,
-        builder: (dialogCtx) => AlertDialog(
-          title: const Text("You're invited!"),
-          content: Text("$inviterName has invited you to join $householdName."),
-          actions: [
-            TextButton(
-              child: const Text("Decline"),
-              onPressed: () => Navigator.of(dialogCtx).pop(),
-            ),
-            FilledButton(
-              child: const Text("Accept"),
-              onPressed: () async {
-                // This is the "Trigger" for our Cloud Function!
-                try {
-                  await _db.collection('invites').doc(inviteId).update({
-                    'status': 'accepted',
-                    'acceptedByUid': currentUserUid,
-                  });
-                  Navigator.of(dialogCtx).pop();
-                  if (activeContext.mounted) {
-                    ScaffoldMessenger.of(activeContext).showSnackBar(
-                      const SnackBar(
-                        content: Text("Invite accepted! Joining household..."),
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  if (activeContext.mounted) {
-                    ScaffoldMessenger.of(activeContext).showSnackBar(
-                      SnackBar(content: Text("Error: ${e.toString()}")),
-                    );
-                  }
-                }
-              },
-            ),
-          ],
+        builder: (dialogCtx) => VestaDialog(
+          title: "You're invited!",
+          icon: PhosphorIconsRegular.usersThree,
+          message: "$inviterName has invited you to join $householdName.",
+          cancelLabel: "Decline",
+          confirmLabel: "Accept",
+          onConfirm: () async {
+            // This is the "Trigger" for our Cloud Function!
+            try {
+              await _db.collection('invites').doc(inviteId).update({
+                'status': 'accepted',
+                'acceptedByUid': currentUserUid,
+              });
+              Navigator.of(dialogCtx).pop();
+              if (activeContext.mounted) {
+                ScaffoldMessenger.of(activeContext).showSnackBar(
+                  const SnackBar(
+                    content: Text("Invite accepted! Joining household..."),
+                  ),
+                );
+              }
+            } catch (e) {
+              if (activeContext.mounted) {
+                ScaffoldMessenger.of(activeContext).showSnackBar(
+                  SnackBar(content: Text("Error: ${e.toString()}")),
+                );
+              }
+            }
+          },
         ),
       );
     } catch (e) {
