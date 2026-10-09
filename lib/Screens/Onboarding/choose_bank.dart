@@ -272,14 +272,10 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
     final v = context.vesta;
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(PhosphorIconsRegular.warningCircle, color: v.neg),
-            const SizedBox(width: 8),
-            const Expanded(child: Text('Different account')),
-          ],
-        ),
+      builder: (context) => VestaDialog(
+        title: 'Different account',
+        icon: PhosphorIconsRegular.warningCircle,
+        iconColor: v.neg,
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,12 +294,9 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
+        cancelLabel: null,
+        confirmLabel: 'OK',
+        onConfirm: () => Navigator.pop(context),
       ),
     );
   }
@@ -1120,8 +1113,8 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
 
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
-            return AlertDialog(
-              title: const Text('Create test account'),
+            return VestaDialog(
+              title: 'Create test account',
               content: Form(
                 key: dialogFormKey,
                 child: Column(
@@ -1154,46 +1147,34 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
                   ],
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: creating ? null : () => Navigator.pop(ctx, false),
-                  child: const Text('Cancel'),
-                ),
-                FilledButton(
-                  onPressed: creating
-                      ? null
-                      : () async {
-                          if (!dialogFormKey.currentState!.validate()) return;
-                          setDialogState(() {
-                            creating = true;
-                            dialogError = null;
-                          });
-                          final nav = Navigator.of(ctx);
-                          final resp = await etihadCreateAccount(
-                            _customerId!,
-                            nameC.text.trim(),
-                            currency: currencyC.text.trim(),
-                          );
-                          if (resp != null && resp['status'] == 'success') {
-                            nav.pop(true);
-                          } else {
-                            final detail = resp?['detail']?.toString() ??
-                                'Failed to create account';
-                            setDialogState(() {
-                              creating = false;
-                              dialogError = detail;
-                            });
-                          }
-                        },
-                  child: creating
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Create'),
-                ),
-              ],
+              onCancel: creating ? null : () => Navigator.pop(ctx, false),
+              confirmLabel: 'Create',
+              onConfirm: creating
+                  ? null
+                  : () async {
+                      if (!dialogFormKey.currentState!.validate()) return;
+                      setDialogState(() {
+                        creating = true;
+                        dialogError = null;
+                      });
+                      final nav = Navigator.of(ctx);
+                      final resp = await etihadCreateAccount(
+                        _customerId!,
+                        nameC.text.trim(),
+                        currency: currencyC.text.trim(),
+                      );
+                      if (resp != null && resp['status'] == 'success') {
+                        nav.pop(true);
+                      } else {
+                        final detail = resp?['detail']?.toString() ??
+                            'Failed to create account';
+                        setDialogState(() {
+                          creating = false;
+                          dialogError = detail;
+                        });
+                      }
+                    },
+              loading: creating,
             );
           },
         );
@@ -1339,8 +1320,8 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
 
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
-            return AlertDialog(
-              title: const Text('Create sandbox user'),
+            return VestaDialog(
+              title: 'Create sandbox user',
               content: SingleChildScrollView(
                 child: Form(
                   key: dialogFormKey,
@@ -1419,53 +1400,41 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
                   ),
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: creating ? null : () => Navigator.pop(ctx, false),
-                  child: const Text('Cancel'),
-                ),
-                FilledButton(
-                  onPressed: creating
-                      ? null
-                      : () async {
-                          if (!dialogFormKey.currentState!.validate()) return;
-                          setDialogState(() {
-                            creating = true;
-                            dialogError = null;
-                          });
+              onCancel: creating ? null : () => Navigator.pop(ctx, false),
+              confirmLabel: 'Create',
+              onConfirm: creating
+                  ? null
+                  : () async {
+                      if (!dialogFormKey.currentState!.validate()) return;
+                      setDialogState(() {
+                        creating = true;
+                        dialogError = null;
+                      });
 
-                          // Capture navigator before the await so we don't
-                          // look up a deactivated context afterwards.
-                          final nav = Navigator.of(ctx);
+                      // Capture navigator before the await so we don't
+                      // look up a deactivated context afterwards.
+                      final nav = Navigator.of(ctx);
 
-                          final resp = await etihadCreateUser(
-                            username: usernameC.text.trim(),
-                            password: passwordC.text.trim(),
-                            email: emailC.text.trim(),
-                            firstName: firstNameC.text.trim(),
-                            lastName: lastNameC.text.trim(),
-                            phoneNumber: phoneC.text.trim(),
-                          );
+                      final resp = await etihadCreateUser(
+                        username: usernameC.text.trim(),
+                        password: passwordC.text.trim(),
+                        email: emailC.text.trim(),
+                        firstName: firstNameC.text.trim(),
+                        lastName: lastNameC.text.trim(),
+                        phoneNumber: phoneC.text.trim(),
+                      );
 
-                          if (resp != null && resp['status'] == 'success') {
-                            nav.pop(true);
-                          } else {
-                            final detail = resp?['detail']?.toString() ?? 'Failed to create user';
-                            setDialogState(() {
-                              creating = false;
-                              dialogError = detail;
-                            });
-                          }
-                        },
-                  child: creating
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Create'),
-                ),
-              ],
+                      if (resp != null && resp['status'] == 'success') {
+                        nav.pop(true);
+                      } else {
+                        final detail = resp?['detail']?.toString() ?? 'Failed to create user';
+                        setDialogState(() {
+                          creating = false;
+                          dialogError = detail;
+                        });
+                      }
+                    },
+              loading: creating,
             );
           },
         );
