@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
-import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 
 class SpendingCategories extends StatefulWidget {
@@ -17,6 +16,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
   final _auth = FirebaseAuth.instance;
 
   bool _loadingTotals = false;
+  bool _removing = false;
   int _budgetResetDay = 28;
   // Per-cycle tracked totals per category name
   Map<String, double> _cycleTotals = {};
@@ -397,27 +397,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
     final v = context.vesta;
 
     return Scaffold(
-      appBar: VestaAppBar(
-        title: "Categories",
-        actions: [
-          if (_loadingTotals)
-            const Padding(
-              padding: EdgeInsets.only(right: 8),
-              child: Center(
-                child: SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            ),
-          IconButton(
-            icon: const Icon(PhosphorIconsRegular.plus),
-            tooltip: "New category",
-            onPressed: _showCreateCategoryDialog,
-          ),
-        ],
-      ),
+      appBar: const VestaAppBar(title: "Categories"),
       body: VestaBackground(
         child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
           stream: _db
@@ -447,9 +427,30 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(bottom: VestaSpace.md),
-                  child: Text(
-                    "Amounts are for the current budget cycle.",
-                    style: TextStyle(fontSize: 13, color: v.muted),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          "Amounts are for the current budget cycle.",
+                          style: TextStyle(fontSize: 13, color: v.muted),
+                        ),
+                      ),
+                      if (_loadingTotals)
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      AddRemoveButtons(
+                        onAdd: _showCreateCategoryDialog,
+                        addTooltip: "New category",
+                        removing: _removing,
+                        canRemove: categories.isNotEmpty,
+                        removeTooltip: "Remove a category",
+                        onToggleRemove: () =>
+                            setState(() => _removing = !_removing),
+                      ),
+                    ],
                   ),
                 ),
                 if (categories.isEmpty)
@@ -505,6 +506,10 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: [
+          if (_removing) ...[
+            RemoveBadge(onTap: () => _confirmDeleteCategory(categoryName)),
+            const SizedBox(width: VestaSpace.md),
+          ],
           IconBadge(
             categoryIcon(categoryName),
             size: 40,
@@ -527,11 +532,6 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
             ),
           ),
           MoneyText(tracked),
-          IconButton(
-            icon: Icon(PhosphorIconsRegular.trash, size: 18, color: v.neg),
-            tooltip: "Delete category",
-            onPressed: () => _confirmDeleteCategory(categoryName),
-          ),
         ],
       ),
     );
