@@ -326,10 +326,7 @@ class _TransactionsState extends State<Transactions> {
   }
 
   void _addTransaction() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const AddTransaction()),
-    ).then((_) => _loadTransactions());
+    showAddTransactionSheet(context).then((_) => _loadTransactions());
   }
 
   /// Remove mode's delete: same balance helper as the transaction's own
