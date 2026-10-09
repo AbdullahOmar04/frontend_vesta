@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
-import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transactions.dart';
 import 'package:frontend_vesta/Screens/pages/accounts.dart';
+import 'package:frontend_vesta/Screens/pages/dashboard.dart';
 import 'package:frontend_vesta/Screens/pages/home.dart';
 import 'package:frontend_vesta/Screens/pages/profile.dart';
 import 'package:frontend_vesta/deep_link_service.dart';
@@ -20,7 +20,8 @@ class _MainScreenState extends State<MainScreen> {
 
   int _selectedIndex = 0;
 
-  // Transactions holds the prototype's Dashboard slot until Dashboard exists.
+  // Home / Dashboard / Wallet / Profile, as in the prototype. Transactions
+  // opens from the Dashboard's Recent section and from Spendings.
   static const List<VestaNavItem> _tabs = [
     VestaNavItem(
       label: 'Home',
@@ -28,9 +29,9 @@ class _MainScreenState extends State<MainScreen> {
       selectedIcon: PhosphorIconsFill.house,
     ),
     VestaNavItem(
-      label: 'Transactions',
-      icon: PhosphorIconsRegular.receipt,
-      selectedIcon: PhosphorIconsFill.receipt,
+      label: 'Dashboard',
+      icon: PhosphorIconsRegular.chartLineUp,
+      selectedIcon: PhosphorIconsFill.chartLineUp,
     ),
     VestaNavItem(
       label: 'Wallet',
@@ -60,7 +61,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget _page(int index) {
     switch (index) {
       case 1:
-        return const Transactions(showBack: false);
+        return DashboardPage(onOpenWallet: () => _select(_walletIndex));
       case _walletIndex:
         return const AccountsPage(showBack: false);
       case 3:
