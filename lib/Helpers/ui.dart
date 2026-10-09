@@ -51,7 +51,7 @@ class VestaBackground extends StatelessWidget {
 }
 
 /// Header bar. The default shows a back arrow (when there is a route to pop)
-/// and a Pixelify title; [VestaAppBar.large] is the big left-aligned title
+/// and a heading-font title; [VestaAppBar.large] is the big left-aligned title
 /// used on tab pages such as Wallet and Profile.
 class VestaAppBar extends StatelessWidget implements PreferredSizeWidget {
   const VestaAppBar({
@@ -1016,38 +1016,194 @@ class OutlineButton extends StatelessWidget {
 
 enum PixelArt { budget, spend, save, shared }
 
-// 12x12 grids copied from the prototype's PIX table.
-const Map<PixelArt, List<String>> _pixelGrids = {
-  PixelArt.budget: [
-    '....XXX.....', '..XXXXX.oo..', '.XXXXXX.ooo.', '.XXXXXX.oooo',
-    'XXXXXXX.oooo', 'XXXXXXX.....', 'XXXXXXXXXXXX', 'XXXXXXXXXXXX',
-    '.XXXXXXXXXX.', '.XXXXXXXXXX.', '..XXXXXXXX..', '....XXXX....',
-  ],
-  PixelArt.spend: [
-    '.XXXXXXXXXX.', '.XXXXXXXXXX.', '.XXooooooXX.', '.XXXXXXXXXX.',
-    '.XXooooXXXX.', '.XXXXXXXXXX.', '.XXooooooXX.', '.XXXXXXXXXX.',
-    '.XXoooXXooX.', '.XXXXXXXXXX.', '.XX.XX.XX.X.', '.X..X..X..X.',
-  ],
-  PixelArt.save: [
-    '.....oo.....', '....oooo....', '.....oo.....', '..XXXXXXX...',
-    '.XXXXXXXXXX.', 'XXXXXXXXdXXX', 'XXXXXXXXXXXX', 'XXXXXXXXXXXX',
-    '.XXXXXXXXXX.', '..XXXXXXXX..', '..XX....XX..', '..XX....XX..',
-  ],
-  PixelArt.shared: [
-    '............', '..XX....oo..', '.XXXX..oooo.', '.XXXX..oooo.',
-    '..XX....oo..', '............', '.XXXX..oooo.', 'XXXXXXoooooo',
-    'XXXXXXoooooo', 'XXXXXXoooooo', 'XXXXXXoooooo', '............',
-  ],
+// The prototype's pixel icons on a 32x32 grid, in its own compact form:
+// every 4 characters are one pixel, x and y in base 36, a palette key and a
+// shade (k, d and m darken; l and w lighten; anything else is plain).
+const Map<PixelArt, String> _pixelData = {
+  PixelArt.budget:
+    'h2Bdi2Bdj2Bdk2Bdh3Bdi3Blj3Bbk3Bbl3Bdm3Bdn3Bdh4Bdi4Blj4Bbk4Bbl4Bb'
+    'm4Bbn4Bbo4Bka5Adb5Adc5Add5Ade5Adh5Bdi5Blj5Bbk5Bbl5Bbm5Bbn5Bbo5Bm'
+    'p5Bk86Ad96Ada6Awb6Awc6Ald6Ale6Adh6Bdi6Blj6Bbk6Bbl6Bbm6Bbn6Bbo6Bm'
+    'p6Bmq6Bk77Ad87Aw97Awa7Awb7Awc7Ald7Ale7Adh7Bdi7Bbj7Bbk7Bbl7Bbm7Bb'
+    'n7Bbo7Bmp7Bmq7Bmr7Bk68Ad78Aw88Aw98Awa8Awb8Awc8Ald8Ale8Adh8Bdi8Bb'
+    'j8Bbk8Bbl8Bbm8Bbn8Bmo8Bmp8Bmq8Bmr8Bds8Bk59Ad69Aw79Aw89Aw99Awa9Aw'
+    'b9Alc9Ald9Ale9Adh9Bdi9Bbj9Bbk9Bbl9Bbm9Bbn9Bmo9Bmp9Bmq9Bmr9Bds9Bk'
+    '4aAd5aAw6aAw7aAw8aAw9aAwaaAlbaAlcaAldaAleaAdhaBdiaBbjaBbkaBblaBb'
+    'maBmnaBmoaBmpaBmqaBdraBdsaBdtaBk3bAd4bAw5bAw6bAw7bAw8bAw9bAwabAl'
+    'bbAlcbAldbAlebAdhbBdibBbjbBbkbBblbBbmbBmnbBmobBmpbBmqbBdrbBdsbBd'
+    'tbBk3cAd4cAw5cAw6cAw7cAw8cAl9cAlacAlbcAlccAldcAlecAdhcBdicBbjcBb'
+    'kcBblcBmmcBmncBmocBmpcBmqcBdrcBdscBktcBk3dAd4dAl5dAw6dAl7dAl8dAl'
+    '9dAladAlbdAlcdAlddAbedAdhdBdidBbjdBbkdBmldBmmdBmndBmodBmpdBdqdBd'
+    'rdBdsdBktdBk2eAd3eAl4eAl5eAl6eAl7eAl8eAl9eAlaeAlbeAlceAbdeAbeeAd'
+    'heBdieBdjeBdkeBkleBkmeBkneBkoeBkpeBkqeBkreBkseBkteBk2fAd3fAl4fAl'
+    '5fAl6fAl7fAl8fAl9fAlafAlbfAbcfAbdfAbefAd2gAd3gAl4gAl5gAl6gAl7gAl'
+    '8gAl9gAlagAbbgAbcgAbdgAbegAd2hAd3hAl4hAl5hAl6hAl7hAb8hAb9hAbahAb'
+    'bhAbchAbdhAbehAbfhAdghAdhhAkihAkjhAkkhAklhAkmhAknhAkohAkphAkqhAk'
+    'rhAk2iAd3iAb4iAb5iAb6iAb7iAb8iAb9iAbaiAbbiAbciAbdiAbeiAmfiCmgiCd'
+    'hiCdiiCdjiCdkiCdliCkmiCkniCkoiCkpiCkqiCkriCk2jAd3jAb4jAb5jAb6jAb'
+    '7jAb8jAb9jAbajAbbjAbcjAbdjAmejCdfjCmgjCmhjCmijCmjjCmkjCdljCdmjCd'
+    'njCkojCkpjCkqjCkrjCk2kAd3kAb4kAb5kAb6kAb7kAb8kAb9kAbakAbbkAbckAb'
+    'dkAdekCdfkCmgkCmhkCmikCmjkCdkkCdlkCdmkCdnkCkokCkpkCkqkCkrkCk3lAd'
+    '4lAb5lAb6lAb7lAb8lAb9lAbalAbblAmclAddlCdelCmflCmglCmhlCmilCdjlCd'
+    'klCdllCdmlCknlCkolCkplCkqlCk3mAd4mAb5mAb6mAb7mAb8mAb9mAmamAmbmAm'
+    'cmAddmCdemCmfmCmgmCmhmCdimCdjmCdkmCdlmCkmmCknmCkomCkpmCkqmCk3nAk'
+    '4nAm5nAm6nAm7nAm8nAm9nAmanAmbnAmcnAddnCdenCmfnCdgnCdhnCdinCdjnCd'
+    'knCklnCkmnCknnCkonCkpnCkqnCk4oAk5oAm6oAm7oAm8oAm9oAmaoAmboAdcoCd'
+    'doCmeoCdfoCdgoCdhoCdioCdjoCkkoCkloCkmoCknoCkooCkpoCk5pAk6pAm7pAm'
+    '8pAm9pAmapAmbpAkcpCkdpCdepCdfpCdgpCdhpCkipCkjpCkkpCklpCkmpCknpCk'
+    'opCk6qAk7qAd8qAd9qAdaqAkbqCkcqCddqCdeqCdfqCdgqCkhqCkiqCkjqCkkqCk'
+    'lqCkmqCknqCk7rAk8rAd9rAdarAkbrCkcrCddrCderCkfrCkgrCkhrCkirCkjrCk'
+    'krCklrCkmrCk8sAk9sAkasAkbsCkcsCkdsCkesCkfsCkgsCkhsCkisCkjsCkksCk'
+    'lsCkatCkbtCkctCkdtCketCkftCkgtCkhtCkitCkjtCk',
+  PixelArt.spend:
+    '47Ad57Ad67Ad77Ad87Ad97Ada7Adb7Adc7Add7Ade7Adf7Adg7Adh7Adi7Adj7Ad'
+    'k7Adl7Adm7Adn7Ado7Adp7Adq7Adr7Ad38Ad48Al58Al68Al78Al88Al98Ala8Al'
+    'b8Alc8Ald8Ale8Abf8Abg8Abh8Abi8Abj8Abk8Abl8Abm8Abn8Abo8Abp8Abq8Ab'
+    'r8Abs8Ad29Ad39Al49Al59Al69Al79Al89Al99Ala9Alb9Alc9Ald9Abe9Abf9Ab'
+    'g9Abh9Abi9Abj9Abk9Abl9Abm9Abn9Abo9Abp9Abq9Abr9Abs9Abt9Ad2aSd3aSb'
+    '4aSb5aSb6aSb7aSm8aSm9aSmaaSmbaSmcaSmdaSmeaSmfaSmgaSmhaSmiaSmjaSm'
+    'kaSmlaSmmaSmnaSmoaSmpaSmqaSmraSmsaSmtaSk2bSd3bSb4bSb5bSb6bSb7bSm'
+    '8bSm9bSmabSmbbSmcbSmdbSmebSmfbSmgbSmhbSmibSmjbSmkbSmlbSmmbSmnbSm'
+    'obSmpbSmqbSmrbSmsbSmtbSk2cSd3cSb4cSb5cSb6cSb7cSm8cSm9cSmacSmbcSm'
+    'ccSmdcSmecSmfcSmgcSmhcSmicSmjcSmkcSmlcSmmcSmncSmocSmpcSmqcSmrcSm'
+    'scSmtcSk2dAd3dAl4dAl5dAl6dAl7dAb8dAb9dAbadAbbdAbcdAbddAbedAbfdAb'
+    'gdAbhdAbidAbjdAbkdAbldAbmdAbndAbodAbpdAbqdAbrdAmsdAmtdAk2eAd3eAl'
+    '4eAl5eAb6eAb7eAb8eAb9eAbaeAbbeAbceAbdeAbeeAbfeAbgeAbheAbieAbjeAb'
+    'keAbleAbmeAbneAboeAbpeAmqeAmreAmseAmteAk2fAd3fAl4fAb5fPl6fPl7fPm'
+    '8fPb9fPbafPbbfAbcfAbdfAbefAbffAbgfAbhfAbifAbjfAbkfAblfAbmfAbnfAw'
+    'ofAlpfAlqfAmrfAmsfAmtfAk2gAd3gAb4gAb5gPl6gPb7gPm8gPb9gPbagPbbgAb'
+    'cgAbdgAbegAbfgAbggAbhgAbigAbjgAbkgAblgAbmgAwngAwogAlpgAlqgAlrgAm'
+    'sgAmtgAk2hAd3hAb4hAb5hPm6hPm7hPd8hPd9hPdahPdbhAbchAbdhAbehAbfhAb'
+    'ghAbhhAbihAbjhAbkhAblhAmmhAwnhAwohAlphAlqhAlrhAmshAmthAk2iAd3iAb'
+    '4iAb5iPb6iPb7iPd8iPm9iPmaiPmbiAbciAbdiAbeiAbfiAbgiAbhiAbiiAbjiAm'
+    'kiAmliAmmiAwniAwoiAlpiAlqiAlriAmsiAmtiAk2jAd3jAb4jAb5jPb6jPm7jPd'
+    '8jPm9jPmajPmbjAbcjAbdjAbejAbfjAbgjAbhjAbijAmjjAmkjAmljAmmjAmnjAw'
+    'ojAlpjAlqjAmrjAmsjAmtjAk2kAd3kAb4kAb5kAb6kAb7kAb8kAb9kAbakAbbkAb'
+    'ckAbdkAbekAbfkAbgkAmhkAmikAmjkAmkkAmlkAmmkAmnkAmokAmpkAmqkAmrkAm'
+    'skAmtkAk2lAd3lAb4lAb5lAb6lAb7lAb8lAb9lAbalAbblAbclAbdlAbelAbflAm'
+    'glAmhlAmilAmjlAmklAmllAmmlAmnlAmolAmplAmqlAmrlAmslAmtlAk2mAd3mAb'
+    '4mAb5mAw6mAw7mAb8mAw9mAwamAbbmAwcmAwdmAmemAwfmAwgmAmhmAmimAwjmAw'
+    'kmAmlmAmmmAmnmAmomAmpmAmqmAmrmAmsmAmtmAk2nAd3nAb4nAb5nAb6nAb7nAb'
+    '8nAb9nAbanAbbnAbcnAmdnAmenAmfnAmgnAmhnAminAmjnAmknAmlnAmmnAmnnAm'
+    'onAmpnAmqnAmrnAmsnAmtnAk3oAd4oAb5oAb6oAb7oAb8oAb9oAbaoAmboAmcoAm'
+    'doAmeoAmfoAmgoAmhoAmioAmjoAmkoAmloAmmoAmnoAmooAmpoAmqoAmroAmsoAk'
+    '4pAd5pAd6pAd7pAd8pAd9pAkapAkbpAkcpAkdpAkepAkfpAkgpAkhpAkipAkjpAk'
+    'kpAklpAkmpAknpAkopAkppAkqpAkrpAk',
+  PixelArt.save:
+    'e1Pdf1Pdg1Pdh1Pkd2Pde2Pwf2Plg2Pbh2Pbi2Pkd3Pde3Plf3Pmg3Pmh3Pmi3Pk'
+    'c4Pdd4Ple4Pbf4Pmg4Pmh4Pmi4Pkj4Pkd5Pde5Pbf5Pmg5Pmh5Pdi5Pkd6Pke6Pm'
+    'f6Pdg6Pkh6Pki6Pke7Pmf7Pdg7Pdh7Pdj7Adk7Adl7Adm7Aki8Adj8Awk8All8Ab'
+    'm8Amn8Akc9Add9Ade9Adf9Adg9Adh9Adi9Abj9Alk9Abl9Amm9Adn9Ak9aAdaaAd'
+    'baAdcaAldaEmeaEmfaEmgaEmhaEmiaEmjaAbkaAmlaAmmaAknaAk7bAd8bAd9bAw'
+    'abAwbbAwcbAwdbAlebAlfbAlgbAlhbAbibAbjbAbkbAblbAmmbAmnbAk6cAd7cAw'
+    '8cAw9cAwacAwbcAwccAwdcAlecAlfcAlgcAbhcAbicAbjcAbkcAblcAmmcAmncAd'
+    'ocAk5dAd6dAw7dAw8dAw9dAwadAwbdAwcdAlddAledAlfdAlgdAbhdAbidAbjdAb'
+    'kdAmldAmmdAmndAdodAdpdAk1eAk4eAd5eAl6eAw7eAw8eAw9eAwaeAwbeAlceAl'
+    'deAleeAlfeAbgeAbheAbieAbjeAbkeAmleAmmeAmneAdoeEwpeEbqeAkreNd2fAk'
+    '4fAd5fAl6fAl7fAw8fAw9fAlafAlbfAlcfAldfAlefAbffAbgfAbhfAbifAbjfAm'
+    'kfAmlfAmmfAmnfAdofEbpfEbqfNbrfNbsfNdtfNk2gAk4gAd5gAl6gAl7gAl8gAl'
+    '9gAlagAlbgAlcgAldgAbegAbfgAbggAbhgAbigAmjgAmkgAmlgAmmgAdngAdogAk'
+    'pgNbqgNlrgNdsgNmtgNk4hAd5hAl6hAl7hAl8hAl9hAlahAlbhAbchAbdhAbehAb'
+    'fhAbghAbhhAmihAmjhAmkhAmlhAdmhAdnhAdohAkphNmqhNbrhNbshNmthNk4iAd'
+    '5iAb6iAb7iAb8iAb9iAbaiAbbiAbciAbdiAbeiAbfiAbgiAmhiAmiiAmjiAmkiAd'
+    'liAdmiAdniAkoiAkpiNdqiNmriNdsiNdtiNk4jAd5jAb6jAb7jAb8jAb9jAbajAb'
+    'bjAbcjAbdjAbejAmfjAmgjAmhjAmijAmjjAdkjAdljAdmjAknjAkojAkpjNkqjNk'
+    'rjNksjNktjNk4kAk5kAb6kAb7kAb8kAb9kAbakAbbkAbckAmdkAmekAmfkAmgkAm'
+    'hkAmikAdjkAdkkAdlkAkmkAknkAkokAkpkAkqkAkrkNk4lAk5lAm6lAm7lAm8lAm'
+    '9lAmalAmblAmclAmdlAmelAmflAmglAdhlAdilAdjlAdklAkllAkmlAknlAkolAk'
+    'plAkqlAk5mAk6mAm7mAm8mAm9mAmamAmbmAmcmAmdmAmemAdfmAdgmAdhmAdimAk'
+    'jmAkkmAklmAkmmAknmAkomAkpmAk6nAk7nAd8nAd9nAdanAdbnAdcnAddnAdenAd'
+    'fnAdgnAkhnAkinAkjnAkknAklnAkmnAknnAkonAk7oAk8oAd9oAdaoAdboAdcoAk'
+    'doAkeoAkfoAkgoAkhoAkioAkjoAkkoAkloAkmoAknoAk8pAd9pAkapAkbpAkcpAk'
+    'dpAkepAkfpAkgpAkhpAkipAkjpAkkpAklpAkmpAk8qAd9qAmaqAmbqAmcqAkdqAk'
+    'eqAkfqAkgqAkhqAkiqAkjqAbkqAmlqAmmqAk8rAk9rAmarAmbrAkjrAkkrAmlrAm'
+    'mrAk8sAk9sAdasAdbsAkjsAkksAdlsAdmsAk8tAk9tAkatAkbtAkjtAkktAkltAk'
+    'mtAk',
+  PixelArt.shared:
+    'a3Adb3Ad84Ad94Ada4Alb4Abc4Add4Ak75Ad85Aw95Awa5Alb5Abc5Abd5Ame5Ak'
+    '66Ad76Aw86Aw96Ala6Alb6Abc6Abd6Ame6Adf6Akk6Bdl6Bdm6Bdn6Bd67Ad77Al'
+    '87Al97Ala7Abb7Abc7Amd7Ame7Adf7Aki7Bdj7Bdk7Bwl7Blm7Bbn7Bbo7Bkp7Bk'
+    '68Ad78Al88Ab98Aba8Abb8Abc8Amd8Ade8Akf8Aki8Bdj8Bwk8Bwl8Blm8Bbn8Bb'
+    'o8Bmp8Bk69Ad79Ab89Ab99Aba9Amb9Amc9Add9Ade9Akf9Akh9Bdi9Bwj9Blk9Bl'
+    'l9Blm9Bbn9Bbo9Bmp9Bdq9Bk6aAk7aAm8aAm9aAmaaAmbaAdcaAddaAkeaAkfaAk'
+    'haBdiaBljaBlkaBblaBbmaBbnaBmoaBmpaBdqaBk7bAk8bAm9bAdabAdbbAkcbAk'
+    'dbAkebAkhbBdibBbjbBbkbBblbBbmbBmnbBmobBdpbBkqbBk8cAk9cAkacAkbcAk'
+    'ccAkdcAkhcBkicBbjcBbkcBmlcBmmcBmncBdocBkpcBkqcBkadAkbdAkidBkjdBm'
+    'kdBmldBdmdBdndBkodBkpdBkieBkjeBkkeBdleBkmeBkneBkoeBkpeBkkfBklfBk'
+    'mfBknfBk8hAd9hAdahAdbhAdchAddhAk6iAd7iAd8iAl9iAlaiAlbiAbciAbdiAb'
+    'eiAkfiAk5jAd6jAw7jAw8jAw9jAlajAlbjAlcjAbdjAbejAbfjAmgjAkjjBdkjBd'
+    'ljBdmjBdnjBdojBk4kAd5kAw6kAw7kAw8kAw9kAlakAlbkAlckAbdkAbekAbfkAm'
+    'gkAdhkBdikBdjkBlkkBllkBlmkBbnkBbokBbpkBkqkBk4lAd5lAw6lAw7lAw8lAw'
+    '9lAlalAlblAlclAbdlAbelAbflAdglBbhlBwilBwjlBwklBlllBlmlBlnlBbolBb'
+    'plBbqlBmrlBk3mAd4mAw5mAw6mAw7mAw8mAw9mAlamAlbmAlcmAbdmAbemAmfmBb'
+    'gmBwhmBwimBwjmBwkmBllmBlmmBlnmBbomBbpmBbqmBmrmBmsmBk3nAd4nAw5nAw'
+    '6nAw7nAw8nAl9nAlanAlbnAbcnAbdnAbenAmfnBlgnBwhnBwinBwjnBwknBllnBl'
+    'mnBlnnBbonBbpnBbqnBmrnBmsnBk2oAd3oAw4oAw5oAw6oAw7oAl8oAl9oAlaoAl'
+    'boAbcoAbdoAmeoBbfoBwgoBwhoBwioBwjoBlkoBlloBlmoBbnoBbooBbpoBbqoBm'
+    'roBmsoBdtoBk2pAd3pAl4pAw5pAw6pAl7pAl8pAl9pAlapAbbpAbcpAbdpAmepBb'
+    'fpBwgpBwhpBwipBwjpBlkpBllpBlmpBbnpBbopBbppBmqpBmrpBmspBdtpBk2qAd'
+    '3qAl4qAl5qAl6qAl7qAl8qAl9qAbaqAbbqAbcqAmdqBmeqBlfqBwgqBwhqBwiqBl'
+    'jqBlkqBllqBbmqBbnqBboqBbpqBmqqBmrqBdsqBdtqBkuqBk2rAd3rAl4rAl5rAl'
+    '6rAl7rAl8rAb9rAbarAbbrAbcrAmdrBberBlfrBlgrBlhrBlirBljrBlkrBllrBb'
+    'mrBbnrBborBbprBmqrBmrrBdsrBdtrBkurBk2sAd3sAl4sAl5sAl6sAl7sAb8sAb'
+    '9sAbasAbbsAbcsAddsBmesBlfsBlgsBlhsBlisBljsBlksBblsBbmsBbnsBbosBm'
+    'psBmqsBmrsBdssBktsBkusBk2tAd3tAb4tAb5tAb6tAb7tAb8tAb9tAbatAbbtAb'
+    'ctAddtBmetBlftBlgtBlhtBlitBbjtBbktBbltBbmtBbntBmotBmptBmqtBdrtBd'
+    'stBkttBkutBk2uAd3uAd4uAd5uAd6uAd7uAd8uAd9uAdauAdbuAkcuAkduBdeuBd'
+    'fuBdguBdhuBdiuBdjuBdkuBdluBdmuBdnuBkouBkpuBkquBkruBksuBktuBkuuBk',
 };
 
-Map<String, Color> _pixelPalette(PixelArt art, VestaColors v) => switch (art) {
-  PixelArt.budget => {'X': v.pxBlue, 'o': v.pxYellow},
-  PixelArt.spend => {'X': v.pxYellow, 'o': v.pxInk},
-  PixelArt.save => {'X': v.pxGreen, 'o': v.pxYellow, 'd': v.pxInk},
-  PixelArt.shared => {'X': v.pxPurple, 'o': v.pxBlue},
+/// Each icon's palette keys, mapped to the theme's pixel colours.
+const Map<PixelArt, Map<String, String>> _pixelKeys = {
+  PixelArt.budget: {'A': 'blue', 'B': 'yellow', 'C': 'teal'},
+  PixelArt.spend: {'A': 'blue', 'S': 'ink', 'P': 'yellow'},
+  PixelArt.save: {'A': 'green', 'P': 'yellow', 'N': 'green', 'E': 'ink'},
+  PixelArt.shared: {'A': 'teal', 'B': 'blue'},
 };
 
-/// One of the prototype's 12x12 pixel-art icons, drawn with crisp edges.
+/// Shades as (mix with white?, amount), like the prototype's color-mix.
+const Map<String, (bool, double)> _pixelShades = {
+  'k': (false, 0.55),
+  'd': (false, 0.35),
+  'm': (false, 0.17),
+  'l': (true, 0.28),
+  'w': (true, 0.55),
+};
+
+Color _pixelColor(String name, VestaColors v) => switch (name) {
+  'blue' => v.pxBlue,
+  'yellow' => v.pxYellow,
+  'green' => v.pxGreen,
+  'teal' => v.pxTeal,
+  'purple' => v.pxPurple,
+  _ => v.pxInk,
+};
+
+/// The icon's pixels in this theme's colours.
+List<(int, int, Color)> _pixels(PixelArt art, VestaColors v) {
+  final s = _pixelData[art]!;
+  final keys = _pixelKeys[art]!;
+  return [
+    for (var i = 0; i + 3 < s.length; i += 4)
+      () {
+        final base = _pixelColor(keys[s[i + 2]] ?? '', v);
+        final shade = _pixelShades[s[i + 3]];
+        return (
+          int.parse(s[i], radix: 36),
+          int.parse(s[i + 1], radix: 36),
+          shade == null
+              ? base
+              : Color.lerp(
+                  base,
+                  shade.$1 ? Colors.white : Colors.black,
+                  shade.$2,
+                )!,
+        );
+      }(),
+  ];
+}
+
+/// One of the prototype's pixel-art icons, drawn with crisp edges.
 class PixelIcon extends StatelessWidget {
   const PixelIcon(this.art, {super.key, this.size = 44});
 
@@ -1058,32 +1214,28 @@ class PixelIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
       size: Size.square(size),
-      painter: _PixelPainter(_pixelGrids[art]!, _pixelPalette(art, context.vesta)),
+      painter: _PixelPainter(_pixels(art, context.vesta)),
     );
   }
 }
 
 class _PixelPainter extends CustomPainter {
-  _PixelPainter(this.rows, this.palette);
+  _PixelPainter(this.pixels);
 
-  final List<String> rows;
-  final Map<String, Color> palette;
+  final List<(int, int, Color)> pixels;
+
+  static const _grid = 32;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final cell = size.width / rows.length;
+    final cell = size.width / _grid;
     final paint = Paint()..isAntiAlias = false;
-    for (var y = 0; y < rows.length; y++) {
-      for (var x = 0; x < rows[y].length; x++) {
-        final color = palette[rows[y][x]];
-        if (color == null) continue;
-        paint.color = color;
-        canvas.drawRect(Rect.fromLTWH(x * cell, y * cell, cell, cell), paint);
-      }
+    for (final (x, y, color) in pixels) {
+      paint.color = color;
+      canvas.drawRect(Rect.fromLTWH(x * cell, y * cell, cell, cell), paint);
     }
   }
 
   @override
-  bool shouldRepaint(_PixelPainter old) =>
-      old.rows != rows || !mapEquals(old.palette, palette);
+  bool shouldRepaint(_PixelPainter old) => !listEquals(old.pixels, pixels);
 }

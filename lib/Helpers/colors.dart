@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 // Vesta Prototype.html. Screens read colours from the theme
 // (Theme.of(context).colorScheme and context.vesta), never hard-code them.
 
-const String headingFont = 'PixelifySans';
+const String headingFont = 'PPNeueBit';
 const String bodyFont = 'Poppins';
 
 class VestaRadius {
@@ -121,11 +121,11 @@ class VestaColors extends ThemeExtension<VestaColors> {
     accentWash: Color(0x1A6B43F7),
     pos: Color(0xFF2F8F3C),
     neg: Color(0xFFD0433A),
-    seg1: Color(0xFF6B43F7),
-    seg2: Color(0xFF4A86FF),
-    seg3: Color(0xFF00ABA0),
-    seg4: Color(0xFFFFDA00),
-    seg5: Color(0xFF5FC16B),
+    seg1: Color(0xFF4A86FF),
+    seg2: Color(0xFF00ABA0),
+    seg3: Color(0xFFE0A800),
+    seg4: Color(0xFF5FC16B),
+    seg5: Color(0xFFE07A3F),
     pxBlue: Color(0xFF4A86FF),
     pxYellow: Color(0xFFFFDA00),
     pxGreen: Color(0xFF5FC16B),
@@ -134,7 +134,7 @@ class VestaColors extends ThemeExtension<VestaColors> {
     pxInk: Color(0xFF313031),
     bucketSavings: Color(0xFF00ABA0),
     bucketEssential: Color(0xFF4A86FF),
-    bucketLuxury: Color(0xFF6B43F7),
+    bucketLuxury: Color(0xFFE0A800),
   );
 
   static const dark = VestaColors(
@@ -154,7 +154,7 @@ class VestaColors extends ThemeExtension<VestaColors> {
     seg2: Color(0xFF00ABA0),
     seg3: Color(0xFFFFE250),
     seg4: Color(0xFF86CE8C),
-    seg5: Color(0xFF6B43F7),
+    seg5: Color(0xFFFFA36B),
     pxBlue: Color(0xFF92C1FF),
     pxYellow: Color(0xFFFFE250),
     pxGreen: Color(0xFF86CE8C),
@@ -264,15 +264,19 @@ extension VestaThemeContext on BuildContext {
   VestaColors get vesta => Theme.of(this).extension<VestaColors>()!;
 }
 
-/// Pixelify Sans is a variable font, so its weight is set on the wght axis.
+/// PP NeueBit draws small for its size, so the prototype's brand sheet scales
+/// it up 150% (CSS size-adjust). Sizes passed here are the prototype's.
+const double _headingScale = 1.5;
+
+/// Headings in PP NeueBit Bold. The letters are scaled up but the line
+/// spacing stays that of the requested size, as size-adjust does in CSS.
 TextStyle headingStyle(double size, {Color? color}) => TextStyle(
   fontFamily: headingFont,
-  fontSize: size,
-  fontWeight: FontWeight.w500,
-  fontVariations: const [FontVariation('wght', 500)],
-  // Pixelify's "fi" ligature reads as an "A" ("Shared Ainances").
+  fontSize: size * _headingScale,
+  fontWeight: FontWeight.w700,
   fontFeatures: const [FontFeature.disable('liga')],
-  height: 1.2,
+  height: 1.2 / _headingScale,
+  leadingDistribution: TextLeadingDistribution.even,
   color: color,
 );
 
@@ -323,7 +327,7 @@ ThemeData _buildTheme({
     headlineSmall: headingStyle(22, color: text),
     titleLarge: headingStyle(17, color: text),
     // Material's own widgets (dropdowns, chips, tabs) default to the title
-    // and label roles, so those stay in Poppins; Pixelify headings come from
+    // and label roles, so those stay in Poppins; headings come from
     // headingStyle() where the prototype uses them. The font is named on each
     // style because some slots (dialog content) use them without merging.
     titleMedium: TextStyle(fontFamily: bodyFont, fontSize: 15, fontWeight: FontWeight.w500, color: text),

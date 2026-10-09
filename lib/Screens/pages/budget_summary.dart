@@ -13,6 +13,8 @@ class BudgetSummary {
     required this.essentialSpent,
     required this.luxurySpent,
     required this.savingsMoved,
+    required this.earned,
+    required this.accountCount,
     required this.start,
     required this.end,
   });
@@ -26,6 +28,12 @@ class BudgetSummary {
 
   /// Money moved into savings categories this cycle.
   final double savingsMoved;
+
+  /// Money that came in this cycle (every credit on a linked account).
+  final double earned;
+
+  /// Linked accounts, manual ones included.
+  final int accountCount;
 
   /// First and last day of the cycle.
   final DateTime start;
@@ -91,6 +99,7 @@ Future<BudgetSummary?> loadBudgetSummary() async {
   var essentialSpent = 0.0;
   var luxurySpent = 0.0;
   var savingsMoved = 0.0;
+  var earned = 0.0;
   final accounts = await userRef
       .collection('accounts')
       .where('linked', isEqualTo: true)
@@ -99,11 +108,16 @@ Future<BudgetSummary?> loadBudgetSummary() async {
     final txns = await account.reference.collection('transactions').get();
     for (final doc in txns.docs) {
       final data = doc.data();
-      if ('${data['type'] ?? ''}'.toLowerCase() != 'debit') continue;
       final date = DateTime.tryParse('${data['date'] ?? ''}');
       if (date == null || date.isBefore(start) || date.isAfter(endOfCycle)) {
         continue;
       }
+      final type = '${data['type'] ?? ''}'.toLowerCase();
+      if (type == 'credit') {
+        earned += (double.tryParse('${data['amount'] ?? 0}') ?? 0).abs();
+        continue;
+      }
+      if (type != 'debit') continue;
       final category = data['category'] as String?;
       if (category == null || category.isEmpty) continue;
       final bucket = buckets[category] ?? inferBucketFromCategoryName(category);
@@ -122,6 +136,8 @@ Future<BudgetSummary?> loadBudgetSummary() async {
     essentialSpent: essentialSpent,
     luxurySpent: luxurySpent,
     savingsMoved: savingsMoved,
+    earned: earned,
+    accountCount: accounts.docs.length,
     start: start,
     end: end,
   );

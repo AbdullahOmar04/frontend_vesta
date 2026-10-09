@@ -7,6 +7,7 @@ import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/new_spending.dart';
 import 'package:frontend_vesta/Screens/pages/accounts.dart';
+import 'package:frontend_vesta/Screens/pages/budget_summary.dart';
 import 'package:frontend_vesta/Screens/pages/coach_card.dart';
 import 'package:frontend_vesta/Screens/Budgeting/budgeting_screen.dart';
 import 'package:frontend_vesta/Screens/Household/household.dart';
@@ -27,9 +28,13 @@ class _HomePageState extends State<HomePage> {
   final user = FirebaseAuth.instance.currentUser;
   String? uname;
 
+  /// This cycle's figures, shared by the earned line and the coach card.
+  BudgetSummary? _summary;
+
   @override
   void initState() {
     super.initState();
+    _loadSummary();
     calcTotalBalance();
     fetchCurrentCycleData();
     deepLinkService.init(context);
@@ -47,6 +52,23 @@ class _HomePageState extends State<HomePage> {
       context,
       MaterialPageRoute(builder: (context) => const AccountsPage()),
     );
+  }
+
+  Future<void> _loadSummary() async {
+    try {
+      final summary = await loadBudgetSummary();
+      if (mounted) setState(() => _summary = summary);
+    } catch (e) {
+      debugPrint('Error loading budget summary: $e');
+    }
+  }
+
+  /// Opens a screen from a tile, then refreshes the figures it may change.
+  void _open(Widget page) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => page),
+    ).then((_) => _loadSummary());
   }
 
   num _asNum(dynamic value) =>
@@ -123,7 +145,6 @@ class _HomePageState extends State<HomePage> {
                               .toDouble();
                           final currency = userData["currency"] ?? "JOD";
 
-                          final totalIncome = userData["totalIncome"];
                           final totalExpense = userData["totalExpense"];
 
                           return ListView(
@@ -134,13 +155,9 @@ class _HomePageState extends State<HomePage> {
                               VestaSpace.gutter,
                             ),
                             children: [
-                              _balance(
-                                totalBalance,
-                                currency,
-                                totalIncome,
-                                totalExpense,
-                              ),
-                              const CoachCard(),
+                              _balance(totalBalance, currency, totalExpense),
+                              if (_summary != null)
+                                CoachCard(summary: _summary, showLink: true),
                               const SizedBox(height: VestaSpace.xl),
                               _tiles(),
                             ],
@@ -158,9 +175,9 @@ class _HomePageState extends State<HomePage> {
   Widget _balance(
     double totalBalance,
     String currency,
-    dynamic totalIncome,
     dynamic totalExpense,
   ) {
+    final summary = _summary;
     final v = context.vesta;
     return Column(
       children: [
@@ -179,21 +196,22 @@ class _HomePageState extends State<HomePage> {
               '${formatMoney(_asNum(totalExpense), currency: currency)} spent',
               v.neg,
             ),
-            GestureDetector(
-              onTap: () {
-                inputIncome(context, totalIncome);
-              },
-              child: _stat(
+            // Money that came in this cycle, as in the prototype
+            if (summary != null)
+              _stat(
                 PhosphorIconsRegular.arrowDownLeft,
-                '${formatMoney(_asNum(totalIncome), currency: currency)} income',
+                '${formatMoney(summary.earned, currency: currency)} earned',
                 v.pos,
               ),
-            ),
             GestureDetector(
               onTap: _openWallet,
               child: _stat(
                 PhosphorIconsRegular.caretRight,
-                'Accounts',
+                summary == null
+                    ? 'Accounts'
+                    : summary.accountCount == 1
+                    ? '1 account'
+                    : '${summary.accountCount} accounts',
                 v.accentInk,
                 iconAfter: true,
               ),
@@ -226,44 +244,22 @@ class _HomePageState extends State<HomePage> {
       _HomeTile(
         art: PixelArt.budget,
         label: 'Budgeting',
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const PersonalBudgetScreen(),
-            ),
-          );
-        },
+        onTap: () => _open(const PersonalBudgetScreen()),
       ),
       _HomeTile(
         art: PixelArt.spend,
         label: 'Spendings',
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => NewSpendingAnalysis()),
-          );
-        },
+        onTap: () => _open(const NewSpendingAnalysis()),
       ),
       _HomeTile(
         art: PixelArt.save,
         label: 'Savings',
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const SavingsPage()),
-          );
-        },
+        onTap: () => _open(const SavingsPage()),
       ),
       _HomeTile(
         art: PixelArt.shared,
         label: 'Shared finances',
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const HouseholdPage()),
-          );
-        },
+        onTap: () => _open(const HouseholdPage()),
       ),
     ];
 
