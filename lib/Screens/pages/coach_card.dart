@@ -1,11 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
-import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Budgeting/budgeting_screen.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Spendings/insights.dart';
+import 'package:frontend_vesta/Screens/pages/budget_summary.dart';
 import 'package:intl/intl.dart';
 
 /// What the coach says, and whether tapping it should open the budget
@@ -22,7 +20,20 @@ class _CoachNote {
 /// necessities and luxuries spending is pacing against the plan.
 /// Read-only: it reads the plan, categories and transactions.
 class CoachCard extends StatefulWidget {
-  const CoachCard({super.key});
+  const CoachCard({
+    super.key,
+    this.summary,
+    this.showLink = false,
+    this.margin = const EdgeInsets.only(top: VestaSpace.xl),
+  });
+
+  /// Figures the caller has already loaded (the Dashboard); without them the
+  /// card loads its own.
+  final BudgetSummary? summary;
+
+  /// Adds the prototype's "See insights" link under the message.
+  final bool showLink;
+  final EdgeInsetsGeometry margin;
 
   @override
   State<CoachCard> createState() => _CoachCardState();
@@ -34,37 +45,23 @@ class _CoachCardState extends State<CoachCard> {
   @override
   void initState() {
     super.initState();
-    _load();
+    if (widget.summary == null) _load();
   }
 
   Future<void> _load() async {
+    if (widget.summary != null) return;
     try {
-      final note = await _buildNote();
+      final note = _noteFor(await loadBudgetSummary());
       if (mounted) setState(() => _note = note);
     } catch (e) {
       debugPrint('Error loading coach: $e');
     }
   }
 
-  Future<_CoachNote?> _buildNote() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return null;
-    final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
-    final now = DateTime.now();
-    final monthId = "${now.year}-${now.month.toString().padLeft(2, '0')}";
+  static _CoachNote? _noteFor(BudgetSummary? summary) {
+    if (summary == null) return null;
 
-    final userData = (await userRef.get()).data() ?? {};
-    final budget = (await userRef.collection('budget').doc(monthId).get())
-            .data() ??
-        {};
-
-    final income = double.tryParse('${userData['totalIncome'] ?? 0}') ?? 0;
-    final essentialPct = double.tryParse('${budget['spending'] ?? 0}') ?? 0;
-    final luxuryPct = double.tryParse('${budget['luxuries'] ?? 0}') ?? 0;
-    final essentialBudget = income * essentialPct / 100;
-    final luxuryBudget = income * luxuryPct / 100;
-
-    if (essentialBudget + luxuryBudget <= 0) {
+    if (!summary.hasPlan) {
       return const _CoachNote(
         "Let's plan this month.",
         'Set your income and split it into savings, necessities and '
@@ -73,56 +70,13 @@ class _CoachCardState extends State<CoachCard> {
       );
     }
 
-    // The budget cycle, as the Budgeting screen works it out
-    final resetDay = (userData['dayOfMonth'] as num?)?.toInt() ?? 28;
-    final DateTime start;
-    final DateTime end;
-    if (now.day >= resetDay) {
-      start = DateTime(now.year, now.month, resetDay);
-      end = DateTime(now.year, now.month + 1, resetDay)
-          .subtract(const Duration(days: 1));
-    } else {
-      start = DateTime(now.year, now.month - 1, resetDay);
-      end = DateTime(now.year, now.month, resetDay)
-          .subtract(const Duration(days: 1));
-    }
-    final endOfCycle = DateTime(end.year, end.month, end.day, 23, 59, 59);
-
-    final buckets = <String, String>{};
-    for (final doc in (await userRef.collection('categories').get()).docs) {
-      final raw = (doc.data()['bucket'] ?? '') as String;
-      buckets[doc.id] = raw.isEmpty ? inferBucketFromCategoryName(doc.id) : raw;
-    }
-
-    var essentialSpent = 0.0;
-    var luxurySpent = 0.0;
-    final accounts = await userRef
-        .collection('accounts')
-        .where('linked', isEqualTo: true)
-        .get();
-    for (final account in accounts.docs) {
-      final txns = await account.reference.collection('transactions').get();
-      for (final doc in txns.docs) {
-        final data = doc.data();
-        if ('${data['type'] ?? ''}'.toLowerCase() != 'debit') continue;
-        final date = DateTime.tryParse('${data['date'] ?? ''}');
-        if (date == null || date.isBefore(start) || date.isAfter(endOfCycle)) {
-          continue;
-        }
-        final category = data['category'] as String?;
-        if (category == null || category.isEmpty) continue;
-        final bucket = buckets[category] ?? inferBucketFromCategoryName(category);
-        final amount = (double.tryParse('${data['amount'] ?? 0}') ?? 0).abs();
-        if (bucket == 'essential') essentialSpent += amount;
-        if (bucket == 'luxury') luxurySpent += amount;
-      }
-    }
-
-    final today = DateTime(now.year, now.month, now.day);
-    final totalDays = end.difference(start).inDays + 1;
-    final daysLeft = (end.difference(today).inDays + 1).clamp(1, totalDays);
-    final progress = (totalDays - daysLeft + 1) / totalDays;
-    final until = DateFormat('MMM d').format(end);
+    final essentialBudget = summary.essentialBudget;
+    final luxuryBudget = summary.luxuryBudget;
+    final essentialSpent = summary.essentialSpent;
+    final luxurySpent = summary.luxurySpent;
+    final daysLeft = summary.daysLeft;
+    final progress = summary.progress;
+    final until = DateFormat('MMM d').format(summary.end);
 
     final flexBudget = essentialBudget + luxuryBudget;
     final flexSpent = essentialSpent + luxurySpent;
@@ -171,13 +125,13 @@ class _CoachCardState extends State<CoachCard> {
 
   @override
   Widget build(BuildContext context) {
-    final note = _note;
+    final note = widget.summary != null ? _noteFor(widget.summary) : _note;
     if (note == null) return const SizedBox.shrink();
     final v = context.vesta;
     final accent = Theme.of(context).colorScheme.primary;
 
     return Padding(
-      padding: const EdgeInsets.only(top: VestaSpace.xl),
+      padding: widget.margin,
       child: VestaCard(
         radius: VestaRadius.lg,
         padding: EdgeInsets.zero,
@@ -243,6 +197,17 @@ class _CoachCardState extends State<CoachCard> {
                     note.message,
                     style: TextStyle(fontSize: 13, color: v.muted),
                   ),
+                  if (widget.showLink) ...[
+                    const SizedBox(height: VestaSpace.md),
+                    Text(
+                      note.needsPlan ? 'Plan your budget →' : 'See insights →',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: v.accentInk,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
