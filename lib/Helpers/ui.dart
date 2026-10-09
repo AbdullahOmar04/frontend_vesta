@@ -252,6 +252,78 @@ class OutlineIconButton extends StatelessWidget {
   }
 }
 
+/// The + and − pair beside a list's title, the same on every list that can
+/// grow or shrink: + adds, − turns a remove mode on and off (a tick while
+/// it is on). Rows show a [RemoveBadge] while removing.
+class AddRemoveButtons extends StatelessWidget {
+  const AddRemoveButtons({
+    super.key,
+    required this.onAdd,
+    required this.removing,
+    required this.onToggleRemove,
+    this.canRemove = true,
+    this.addTooltip = 'Add',
+    this.removeTooltip = 'Remove',
+  });
+
+  final VoidCallback? onAdd;
+  final bool removing;
+  final VoidCallback onToggleRemove;
+
+  /// False hides − while the list is empty.
+  final bool canRemove;
+  final String addTooltip;
+  final String removeTooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        OutlineIconButton(
+          icon: PhosphorIconsRegular.plus,
+          tooltip: addTooltip,
+          onPressed: onAdd,
+        ),
+        if (canRemove || removing)
+          OutlineIconButton(
+            icon: removing
+                ? PhosphorIconsRegular.check
+                : PhosphorIconsRegular.minus,
+            color: removing ? null : context.vesta.neg,
+            tooltip: removing ? 'Done' : removeTooltip,
+            onPressed: onToggleRemove,
+          ),
+      ],
+    );
+  }
+}
+
+/// Red minus at the start of a row while its list is in remove mode.
+class RemoveBadge extends StatelessWidget {
+  const RemoveBadge({super.key, required this.onTap});
+
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final neg = context.vesta.neg;
+    return Material(
+      color: neg.withValues(alpha: 0.16),
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: SizedBox(
+          width: 26,
+          height: 26,
+          child: Icon(PhosphorIconsRegular.minus, size: 14, color: neg),
+        ),
+      ),
+    );
+  }
+}
+
 /// Small outlined text button for app bar actions (the prototype's
 /// "Manage" button).
 class HeaderButton extends StatelessWidget {
@@ -470,6 +542,25 @@ const List<(String, String, Color)> _banks = [
   ('société générale', 'SG', Color(0xFF9A2632)),
   ('societe generale', 'SG', Color(0xFF9A2632)),
   ('bank abc', 'BA', Color(0xFF5A3D7A)),
+];
+
+/// Banks operating in Jordan, for pickers (onboarding, adding an account).
+const jordanBanks = [
+  'Arab Bank',
+  'Housing Bank',
+  'Bank al Etihad',
+  'Capital Bank',
+  'Cairo Amman Bank',
+  'Jordan Ahli Bank',
+  'Jordan Kuwait Bank',
+  'Bank of Jordan',
+  'Jordan Islamic Bank',
+  'Safwa Islamic Bank',
+  'Arab Jordan Investment Bank',
+  'Investbank',
+  'Jordan Commercial Bank',
+  'Société Générale de Banque – Jordanie',
+  'Bank ABC',
 ];
 
 /// Rounded square with an account's monogram: the bank's own colour for
