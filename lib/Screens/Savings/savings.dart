@@ -17,6 +17,7 @@ class SavingsPage extends StatefulWidget {
 
 class _SavingsPageState extends State<SavingsPage> {
   final user = FirebaseAuth.instance.currentUser;
+  bool _removing = false;
 
   void _navigateToCreateSavings() async {
     final result = await Navigator.push(
@@ -494,12 +495,7 @@ class _SavingsPageState extends State<SavingsPage> {
     final userId = user?.uid;
 
     return Scaffold(
-      appBar: VestaAppBar(
-        title: 'Savings',
-        actions: [
-          HeaderButton(label: 'New goal', onPressed: _navigateToCreateSavings),
-        ],
-      ),
+      appBar: const VestaAppBar(title: 'Savings'),
       body: VestaBackground(
         child: userId == null
             ? const Center(child: Text("Not logged in"))
@@ -583,7 +579,20 @@ class _SavingsPageState extends State<SavingsPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                const SectionHeader(title: "Saving goals"),
+                                SectionHeader(
+                                  title: "Saving goals",
+                                  trailing: [
+                                    AddRemoveButtons(
+                                      onAdd: _navigateToCreateSavings,
+                                      addTooltip: 'New goal',
+                                      removing: _removing,
+                                      removeTooltip: 'Remove a goal',
+                                      onToggleRemove: () => setState(
+                                        () => _removing = !_removing,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 const SizedBox(height: VestaSpace.xs),
                                 for (var i = 0; i < savingsGoals.length; i++)
                                   _buildSavingsGoalCard(
@@ -677,6 +686,10 @@ class _SavingsPageState extends State<SavingsPage> {
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
+            if (_removing) ...[
+              RemoveBadge(onTap: () => _deleteSavingGoalDialog(goalId)),
+              const SizedBox(width: VestaSpace.md),
+            ],
             Container(
               width: 40,
               height: 40,
