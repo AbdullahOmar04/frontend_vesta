@@ -19,26 +19,13 @@ Future<bool> showBillSheet(BuildContext context, [UpcomingPayment? bill]) async 
 }
 
 /// Asks before a bill is deleted.
-Future<bool> confirmDeleteBill(BuildContext context, String title) async {
-  final sure = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: const Text('Delete this bill?'),
-      content: Text('"$title" will be removed.'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, true),
-          style: TextButton.styleFrom(foregroundColor: ctx.vesta.neg),
-          child: const Text('Delete'),
-        ),
-      ],
-    ),
+Future<bool> confirmDeleteBill(BuildContext context, String title) {
+  return confirmDialog(
+    context,
+    title: 'Delete this bill?',
+    message: '"$title" will be removed.',
+    confirmLabel: 'Delete',
   );
-  return sure == true;
 }
 
 /// Bills & subscriptions, after the prototype: what is still due this

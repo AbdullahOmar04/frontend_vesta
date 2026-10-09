@@ -482,6 +482,38 @@ ThemeData _buildTheme({
         borderRadius: BorderRadius.circular(VestaRadius.sheet),
       ),
     ),
+    // Material's date picker, dressed like VestaDialog
+    datePickerTheme: DatePickerThemeData(
+      backgroundColor: surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(VestaRadius.sheet),
+      ),
+      headerForegroundColor: text,
+      headerHelpStyle: TextStyle(fontFamily: bodyFont, fontSize: 12, color: v.muted),
+      headerHeadlineStyle: headingStyle(24, color: text),
+      dividerColor: v.divider,
+      weekdayStyle: TextStyle(fontFamily: bodyFont, fontSize: 12, color: v.muted),
+      dayStyle: const TextStyle(fontFamily: bodyFont, fontSize: 13),
+      yearStyle: const TextStyle(fontFamily: bodyFont, fontSize: 14),
+      todayBorder: BorderSide(color: v.accentInk),
+      cancelButtonStyle: TextButton.styleFrom(
+        foregroundColor: text,
+        textStyle: headingStyle(14),
+        padding: buttonPadding,
+        shape: buttonShape,
+        side: BorderSide(color: outline),
+      ),
+      confirmButtonStyle: TextButton.styleFrom(
+        backgroundColor: v.accentWash,
+        foregroundColor: v.accentInk,
+        textStyle: headingStyle(14),
+        padding: buttonPadding,
+        shape: buttonShape,
+        side: BorderSide(color: v.accentInk),
+      ),
+    ),
     bottomSheetTheme: BottomSheetThemeData(
       backgroundColor: surface,
       surfaceTintColor: Colors.transparent,

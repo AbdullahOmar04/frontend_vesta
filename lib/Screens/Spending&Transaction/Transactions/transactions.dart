@@ -326,28 +326,15 @@ class _TransactionsState extends State<Transactions> {
   /// Remove mode's delete: same balance helper as the transaction's own
   /// details sheet, so the account balance is put back.
   Future<void> _removeTransaction(TransactionModel transaction) async {
-    final sure = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete this transaction?'),
-        content: Text(
+    final sure = await confirmDialog(
+      context,
+      title: 'Delete this transaction?',
+      message:
           'It will be removed and ${formatMoney(transaction.amount)} '
           '${transaction.isDebit ? 'returned to' : 'taken off'} the account balance.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: ctx.vesta.neg),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      confirmLabel: 'Delete',
     );
-    if (sure != true) return;
+    if (!sure) return;
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
     try {

@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/ui.dart';
 
 // Who can do what in a household:
 //   the owner (createdBy) can remove members and delete the household;
@@ -32,25 +33,17 @@ Future<bool> _confirm(
   required String message,
   required String action,
 }) async {
-  final sure = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text(title),
-      content: Text(message),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, true),
-          style: TextButton.styleFrom(foregroundColor: ctx.vesta.neg),
-          child: Text(action),
-        ),
-      ],
-    ),
+  return confirmDialog(
+    context,
+    title: title,
+    message: message,
+    confirmLabel: action,
+    icon: switch (action) {
+      'Leave' => PhosphorIconsRegular.signOut,
+      'Remove' => PhosphorIconsRegular.userMinus,
+      _ => PhosphorIconsRegular.trash,
+    },
   );
-  return sure == true;
 }
 
 void _fail(BuildContext context, String what, Object e) {

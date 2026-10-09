@@ -312,14 +312,8 @@ Future<void> inputDayOfMonth(BuildContext context) async {
       return StatefulBuilder(
         builder: (context, setState) {
           final v = context.vesta;
-          return AlertDialog(
-            title: Row(
-              children: [
-                Icon(PhosphorIconsRegular.calendarBlank, color: v.accentInk),
-                const SizedBox(width: VestaSpace.sm),
-                const Text("Budget reset day"),
-              ],
-            ),
+          return VestaDialog(
+            title: "Budget reset day",
             content: Form(
               key: formKey,
               child: Column(
@@ -361,71 +355,58 @@ Future<void> inputDayOfMonth(BuildContext context) async {
                 ],
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: isLoading ? null : () => Navigator.pop(context),
-                child: const Text("Cancel"),
-              ),
-              FilledButton(
-                onPressed: isLoading
-                    ? null
-                    : () async {
-                        if (!formKey.currentState!.validate()) {
-                          return;
-                        }
+            confirmLabel: "Save",
+            onConfirm: isLoading
+                ? null
+                : () async {
+                    if (!formKey.currentState!.validate()) {
+                      return;
+                    }
 
-                        setState(() {
-                          isLoading = true;
-                        });
+                    setState(() {
+                      isLoading = true;
+                    });
 
-                        try {
-                          final newDay = int.tryParse(controller.text.trim());
-                          if (newDay != null) {
-                            final uid = FirebaseAuth.instance.currentUser!.uid;
-                            await FirebaseFirestore.instance
-                                .collection("users")
-                                .doc(uid)
-                                .update({"dayOfMonth": newDay});
+                    try {
+                      final newDay = int.tryParse(controller.text.trim());
+                      if (newDay != null) {
+                        final uid = FirebaseAuth.instance.currentUser!.uid;
+                        await FirebaseFirestore.instance
+                            .collection("users")
+                            .doc(uid)
+                            .update({"dayOfMonth": newDay});
 
-                            if (context.mounted) {
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    "Budget reset day updated to $newDay",
-                                  ),
-                                ),
-                              );
-                            }
-                          }
-                        } catch (e) {
-                          setState(() {
-                            isLoading = false;
-                          });
-
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text(
-                                  "Failed to update day. Try again.",
-                                ),
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.error,
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "Budget reset day updated to $newDay",
                               ),
-                            );
-                          }
+                            ),
+                          );
                         }
-                      },
-                child: isLoading
-                    ? const SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text("Save"),
-              ),
-            ],
+                      }
+                    } catch (e) {
+                      setState(() {
+                        isLoading = false;
+                      });
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text(
+                              "Failed to update day. Try again.",
+                            ),
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.error,
+                          ),
+                        );
+                      }
+                    }
+                  },
+            loading: isLoading,
           );
         },
       );
@@ -447,14 +428,8 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
       return StatefulBuilder(
         builder: (context, setState) {
           final v = context.vesta;
-          return AlertDialog(
-            title: Row(
-              children: [
-                Icon(PhosphorIconsRegular.handCoins, color: v.accentInk),
-                const SizedBox(width: VestaSpace.sm),
-                const Text("Monthly income"),
-              ],
-            ),
+          return VestaDialog(
+            title: "Monthly income",
             content: Form(
               key: formKey,
               child: Column(
@@ -505,75 +480,62 @@ Future<void> inputIncome(BuildContext context, dynamic currentIncome) async {
                 ],
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: isLoading ? null : () => Navigator.pop(context),
-                child: const Text("Cancel"),
-              ),
-              FilledButton(
-                onPressed: isLoading
-                    ? null
-                    : () async {
-                        if (!formKey.currentState!.validate()) {
-                          return;
-                        }
+            confirmLabel: "Save",
+            onConfirm: isLoading
+                ? null
+                : () async {
+                    if (!formKey.currentState!.validate()) {
+                      return;
+                    }
 
-                        setState(() {
-                          isLoading = true;
-                        });
+                    setState(() {
+                      isLoading = true;
+                    });
 
-                        try {
-                          final newValue = double.tryParse(
-                            controller.text.trim(),
-                          );
-                          if (newValue != null) {
-                            final uid = FirebaseAuth.instance.currentUser!.uid;
-                            await FirebaseFirestore.instance
-                                .collection("users")
-                                .doc(uid)
-                                .update({"totalIncome": newValue});
+                    try {
+                      final newValue = double.tryParse(
+                        controller.text.trim(),
+                      );
+                      if (newValue != null) {
+                        final uid = FirebaseAuth.instance.currentUser!.uid;
+                        await FirebaseFirestore.instance
+                            .collection("users")
+                            .doc(uid)
+                            .update({"totalIncome": newValue});
 
-                            if (context.mounted) {
-                              Navigator.pop(context);
+                        if (context.mounted) {
+                          Navigator.pop(context);
 
-                              // Show success message
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    "Income updated to JOD ${newValue.toStringAsFixed(0)}",
-                                  ),
-                                ),
-                              );
-                            }
-                          }
-                        } catch (e) {
-                          setState(() {
-                            isLoading = false;
-                          });
-
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text(
-                                  "Failed to update income. Try again.",
-                                ),
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.error,
+                          // Show success message
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "Income updated to JOD ${newValue.toStringAsFixed(0)}",
                               ),
-                            );
-                          }
+                            ),
+                          );
                         }
-                      },
-                child: isLoading
-                    ? const SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text("Save"),
-              ),
-            ],
+                      }
+                    } catch (e) {
+                      setState(() {
+                        isLoading = false;
+                      });
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text(
+                              "Failed to update income. Try again.",
+                            ),
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.error,
+                          ),
+                        );
+                      }
+                    }
+                  },
+            loading: isLoading,
           );
         },
       );
@@ -598,14 +560,8 @@ Future<double?> inputHouseholBudget(
       return StatefulBuilder(
         builder: (dialogContext, setState) {
           final v = dialogContext.vesta;
-          return AlertDialog(
-            title: Row(
-              children: [
-                Icon(PhosphorIconsRegular.wallet, color: v.accentInk),
-                const SizedBox(width: VestaSpace.sm),
-                const Text("Household budget"),
-              ],
-            ),
+          return VestaDialog(
+            title: "Household budget",
             content: Form(
               key: formKey,
               child: Column(
@@ -654,59 +610,44 @@ Future<double?> inputHouseholBudget(
                 ],
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: isLoading
-                    ? null
-                    : () => Navigator.of(dialogContext).pop(),
-                child: const Text("Cancel"),
-              ),
-              FilledButton(
-                onPressed: isLoading
-                    ? null
-                    : () async {
-                        if (!formKey.currentState!.validate()) {
-                          return;
-                        }
+            confirmLabel: "Save",
+            onConfirm: isLoading
+                ? null
+                : () async {
+                    if (!formKey.currentState!.validate()) {
+                      return;
+                    }
 
-                        setState(() => isLoading = true);
+                    setState(() => isLoading = true);
 
-                        try {
-                          final newValue = double.tryParse(
-                            controller.text.trim(),
-                          );
-                          if (newValue != null) {
-                            await FirebaseFirestore.instance
-                                .collection("households")
-                                .doc(householdId)
-                                .update({"budget": newValue});
+                    try {
+                      final newValue = double.tryParse(
+                        controller.text.trim(),
+                      );
+                      if (newValue != null) {
+                        await FirebaseFirestore.instance
+                            .collection("households")
+                            .doc(householdId)
+                            .update({"budget": newValue});
 
-                            result = newValue;
-                            Navigator.of(dialogContext).pop();
-                          }
-                        } catch (e) {
-                          setState(() => isLoading = false);
-                          ScaffoldMessenger.of(dialogContext).showSnackBar(
-                            SnackBar(
-                              content: const Text(
-                                "Failed to update budget. Try again.",
-                              ),
-                              backgroundColor: Theme.of(
-                                dialogContext,
-                              ).colorScheme.error,
-                            ),
-                          );
-                        }
-                      },
-                child: isLoading
-                    ? const SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text("Save"),
-              ),
-            ],
+                        result = newValue;
+                        Navigator.of(dialogContext).pop();
+                      }
+                    } catch (e) {
+                      setState(() => isLoading = false);
+                      ScaffoldMessenger.of(dialogContext).showSnackBar(
+                        SnackBar(
+                          content: const Text(
+                            "Failed to update budget. Try again.",
+                          ),
+                          backgroundColor: Theme.of(
+                            dialogContext,
+                          ).colorScheme.error,
+                        ),
+                      );
+                    }
+                  },
+            loading: isLoading,
           );
         },
       );

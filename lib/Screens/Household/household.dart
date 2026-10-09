@@ -71,8 +71,8 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
 
     final newName = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Rename household'),
+      builder: (context) => VestaDialog(
+        title: 'Rename household',
         content: Form(
           key: formKey,
           child: TextFormField(
@@ -87,20 +87,12 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
             },
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                Navigator.pop(context, controller.text.trim());
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
+        confirmLabel: 'Save',
+        onConfirm: () {
+          if (formKey.currentState!.validate()) {
+            Navigator.pop(context, controller.text.trim());
+          }
+        },
       ),
     );
 

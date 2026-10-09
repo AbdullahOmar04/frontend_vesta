@@ -1014,6 +1014,213 @@ class OutlineButton extends StatelessWidget {
   }
 }
 
+/// Full-width destructive action: red-tinted fill with a red outline, as on
+/// the prototype's "Yes" in a delete confirmation.
+class DangerButton extends StatelessWidget {
+  const DangerButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.loading = false,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) {
+    final neg = context.vesta.neg;
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton(
+        onPressed: loading ? null : onPressed,
+        style: FilledButton.styleFrom(
+          backgroundColor: neg.withValues(alpha: 0.16),
+          foregroundColor: neg,
+          side: BorderSide(color: neg),
+        ),
+        child: loading
+            ? SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2, color: neg),
+              )
+            : Text(label),
+      ),
+    );
+  }
+}
+
+/// The prototype's dialog, used instead of Material's AlertDialog everywhere.
+/// With an [icon] it is a confirmation: the icon in a tinted circle above a
+/// centred title and message. Without one it is a form: a title with a close
+/// button above [content]. Either way Cancel and the action sit side by side.
+class VestaDialog extends StatelessWidget {
+  const VestaDialog({
+    super.key,
+    required this.title,
+    this.message,
+    this.content,
+    this.icon,
+    this.iconColor,
+    this.cancelLabel = 'Cancel',
+    this.onCancel,
+    this.confirmLabel,
+    this.onConfirm,
+    this.destructive = false,
+    this.loading = false,
+  });
+
+  final String title;
+  final String? message;
+  final Widget? content;
+  final IconData? icon;
+
+  /// Defaults to red for [destructive] dialogs, else the accent.
+  final Color? iconColor;
+
+  /// Null hides Cancel (and the close button on forms).
+  final String? cancelLabel;
+
+  /// Defaults to closing the dialog.
+  final VoidCallback? onCancel;
+
+  /// Null hides the action button.
+  final String? confirmLabel;
+  final VoidCallback? onConfirm;
+
+  /// A red action, for deleting or leaving.
+  final bool destructive;
+
+  /// Spinner on the action and both buttons disabled while work runs.
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) {
+    final v = context.vesta;
+    final confirmation = icon != null;
+    final cancel = loading
+        ? null
+        : (onCancel ?? () => Navigator.of(context).pop());
+    final tint = iconColor ?? (destructive ? v.neg : v.accentInk);
+
+    return Dialog(
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+      surfaceTintColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(VestaRadius.sheet),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: confirmation
+              ? CrossAxisAlignment.center
+              : CrossAxisAlignment.stretch,
+          children: [
+            if (confirmation) ...[
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: tint.withValues(alpha: 0.16),
+                ),
+                child: Icon(icon, size: 24, color: tint),
+              ),
+              const SizedBox(height: 14),
+              Text(title, textAlign: TextAlign.center, style: headingStyle(18)),
+            ] else
+              Row(
+                children: [
+                  Expanded(child: Text(title, style: headingStyle(18))),
+                  if (cancelLabel != null)
+                    IconButton(
+                      tooltip: 'Close',
+                      onPressed: cancel,
+                      icon: Icon(PhosphorIconsRegular.x, color: v.muted),
+                    ),
+                ],
+              ),
+            if (message != null) ...[
+              const SizedBox(height: VestaSpace.sm),
+              Text(
+                message!,
+                textAlign: confirmation ? TextAlign.center : TextAlign.start,
+                style: TextStyle(fontSize: 14, color: v.muted),
+              ),
+            ],
+            if (content != null) ...[
+              const SizedBox(height: VestaSpace.lg),
+              Flexible(child: SingleChildScrollView(child: content)),
+            ],
+            if (cancelLabel != null || confirmLabel != null) ...[
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  if (cancelLabel != null)
+                    Expanded(
+                      child: OutlineButton(label: cancelLabel!, onPressed: cancel),
+                    ),
+                  if (cancelLabel != null && confirmLabel != null)
+                    const SizedBox(width: 10),
+                  if (confirmLabel != null)
+                    Expanded(
+                      child: destructive
+                          ? DangerButton(
+                              label: confirmLabel!,
+                              onPressed: onConfirm,
+                              loading: loading,
+                            )
+                          : PrimaryButton(
+                              label: confirmLabel!,
+                              onPressed: onConfirm,
+                              loading: loading,
+                            ),
+                    ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Asks a yes/no question in the prototype's confirmation style. True only
+/// when the action was chosen.
+Future<bool> confirmDialog(
+  BuildContext context, {
+  required String title,
+  String? message,
+  String confirmLabel = 'Yes',
+  String cancelLabel = 'Cancel',
+  bool destructive = true,
+  IconData? icon,
+}) async {
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => VestaDialog(
+      icon:
+          icon ??
+          (destructive
+              ? PhosphorIconsRegular.trash
+              : PhosphorIconsRegular.question),
+      title: title,
+      message: message,
+      cancelLabel: cancelLabel,
+      confirmLabel: confirmLabel,
+      destructive: destructive,
+      onCancel: () => Navigator.pop(ctx, false),
+      onConfirm: () => Navigator.pop(ctx, true),
+    ),
+  );
+  return ok == true;
+}
+
 enum PixelArt { budget, spend, save, shared }
 
 // The prototype's pixel icons on a 32x32 grid, in its own compact form:

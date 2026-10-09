@@ -155,8 +155,8 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text("New category"),
+            return VestaDialog(
+              title: "New category",
               content: Form(
                 key: formKey,
                 child: Column(
@@ -242,43 +242,35 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
                   ],
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancel"),
-                ),
-                FilledButton(
-                  onPressed: () async {
-                    if (formKey.currentState!.validate()) {
-                      final categoryName = nameController.text.trim();
+              confirmLabel: "Save",
+              onConfirm: () async {
+                if (formKey.currentState!.validate()) {
+                  final categoryName = nameController.text.trim();
 
-                      try {
-                        // For income categories, force bucket = income
-                        final bucketToSave = selectedType == 'income'
-                            ? 'income'
-                            : selectedBucket;
+                  try {
+                    // For income categories, force bucket = income
+                    final bucketToSave = selectedType == 'income'
+                        ? 'income'
+                        : selectedBucket;
 
-                        await _db
-                            .collection('users')
-                            .doc(uid)
-                            .collection('categories')
-                            .doc(categoryName)
-                            .set({
-                              'type': selectedType, // expense | income
-                              'bucket':
-                                  bucketToSave, // essential | luxury | savings | income
-                              'name': categoryName,
-                            });
+                    await _db
+                        .collection('users')
+                        .doc(uid)
+                        .collection('categories')
+                        .doc(categoryName)
+                        .set({
+                          'type': selectedType, // expense | income
+                          'bucket':
+                              bucketToSave, // essential | luxury | savings | income
+                          'name': categoryName,
+                        });
 
-                        if (mounted) Navigator.pop(context);
-                      } catch (e) {
-                        // ...
-                      }
-                    }
-                  },
-                  child: const Text("Save"),
-                ),
-              ],
+                    if (mounted) Navigator.pop(context);
+                  } catch (e) {
+                    // ...
+                  }
+                }
+              },
             );
           },
         );
@@ -292,32 +284,15 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Delete category"),
-          content: Text(
-            'Delete "$categoryName"?\n\n'
-            "Existing transactions will keep their amounts, "
-            "but this category will be unassigned.",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: TextButton.styleFrom(foregroundColor: context.vesta.neg),
-              child: const Text("Delete"),
-            ),
-          ],
-        );
-      },
+    final confirmed = await confirmDialog(
+      context,
+      title: 'Delete "$categoryName"?',
+      message:
+          'Its transactions keep their amounts but will have no category.',
+      confirmLabel: 'Delete',
     );
 
-    if (confirmed != true) return;
+    if (!confirmed) return;
 
     try {
       final userRef = _db.collection('users').doc(uid);

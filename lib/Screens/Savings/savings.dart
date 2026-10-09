@@ -93,8 +93,8 @@ class _SavingsPageState extends State<SavingsPage> {
 
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('Allocate to $goalTitle'),
+      builder: (dialogContext) => VestaDialog(
+        title: 'Allocate to $goalTitle',
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -144,66 +144,58 @@ class _SavingsPageState extends State<SavingsPage> {
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final amount = double.tryParse(amountController.text);
-              if (amount == null || amount <= 0) {
-                parentScaffoldMessenger.clearSnackBars();
-                parentScaffoldMessenger.showSnackBar(
-                  SnackBar(
-                    content: const Text('Please enter a valid amount'),
-                    backgroundColor: errorColor,
-                  ),
-                );
-                return;
-              }
+        confirmLabel: 'Allocate',
+        onConfirm: () {
+          final amount = double.tryParse(amountController.text);
+          if (amount == null || amount <= 0) {
+            parentScaffoldMessenger.clearSnackBars();
+            parentScaffoldMessenger.showSnackBar(
+              SnackBar(
+                content: const Text('Please enter a valid amount'),
+                backgroundColor: errorColor,
+              ),
+            );
+            return;
+          }
 
-              if (amount > available) {
-                parentScaffoldMessenger.clearSnackBars();
-                parentScaffoldMessenger.showSnackBar(
-                  SnackBar(
-                    content: const Text('Insufficient available balance'),
-                    backgroundColor: errorColor,
-                  ),
-                );
-                return;
-              }
+          if (amount > available) {
+            parentScaffoldMessenger.clearSnackBars();
+            parentScaffoldMessenger.showSnackBar(
+              SnackBar(
+                content: const Text('Insufficient available balance'),
+                backgroundColor: errorColor,
+              ),
+            );
+            return;
+          }
 
-              if (remaining <= 0) {
-                parentScaffoldMessenger.clearSnackBars();
-                parentScaffoldMessenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('This goal is already fully funded'),
-                  ),
-                );
-                return;
-              }
+          if (remaining <= 0) {
+            parentScaffoldMessenger.clearSnackBars();
+            parentScaffoldMessenger.showSnackBar(
+              const SnackBar(
+                content: Text('This goal is already fully funded'),
+              ),
+            );
+            return;
+          }
 
-              // Cap the amount to remaining if user tries to allocate more
-              final actualAmount = amount > remaining ? remaining : amount;
+          // Cap the amount to remaining if user tries to allocate more
+          final actualAmount = amount > remaining ? remaining : amount;
 
-              if (amount > remaining) {
-                parentScaffoldMessenger.clearSnackBars();
-                parentScaffoldMessenger.showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Allocating JOD ${actualAmount.toStringAsFixed(2)} (capped to remaining goal amount)',
-                    ),
-                  ),
-                );
-              }
+          if (amount > remaining) {
+            parentScaffoldMessenger.clearSnackBars();
+            parentScaffoldMessenger.showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Allocating JOD ${actualAmount.toStringAsFixed(2)} (capped to remaining goal amount)',
+                ),
+              ),
+            );
+          }
 
-              Navigator.pop(dialogContext);
-              _allocateToGoal(goalId, goal, actualAmount);
-            },
-            child: const Text('Allocate'),
-          ),
-        ],
+          Navigator.pop(dialogContext);
+          _allocateToGoal(goalId, goal, actualAmount);
+        },
       ),
     );
   }
@@ -211,59 +203,50 @@ class _SavingsPageState extends State<SavingsPage> {
   void _deleteSavingGoalDialog(String goalId) {
     // Store parent scaffold messenger before showing dialog
     final parentScaffoldMessenger = ScaffoldMessenger.of(context);
-    final neg = context.vesta.neg;
     final errorColor = Theme.of(context).colorScheme.error;
 
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete savings goal'),
-        content: const Text(
-          'Are you sure you want to delete this savings goal? This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final userId = user?.uid;
-              if (userId == null) return;
+      builder: (dialogContext) => VestaDialog(
+        title: 'Delete this goal?',
+        icon: PhosphorIconsRegular.trash,
+        message:
+            'The goal and its progress will be removed. It cannot be undone.',
+        confirmLabel: 'Delete',
+        onConfirm: () async {
+          final userId = user?.uid;
+          if (userId == null) return;
 
-              try {
-                await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(userId)
-                    .collection('savings')
-                    .doc(goalId)
-                    .delete();
+          try {
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(userId)
+                .collection('savings')
+                .doc(goalId)
+                .delete();
 
-                if (mounted) {
-                  Navigator.pop(dialogContext);
-                  parentScaffoldMessenger.clearSnackBars();
-                  parentScaffoldMessenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('Savings goal deleted successfully'),
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (mounted) {
-                  parentScaffoldMessenger.clearSnackBars();
-                  parentScaffoldMessenger.showSnackBar(
-                    SnackBar(
-                      content: Text('Error deleting goal: $e'),
-                      backgroundColor: errorColor,
-                    ),
-                  );
-                }
-              }
-            },
-            style: TextButton.styleFrom(foregroundColor: neg),
-            child: const Text('Delete'),
-          ),
-        ],
+            if (mounted) {
+              Navigator.pop(dialogContext);
+              parentScaffoldMessenger.clearSnackBars();
+              parentScaffoldMessenger.showSnackBar(
+                const SnackBar(
+                  content: Text('Savings goal deleted successfully'),
+                ),
+              );
+            }
+          } catch (e) {
+            if (mounted) {
+              parentScaffoldMessenger.clearSnackBars();
+              parentScaffoldMessenger.showSnackBar(
+                SnackBar(
+                  content: Text('Error deleting goal: $e'),
+                  backgroundColor: errorColor,
+                ),
+              );
+            }
+          }
+        },
+        destructive: true,
       ),
     );
   }
@@ -280,8 +263,8 @@ class _SavingsPageState extends State<SavingsPage> {
 
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('Remove from $goalTitle'),
+      builder: (dialogContext) => VestaDialog(
+        title: 'Remove from $goalTitle',
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -316,43 +299,35 @@ class _SavingsPageState extends State<SavingsPage> {
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              final amount = double.tryParse(amountController.text);
-              if (amount == null || amount <= 0) {
-                parentScaffoldMessenger.clearSnackBars();
-                parentScaffoldMessenger.showSnackBar(
-                  SnackBar(
-                    content: const Text('Please enter a valid amount'),
-                    backgroundColor: errorColor,
-                  ),
-                );
-                return;
-              }
+        confirmLabel: 'Remove',
+        onConfirm: () {
+          final amount = double.tryParse(amountController.text);
+          if (amount == null || amount <= 0) {
+            parentScaffoldMessenger.clearSnackBars();
+            parentScaffoldMessenger.showSnackBar(
+              SnackBar(
+                content: const Text('Please enter a valid amount'),
+                backgroundColor: errorColor,
+              ),
+            );
+            return;
+          }
 
-              if (amount > currentAmount) {
-                parentScaffoldMessenger.clearSnackBars();
-                parentScaffoldMessenger.showSnackBar(
-                  SnackBar(
-                    content: const Text('Amount exceeds current allocation'),
-                    backgroundColor: errorColor,
-                  ),
-                );
-                return;
-              }
+          if (amount > currentAmount) {
+            parentScaffoldMessenger.clearSnackBars();
+            parentScaffoldMessenger.showSnackBar(
+              SnackBar(
+                content: const Text('Amount exceeds current allocation'),
+                backgroundColor: errorColor,
+              ),
+            );
+            return;
+          }
 
-              Navigator.pop(dialogContext);
-              _deallocateFromGoal(goalId, goal, amount);
-            },
-            style: TextButton.styleFrom(foregroundColor: v.neg),
-            child: const Text('Remove'),
-          ),
-        ],
+          Navigator.pop(dialogContext);
+          _deallocateFromGoal(goalId, goal, amount);
+        },
+        destructive: true,
       ),
     );
   }
