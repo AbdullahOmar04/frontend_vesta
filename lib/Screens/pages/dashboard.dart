@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/icon_picker.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
@@ -482,18 +483,10 @@ class _DashboardPageState extends State<DashboardPage> {
                     padding: const EdgeInsets.symmetric(vertical: 7),
                     child: Row(
                       children: [
-                        Container(
-                          width: 36,
-                          height: 36,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: v.raised,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            (g['emoji'] ?? '💰').toString(),
-                            style: const TextStyle(fontSize: 18),
-                          ),
+                        IconTile(
+                          iconKey: g['icon'] as String?,
+                          emoji: g['emoji'] as String?,
+                          size: 36,
                         ),
                         const SizedBox(width: VestaSpace.md),
                         Expanded(

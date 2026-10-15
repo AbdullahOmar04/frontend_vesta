@@ -4,9 +4,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/icon_picker.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
-import 'package:frontend_vesta/Screens/Savings/create_savings.dart';
+import 'package:frontend_vesta/Screens/Savings/new_goal_dialog.dart';
+import 'package:intl/intl.dart';
 
 class SavingsPage extends StatefulWidget {
   const SavingsPage({super.key});
@@ -20,15 +22,10 @@ class _SavingsPageState extends State<SavingsPage> {
   bool _removing = false;
 
   void _navigateToCreateSavings() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const CreateSavings()),
-    );
-    if (result == true && mounted) {
-      setState(() {});
+    if (await showNewGoalDialog(context) && mounted) {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Savings goal created successfully!')),
+        const SnackBar(content: Text('Savings goal added')),
       );
     }
   }
@@ -640,7 +637,6 @@ class _SavingsPageState extends State<SavingsPage> {
   }) {
     final v = context.vesta;
     final goalTitle = goal['goalTitle'] ?? 'Unknown';
-    final emoji = goal['emoji'] ?? '💰';
     final targetAmount = (goal['targetAmount'] ?? 0).toDouble();
     final currentAmount = (goal['currentAmount'] ?? 0).toDouble();
     final durationMonths = goal['durationMonths'] ?? 0;
@@ -665,15 +661,9 @@ class _SavingsPageState extends State<SavingsPage> {
               RemoveBadge(onTap: () => _deleteSavingGoalDialog(goalId)),
               const SizedBox(width: VestaSpace.md),
             ],
-            Container(
-              width: 40,
-              height: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: v.raised,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(emoji, style: const TextStyle(fontSize: 20)),
+            IconTile(
+              iconKey: goal['icon'] as String?,
+              emoji: goal['emoji'] as String?,
             ),
             const SizedBox(width: VestaSpace.md),
             Expanded(
@@ -714,7 +704,9 @@ class _SavingsPageState extends State<SavingsPage> {
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   Text(
-                    '${formatMoney(monthlyAmount)} a month · ${_convertMonthsToYearsAndMonths(durationMonths)}',
+                    goal['targetDate'] is Timestamp
+                        ? '${formatMoney(monthlyAmount)} a month · by ${DateFormat('MMM yyyy').format((goal['targetDate'] as Timestamp).toDate())}'
+                        : '${formatMoney(monthlyAmount)} a month · ${_convertMonthsToYearsAndMonths(durationMonths)}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
