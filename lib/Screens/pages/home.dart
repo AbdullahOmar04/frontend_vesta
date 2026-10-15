@@ -147,19 +147,46 @@ class _HomePageState extends State<HomePage> {
 
                           final totalExpense = userData["totalExpense"];
 
-                          return ListView(
-                            padding: const EdgeInsets.fromLTRB(
-                              VestaSpace.gutter,
-                              VestaSpace.lg,
-                              VestaSpace.gutter,
-                              VestaSpace.gutter,
-                            ),
-                            children: [
-                              _balance(totalBalance, currency, totalExpense),
-                              if (_summary != null)
-                                CoachCard(summary: _summary, showLink: true),
-                              const SizedBox(height: VestaSpace.xl),
-                              _tiles(),
+                          // The tiles take whatever height is left, so Home
+                          // fits one screen like the prototype; only a very
+                          // short screen scrolls.
+                          return CustomScrollView(
+                            slivers: [
+                              SliverPadding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  VestaSpace.gutter,
+                                  VestaSpace.lg,
+                                  VestaSpace.gutter,
+                                  0,
+                                ),
+                                sliver: SliverList.list(
+                                  children: [
+                                    _balance(
+                                      totalBalance,
+                                      currency,
+                                      totalExpense,
+                                    ),
+                                    if (_summary != null)
+                                      CoachCard(
+                                        summary: _summary,
+                                        showLink: true,
+                                      ),
+                                    const SizedBox(height: VestaSpace.lg),
+                                  ],
+                                ),
+                              ),
+                              SliverFillRemaining(
+                                hasScrollBody: false,
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    VestaSpace.gutter,
+                                    0,
+                                    VestaSpace.gutter,
+                                    VestaSpace.gutter,
+                                  ),
+                                  child: _tiles(),
+                                ),
+                              ),
                             ],
                           );
                         },
@@ -203,20 +230,23 @@ class _HomePageState extends State<HomePage> {
                 '${formatMoney(summary.earned, currency: currency)} earned',
                 v.pos,
               ),
-            GestureDetector(
-              onTap: _openWallet,
-              child: _stat(
-                PhosphorIconsRegular.caretRight,
-                summary == null
-                    ? 'Accounts'
-                    : summary.accountCount == 1
-                    ? '1 account'
-                    : '${summary.accountCount} accounts',
-                v.accentInk,
-                iconAfter: true,
-              ),
-            ),
           ],
+        ),
+        // Its own line on every phone; in a Wrap it joined the line above
+        // on wider screens (iPhone) and dropped below it on the S24.
+        const SizedBox(height: 6),
+        GestureDetector(
+          onTap: _openWallet,
+          child: _stat(
+            PhosphorIconsRegular.caretRight,
+            summary == null
+                ? 'Accounts'
+                : summary.accountCount == 1
+                ? '1 account'
+                : '${summary.accountCount} accounts',
+            v.accentInk,
+            iconAfter: true,
+          ),
         ),
       ],
     );
@@ -263,16 +293,28 @@ class _HomePageState extends State<HomePage> {
       ),
     ];
 
-    return GridView(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: VestaSpace.md,
-        crossAxisSpacing: VestaSpace.md,
-        mainAxisExtent: 160,
+    // Each row shares the height left on screen, between the prototype's
+    // tile height and a little more on tall phones.
+    Widget row(Widget a, Widget b) => Flexible(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 116, maxHeight: 150),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(child: a),
+            const SizedBox(width: VestaSpace.md),
+            Expanded(child: b),
+          ],
+        ),
       ),
-      children: tiles,
+    );
+
+    return Column(
+      children: [
+        row(tiles[0], tiles[1]),
+        const SizedBox(height: VestaSpace.md),
+        row(tiles[2], tiles[3]),
+      ],
     );
   }
 }
@@ -304,7 +346,7 @@ class _HomeTile extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: 10,
-            vertical: VestaSpace.lg,
+            vertical: VestaSpace.md,
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
