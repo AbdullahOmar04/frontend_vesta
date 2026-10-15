@@ -483,13 +483,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
   ];
 
   Future<void> _openPlan() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const PlanBudgetScreen()),
-    );
-    if (result == true) {
-      _refreshBudget();
-    }
+    if (await showBudgetPlanDialog(context)) _refreshBudget();
   }
 
   @override

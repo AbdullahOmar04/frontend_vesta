@@ -1,4 +1,5 @@
 const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const functionsV1 = require("firebase-functions/v1");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const admin = require("firebase-admin");
 
@@ -65,3 +66,57 @@ exports.onInviteAccepted = onDocumentUpdated({
   }
 });
 
+/**
+ * Runs when a Firebase Auth user is deleted (the app's Delete account).
+ * The app deletes what the security rules let it; this removes the rest
+ * with admin rights: the user doc and everything under it, their username
+ * and email reservations, their households (deleted when they created them,
+ * left otherwise), and their profile picture.
+ */
+exports.onUserDeleted = functionsV1.auth.user().onDelete(async (user) => {
+  const db = getFirestore();
+  const uid = user.uid;
+  const userRef = db.collection("users").doc(uid);
+  const snap = await userRef.get();
+  const data = snap.exists ? snap.data() : {};
+
+  for (const id of data.householdIds || []) {
+    try {
+      const ref = db.collection("households").doc(id);
+      const household = await ref.get();
+      if (!household.exists) continue;
+      const h = household.data();
+      const members = h.members || [];
+      const owner = h.createdBy || members[0];
+      if (owner === uid) {
+        for (const m of members.filter((x) => x !== uid)) {
+          await db.collection("users").doc(m).update({
+            householdIds: FieldValue.arrayRemove(id),
+          }).catch(() => null);
+        }
+        await db.recursiveDelete(ref);
+      } else {
+        await ref.update({ members: FieldValue.arrayRemove(uid) });
+      }
+    } catch (error) {
+      console.error(`Could not clear household ${id} for ${uid}:`, error);
+    }
+  }
+
+  const batch = db.batch();
+  if (data.username) {
+    batch.delete(db.collection("usernames").doc(String(data.username).toLowerCase()));
+  }
+  const email = String(data.email || user.email || "").toLowerCase();
+  if (email) batch.delete(db.collection("emails").doc(email));
+  await batch.commit().catch((error) =>
+    console.error(`Could not free the username or email of ${uid}:`, error));
+
+  await db.recursiveDelete(userRef);
+
+  await admin.storage().bucket().file(`profile_pictures/${uid}.jpg`)
+    .delete().catch(() => null);
+
+  console.log(`Deleted the data of ${uid}`);
+  return null;
+});

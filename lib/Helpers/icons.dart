@@ -84,6 +84,7 @@ class PhosphorIconsRegular {
   static const IconData hammer = IconData(0xe80e, fontFamily: 'Phosphor');
   static const IconData handCoins = IconData(0xea8c, fontFamily: 'Phosphor');
   static const IconData handHeart = IconData(0xe810, fontFamily: 'Phosphor');
+  static const IconData handPointing = IconData(0xe29a, fontFamily: 'Phosphor');
   static const IconData handTap = IconData(0xec90, fontFamily: 'Phosphor');
   static const IconData headset = IconData(0xe584, fontFamily: 'Phosphor');
   static const IconData heartbeat = IconData(0xe2ac, fontFamily: 'Phosphor');
@@ -98,6 +99,7 @@ class PhosphorIconsRegular {
   static const IconData lightning = IconData(0xe2de, fontFamily: 'Phosphor');
   static const IconData link = IconData(0xe2e2, fontFamily: 'Phosphor');
   static const IconData linkSimple = IconData(0xe2e6, fontFamily: 'Phosphor');
+  static const IconData lock = IconData(0xe2fa, fontFamily: 'Phosphor');
   static const IconData lockKey = IconData(0xe2fe, fontFamily: 'Phosphor');
   static const IconData lockSimple = IconData(0xe308, fontFamily: 'Phosphor');
   static const IconData magnifyingGlass = IconData(0xe30c, fontFamily: 'Phosphor');
@@ -241,6 +243,7 @@ class PhosphorIconsFill {
   static const IconData hammer = IconData(0xe80e, fontFamily: 'PhosphorFill');
   static const IconData handCoins = IconData(0xea8c, fontFamily: 'PhosphorFill');
   static const IconData handHeart = IconData(0xe810, fontFamily: 'PhosphorFill');
+  static const IconData handPointing = IconData(0xe29a, fontFamily: 'PhosphorFill');
   static const IconData handTap = IconData(0xec90, fontFamily: 'PhosphorFill');
   static const IconData headset = IconData(0xe584, fontFamily: 'PhosphorFill');
   static const IconData heartbeat = IconData(0xe2ac, fontFamily: 'PhosphorFill');
@@ -255,6 +258,7 @@ class PhosphorIconsFill {
   static const IconData lightning = IconData(0xe2de, fontFamily: 'PhosphorFill');
   static const IconData link = IconData(0xe2e2, fontFamily: 'PhosphorFill');
   static const IconData linkSimple = IconData(0xe2e6, fontFamily: 'PhosphorFill');
+  static const IconData lock = IconData(0xe2fa, fontFamily: 'PhosphorFill');
   static const IconData lockKey = IconData(0xe2fe, fontFamily: 'PhosphorFill');
   static const IconData lockSimple = IconData(0xe308, fontFamily: 'PhosphorFill');
   static const IconData magnifyingGlass = IconData(0xe30c, fontFamily: 'PhosphorFill');

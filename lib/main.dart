@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:frontend_vesta/Helpers/appearance.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/security_service.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
@@ -32,6 +33,7 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   startCategoryListener();
+  await loadAppearance();
 
   runApp(const MainApp());
 }
@@ -41,13 +43,16 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: navigatorKey,
-      theme: lightTheme,
-      darkTheme: darkTheme,
-      themeMode: ThemeMode.system,
-      home: const AuthGate(),
-      debugShowCheckedModeBanner: false,
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: appearance,
+      builder: (context, mode, _) => MaterialApp(
+        navigatorKey: navigatorKey,
+        theme: lightTheme,
+        darkTheme: darkTheme,
+        themeMode: mode,
+        home: const AuthGate(),
+        debugShowCheckedModeBanner: false,
+      ),
     );
   }
 }

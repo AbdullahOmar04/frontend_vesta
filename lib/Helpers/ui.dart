@@ -1014,6 +1014,152 @@ class OutlineButton extends StatelessWidget {
   }
 }
 
+/// "JOD" at the start of an amount field. Unlike InputDecoration's
+/// prefixText it also shows while the field is empty, as in the prototype.
+/// Use with [currencyPrefixConstraints].
+class CurrencyPrefix extends StatelessWidget {
+  const CurrencyPrefix({super.key, this.size = 12, this.left = 14});
+
+  final double size;
+  final double left;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(left: left, right: 6),
+      child: Text(
+        'JOD',
+        style: TextStyle(fontSize: size, color: context.vesta.muted),
+      ),
+    );
+  }
+}
+
+const currencyPrefixConstraints = BoxConstraints(minWidth: 0, minHeight: 0);
+
+/// One rounded card of [MenuRow]s (or other rows) with hairlines between
+/// them, as on the prototype's Profile and its sub-pages.
+class MenuCard extends StatelessWidget {
+  const MenuCard(this.rows, {super.key});
+
+  final List<Widget> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    final v = context.vesta;
+    return VestaCard(
+      padding: EdgeInsets.zero,
+      radius: VestaRadius.lg,
+      child: Column(
+        children: [
+          for (var i = 0; i < rows.length; i++)
+            DecoratedBox(
+              decoration: BoxDecoration(
+                border: i == 0
+                    ? null
+                    : Border(top: BorderSide(color: v.divider)),
+              ),
+              child: rows[i],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A menu row: icon, title, optional subtitle, and a caret, or a grey
+/// [tag] such as "Coming soon" instead.
+class MenuRow extends StatelessWidget {
+  const MenuRow({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.onTap,
+    this.subtitle,
+    this.color,
+    this.tag,
+    this.showCaret = true,
+  });
+
+  final IconData icon;
+  final String title;
+  final VoidCallback? onTap;
+  final String? subtitle;
+
+  /// Tints the icon and title, e.g. red for Log out.
+  final Color? color;
+  final String? tag;
+  final bool showCaret;
+
+  @override
+  Widget build(BuildContext context) {
+    final v = context.vesta;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Icon(icon, size: 19, color: color ?? v.accentInk),
+            const SizedBox(width: VestaSpace.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: TextStyle(color: color)),
+                  if (subtitle != null)
+                    Text(
+                      subtitle!,
+                      style: TextStyle(fontSize: 12, color: v.muted),
+                    ),
+                ],
+              ),
+            ),
+            if (tag != null)
+              TagChip.pill(tag!, color: v.muted)
+            else if (showCaret && onTap != null)
+              Icon(PhosphorIconsRegular.caretRight, size: 16, color: v.muted),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A page the prototype marks as designed later.
+class ComingSoonPage extends StatelessWidget {
+  const ComingSoonPage({super.key, this.title = 'Coming soon'});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final v = context.vesta;
+    return Scaffold(
+      appBar: VestaAppBar(title: title),
+      body: VestaBackground(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 64),
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(PhosphorIconsRegular.hammer, size: 30, color: v.accentInk),
+                const SizedBox(height: VestaSpace.md),
+                Text(
+                  "This is coming in a later update.",
+                  style: TextStyle(fontSize: 13, color: v.muted),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Full-width destructive action: red-tinted fill with a red outline, as on
 /// the prototype's "Yes" in a delete confirmation.
 class DangerButton extends StatelessWidget {
@@ -1065,6 +1211,7 @@ class VestaDialog extends StatelessWidget {
     this.icon,
     this.iconColor,
     this.cancelLabel = 'Cancel',
+    this.cancelButton = true,
     this.onCancel,
     this.confirmLabel,
     this.onConfirm,
@@ -1082,6 +1229,10 @@ class VestaDialog extends StatelessWidget {
 
   /// Null hides Cancel (and the close button on forms).
   final String? cancelLabel;
+
+  /// False keeps the close button on forms but drops the Cancel button, so
+  /// the action spans the dialog (the prototype's "Add goal").
+  final bool cancelButton;
 
   /// Defaults to closing the dialog.
   final VoidCallback? onCancel;
@@ -1156,15 +1307,16 @@ class VestaDialog extends StatelessWidget {
               const SizedBox(height: VestaSpace.lg),
               Flexible(child: SingleChildScrollView(child: content)),
             ],
-            if (cancelLabel != null || confirmLabel != null) ...[
+            if ((cancelLabel != null && cancelButton) ||
+                confirmLabel != null) ...[
               const SizedBox(height: 20),
               Row(
                 children: [
-                  if (cancelLabel != null)
+                  if (cancelLabel != null && cancelButton)
                     Expanded(
                       child: OutlineButton(label: cancelLabel!, onPressed: cancel),
                     ),
-                  if (cancelLabel != null && confirmLabel != null)
+                  if (cancelLabel != null && cancelButton && confirmLabel != null)
                     const SizedBox(width: 10),
                   if (confirmLabel != null)
                     Expanded(
