@@ -164,29 +164,20 @@ class _LoginState extends State<Login> {
       if (identifier.contains("@")) {
         email = identifier;
       } else {
-        // Lookup username → get email from Firestore
-        final snapshot = await FirebaseFirestore.instance
-            .collection("users")
-            .where("username", isEqualTo: identifier)
+        // Username → email through the public usernames doc. User docs are
+        // private, so they can't be searched before signing in.
+        final lookup = await FirebaseFirestore.instance
+            .collection("usernames")
+            .doc(identifier.toLowerCase())
             .get();
-
-        if (snapshot.docs.isEmpty) {
+        final storedEmail = lookup.data()?["email"];
+        if (storedEmail is! String || storedEmail.isEmpty) {
           throw FirebaseAuthException(
             code: "invalid-credentials",
             message: "Invalid username or password",
           );
         }
-
-        // Security check: Detect duplicate usernames
-        if (snapshot.docs.length > 1) {
-          throw FirebaseAuthException(
-            code: "duplicate-username",
-            message:
-                "Critical error: Multiple accounts with this username detected. Please contact support.",
-          );
-        }
-
-        email = snapshot.docs.first["email"];
+        email = storedEmail;
       }
 
       final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(

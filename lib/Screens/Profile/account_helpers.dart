@@ -193,8 +193,15 @@ Future<void> syncEmailFromAuth() async {
     final doc = await userRef.get();
     final docEmail = (doc.data()?['email'] as String?)?.toLowerCase();
     if (docEmail == null || docEmail == authEmail) return;
+    final username = (doc.data()?['username'] as String?)?.toLowerCase();
     final batch = _db.batch();
     batch.update(userRef, {'email': user.email});
+    // Username login looks the email up here
+    if (username != null && username.isNotEmpty) {
+      batch.set(_db.collection('usernames').doc(username), {
+        'email': user.email,
+      }, SetOptions(merge: true));
+    }
     batch.set(_db.collection('emails').doc(authEmail), {
       'uid': user.uid,
       'originalEmail': user.email,

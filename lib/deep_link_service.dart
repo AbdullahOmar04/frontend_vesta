@@ -121,10 +121,8 @@ class DeepLinkService {
         return;
       }
 
-      // 2. Get the inviter's name
-      final inviterDoc = await _db.collection('users').doc(inviterUid).get();
-      if (!activeContext.mounted) return;
-      final inviterName = inviterDoc.data()?['username'] ?? 'Someone';
+      // 2. The inviter's name, stored on the invite (other users' docs are private)
+      final inviterName = inviteDoc.data()?['inviterName'] ?? 'Someone';
 
       // 3. Get the household's name
       final householdName =

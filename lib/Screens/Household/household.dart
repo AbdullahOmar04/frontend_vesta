@@ -48,6 +48,36 @@ class HouseholdDetailPage extends StatefulWidget {
 
 class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
   final _db = FirebaseFirestore.instance;
+  Future<Map<String, Map<String, dynamic>>>? _profiles;
+  String _profilesFor = '';
+
+  /// Members' names and photos, read one doc at a time: the rules let a
+  /// co-member read a user doc, but not run a query over users. Cached until
+  /// the member list changes.
+  Future<Map<String, Map<String, dynamic>>> _memberProfiles(
+    List<String> uids,
+  ) {
+    final key = uids.join(',');
+    if (_profiles == null || key != _profilesFor) {
+      _profilesFor = key;
+      _profiles = () async {
+        final docs = await Future.wait(
+          uids.map((m) async {
+            try {
+              return await _db.collection('users').doc(m).get();
+            } catch (_) {
+              return null; // Unreadable: shown as "Member"
+            }
+          }),
+        );
+        return {
+          for (final d in docs)
+            if (d != null) d.id: d.data() ?? const <String, dynamic>{},
+        };
+      }();
+    }
+    return _profiles!;
+  }
   final _auth = FirebaseAuth.instance;
   final String _appDomain = "https://vestaapp.co";
   List<HouseholdTransactionModel> _allTransactions = [];
@@ -256,16 +286,10 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
         }
 
         final ownerUid = householdOwner(data);
-        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: _db
-              .collection('users')
-              .where(FieldPath.documentId, whereIn: memberUids)
-              .snapshots(),
-          builder: (context, usersSnapshot) {
-            final profiles = {
-              for (final d in usersSnapshot.data?.docs ?? const [])
-                d.id: d.data(),
-            };
+        return FutureBuilder<Map<String, Map<String, dynamic>>>(
+          future: _memberProfiles(memberUids),
+          builder: (context, profilesSnapshot) {
+            final profiles = profilesSnapshot.data ?? const {};
             // The owner first, then everyone else in joining order
             final ordered = [
               ...memberUids.where((m) => m == ownerUid),

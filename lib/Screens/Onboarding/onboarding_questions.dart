@@ -117,21 +117,11 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
       _usernameError = null;
     });
     try {
-      bool taken;
-      try {
-        final doc = await FirebaseFirestore.instance
-            .collection('usernames')
-            .doc(username.toLowerCase())
-            .get();
-        taken = doc.exists;
-      } catch (_) {
-        final query = await FirebaseFirestore.instance
-            .collection('users')
-            .where('username', isEqualTo: username)
-            .limit(1)
-            .get();
-        taken = query.docs.isNotEmpty;
-      }
+      final doc = await FirebaseFirestore.instance
+          .collection('usernames')
+          .doc(username.toLowerCase())
+          .get();
+      final taken = doc.exists;
       if (!mounted) return false;
       setState(() => _usernameError = taken ? 'That username is taken' : null);
       return !taken;
