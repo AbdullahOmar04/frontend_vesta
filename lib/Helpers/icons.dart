@@ -133,6 +133,7 @@ class PhosphorIconsRegular {
   static const IconData signOut = IconData(0xe42a, fontFamily: 'Phosphor');
   static const IconData slidersHorizontal = IconData(0xe434, fontFamily: 'Phosphor');
   static const IconData sneaker = IconData(0xe80c, fontFamily: 'Phosphor');
+  static const IconData sortAscending = IconData(0xe444, fontFamily: 'Phosphor');
   static const IconData sortDescending = IconData(0xe446, fontFamily: 'Phosphor');
   static const IconData sparkle = IconData(0xe6a2, fontFamily: 'Phosphor');
   static const IconData squaresFour = IconData(0xe464, fontFamily: 'Phosphor');
@@ -292,6 +293,7 @@ class PhosphorIconsFill {
   static const IconData signOut = IconData(0xe42a, fontFamily: 'PhosphorFill');
   static const IconData slidersHorizontal = IconData(0xe434, fontFamily: 'PhosphorFill');
   static const IconData sneaker = IconData(0xe80c, fontFamily: 'PhosphorFill');
+  static const IconData sortAscending = IconData(0xe444, fontFamily: 'PhosphorFill');
   static const IconData sortDescending = IconData(0xe446, fontFamily: 'PhosphorFill');
   static const IconData sparkle = IconData(0xe6a2, fontFamily: 'PhosphorFill');
   static const IconData squaresFour = IconData(0xe464, fontFamily: 'PhosphorFill');

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:intl/intl.dart';
+import 'package:frontend_vesta/Helpers/icon_picker.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 
 // Shared building blocks for the redesign. Screens compose these instead of
@@ -828,9 +829,17 @@ class CardSegment extends StatelessWidget {
   }
 }
 
-/// Icon for a category name, by keyword, so user-made categories get a
-/// sensible icon too.
+/// Icons users picked for their categories (category name to an
+/// icon_picker key), kept current by startCategoryListener.
+final Map<String, String> categoryIconKeys = {};
+
+/// Icon for a category: the one the user picked, else one by keyword, so
+/// user-made categories get a sensible icon too.
 IconData categoryIcon(String? name) {
+  final picked = name == null ? null : categoryIconKeys[name];
+  if (picked != null) {
+    return iconForKey(picked, fallback: PhosphorIconsRegular.tag);
+  }
   final n = (name ?? '').toLowerCase();
   bool has(String s) => n.contains(s);
   if (n.isEmpty) return PhosphorIconsRegular.tag;

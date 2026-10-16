@@ -210,6 +210,12 @@ void startCategoryListener() {
 
     _categorySub = col.snapshots().listen(
       (snap) {
+        categoryIconKeys
+          ..clear()
+          ..addAll({
+            for (final d in snap.docs)
+              if (d.data()['icon'] is String) d.id: d.data()['icon'] as String,
+          });
         var labels = snap.docs.map((d) {
           final data = d.data();
           if (data['name'] is String &&
