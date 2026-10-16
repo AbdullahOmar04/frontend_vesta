@@ -26,11 +26,8 @@ Future<void> syncAccounts([String? username]) async {
 
   // If no username passed, read from Firestore
   if (u.isEmpty) {
-    final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .get();
-    final stored = doc.data()?['providers']?['jopacc']?['username'];
+    final doc = await bankLinkRef(uid, 'jopacc').get();
+    final stored = doc.data()?['username'];
     if (stored is String && stored.trim().isNotEmpty) {
       u = stored.trim();
     }
@@ -749,19 +746,28 @@ class HbtfException implements Exception {
   String toString() => 'HbtfException($kind, status: $statusCode)';
 }
 
+/// A bank's link status (`linked`, `expiresAt`, `consentStatus`), written by
+/// the backend. Its tokens live in a doc the app can't read, and none of it
+/// sits in users/{uid}, which every screen streams.
+DocumentReference<Map<String, dynamic>> bankLinkRef(
+  String uid,
+  String provider,
+) => FirebaseFirestore.instance
+    .collection('users')
+    .doc(uid)
+    .collection('bankLinks')
+    .doc(provider);
+
 enum HbtfLinkState { notLinked, connected, expired }
 
-/// Reads the link state from the `users/{uid}` doc. Only `linked` and
-/// `tokens.expires_at` are looked at; the consent token itself is never read.
-HbtfLinkState hbtfLinkState(Map<String, dynamic>? userData) {
-  final providers = userData?['providers'];
-  final hbtf = providers is Map ? providers['hbtf'] : null;
-  if (hbtf is! Map || hbtf['linked'] != true) return HbtfLinkState.notLinked;
+/// When the Housing Bank consent runs out, from its bankLinks doc.
+DateTime? hbtfExpiresAt(Map<String, dynamic>? link) =>
+    DateTime.tryParse(link?['expiresAt']?.toString() ?? '');
 
-  final tokens = hbtf['tokens'];
-  final expiresAt = tokens is Map
-      ? DateTime.tryParse(tokens['expires_at']?.toString() ?? '')
-      : null;
+/// Reads the link state from the `users/{uid}/bankLinks/hbtf` doc.
+HbtfLinkState hbtfLinkState(Map<String, dynamic>? link) {
+  if (link == null || link['linked'] != true) return HbtfLinkState.notLinked;
+  final expiresAt = hbtfExpiresAt(link);
   if (expiresAt != null && !expiresAt.isAfter(DateTime.now())) {
     return HbtfLinkState.expired;
   }

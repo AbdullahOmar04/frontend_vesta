@@ -196,11 +196,8 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
   Future<void> _loadStoredUsername() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
-    final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .get();
-    final stored = doc.data()?['providers']?['jopacc']?['username'];
+    final doc = await bankLinkRef(uid, 'jopacc').get();
+    final stored = doc.data()?['username'];
     if (stored is String && stored.trim().isNotEmpty && mounted) {
       setState(() {
         _username.text = stored;
@@ -219,12 +216,8 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
     final entered = _username.text.trim();
 
     // Check if user already has linked accounts from a DIFFERENT username
-    final userDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .get();
-    final existingUsername = userDoc
-        .data()?['providers']?['jopacc']?['username'];
+    final jopaccLink = await bankLinkRef(uid, 'jopacc').get();
+    final existingUsername = jopaccLink.data()?['username'];
 
     // Check for existing linked accounts
     final linkedAccountsSnap = await FirebaseFirestore.instance
@@ -247,13 +240,9 @@ class _JopaccLinkScreenState extends State<JopaccLinkScreen> {
       return;
     }
 
-    await FirebaseFirestore.instance.collection('users').doc(uid).set({
-      'providers': {
-        'jopacc': {
-          'username': entered,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-      },
+    await bankLinkRef(uid, 'jopacc').set({
+      'username': entered,
+      'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
 
     if (!mounted) return;
@@ -687,18 +676,10 @@ class _CapitalLinkScreenState extends State<CapitalLinkScreen> {
     if (uid == null) return;
 
     for (int i = 0; i < 20; i++) {
-      final userSnap = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .get();
-      final data = userSnap.data() ?? {};
-      final providers = (data['providers'] as Map?) ?? {};
-      final capital = (providers['capital'] as Map?) ?? {};
-      final tokens = (capital['tokens'] as Map?) ?? {};
-      final hasToken =
-          (tokens['access_token']?.toString().trim().isNotEmpty ?? false);
+      final link = await bankLinkRef(uid, 'capital').get();
+      final linked = link.data()?['linked'] == true;
 
-      if (hasToken) {
+      if (linked) {
         final qs = await FirebaseFirestore.instance
             .collection('users')
             .doc(uid)
@@ -1629,7 +1610,7 @@ class HbtfAccountTags extends StatelessWidget {
   }
 }
 
-/// "Connected" / "Access expired" line driven by `providers.hbtf` on the user doc.
+/// "Connected" / "Access expired" line driven by the `bankLinks/hbtf` doc.
 class HbtfConnectionStatus extends StatelessWidget {
   const HbtfConnectionStatus({super.key, this.onReconnect});
 
@@ -1642,19 +1623,15 @@ class HbtfConnectionStatus extends StatelessWidget {
     if (uid == null) return const SizedBox.shrink();
 
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
+      stream: bankLinkRef(uid, 'hbtf').snapshots(),
       builder: (context, snap) {
         if (!snap.hasData) return const SizedBox.shrink();
         final v = context.vesta;
-        final userData = snap.data!.data();
-        final state = hbtfLinkState(userData);
+        final link = snap.data!.data();
+        final state = hbtfLinkState(link);
 
         if (state == HbtfLinkState.connected) {
-          final expiresAt = DateTime.tryParse(
-            userData?['providers']?['hbtf']?['tokens']?['expires_at']
-                    ?.toString() ??
-                '',
-          );
+          final expiresAt = hbtfExpiresAt(link);
           return Row(
             children: [
               Icon(PhosphorIconsFill.checkCircle, color: v.pos, size: 14),
@@ -1768,11 +1745,8 @@ class _HbtfLinkScreenState extends State<HbtfLinkScreen>
 
     HbtfLinkState state = HbtfLinkState.notLinked;
     try {
-      final userSnap = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .get();
-      state = hbtfLinkState(userSnap.data());
+      final link = await bankLinkRef(uid, 'hbtf').get();
+      state = hbtfLinkState(link.data());
     } catch (e) {
       print("Error reading Housing Bank link state: $e");
     }
@@ -2318,19 +2292,11 @@ class _AhliLinkScreenState extends State<AhliLinkScreen> {
     if (uid == null) return;
 
     for (int i = 0; i < 20; i++) {
-      // 1) Check if Ahli tokens exist (link succeeded)
-      final userSnap = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .get();
-      final data = userSnap.data() ?? {};
-      final providers = (data['providers'] as Map?) ?? {};
-      final ahli = (providers['ahli'] as Map?) ?? {};
-      final tokens = (ahli['tokens'] as Map?) ?? {};
-      final hasToken =
-          (tokens['access_token']?.toString().trim().isNotEmpty ?? false);
+      // 1) Check the backend marked the link (link succeeded)
+      final link = await bankLinkRef(uid, 'ahli').get();
+      final linked = link.data()?['linked'] == true;
 
-      if (hasToken) {
+      if (linked) {
         // Now wait for accounts to appear (usually quick)
         final qs = await FirebaseFirestore.instance
             .collection('users')
