@@ -296,6 +296,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       batch.set(usernameDocRef, {
         "uid": uid,
         "originalUsername": widget.username,
+        "email": widget.email,
         "createdAt": FieldValue.serverTimestamp(),
       });
 

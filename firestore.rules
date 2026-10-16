@@ -1,0 +1,213 @@
+rules_version = '2';
+// Deploy with: firebase deploy --only firestore:rules --project vesta-83939
+// (.firebaserc still defaults to the old vesta-7e96a project.)
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- USERNAME & EMAIL RESERVATIONS ---
+    // Readable one at a time (sign-up checks, username login) but never
+    // listable, so nobody can dump every username with its email.
+
+    match /usernames/{username} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if request.auth != null &&
+                    !exists(/databases/$(database)/documents/usernames/$(username)) &&
+                    request.resource.data.uid == request.auth.uid;
+      // The owner keeps the stored email in step and frees the name on deletion
+      allow update: if request.auth != null &&
+                    resource.data.uid == request.auth.uid &&
+                    request.resource.data.uid == resource.data.uid;
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+
+    match /emails/{email} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if request.auth != null &&
+                    !exists(/databases/$(database)/documents/emails/$(email)) &&
+                    request.resource.data.uid == request.auth.uid;
+      allow update: if request.auth != null &&
+                    resource.data.uid == request.auth.uid &&
+                    request.resource.data.uid == resource.data.uid;
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+
+    // --- USER DOCUMENTS ---
+    // Private: the owner, plus members of a shared household (names, photos).
+
+    match /users/{userId} {
+      allow get: if request.auth != null &&
+                 (request.auth.uid == userId ||
+                  sharesHousehold(request.auth.uid, resource.data.get('householdIds', [])));
+      allow list: if false;
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      // Allow update if:
+      // 1. You're updating your own document, OR
+      // 2. Only householdIds changed AND you share a household with this user
+      allow update: if request.auth != null &&
+                    (request.auth.uid == userId ||
+                     (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['householdIds']) &&
+                      sharesHousehold(request.auth.uid, resource.data.householdIds)));
+
+      allow delete: if request.auth != null && request.auth.uid == userId;
+
+      match /budget/{budgetDoc} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if request.auth != null &&
+                      request.auth.uid == userId &&
+                      validateBudgetData();
+      }
+
+      match /categories/{categoryId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+
+        match /transactions/{transactionId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+
+          match /{allDescendants=**} {
+            allow read, write: if request.auth != null && request.auth.uid == userId;
+          }
+        }
+      }
+
+      match /savings/{savingId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /accounts/{accountId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+
+        match /transactions/{transactionId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+          allow read: if request.auth != null &&
+            (request.auth.uid == userId ||
+             (resource.data.householdId != null &&
+              request.auth.uid in get(/databases/$(database)/documents/households/$(resource.data.householdId)).data.members));
+
+          match /{allDescendants=**} {
+            allow read, write: if request.auth != null && request.auth.uid == userId;
+          }
+        }
+
+        match /sosps/{sospId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+        }
+      }
+
+      match /{collection}/{document} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // --- SHARED HOUSEHOLD RULES ---
+
+    match /households/{householdId} {
+      allow create: if request.auth != null &&
+                    request.resource.data.members == [request.auth.uid] &&
+                    request.resource.data.get('createdBy', request.auth.uid) == request.auth.uid;
+
+      allow read: if request.auth != null &&
+                  request.auth.uid in resource.data.members;
+
+      // Members may edit the household and leave it; only the owner may remove
+      // other members. Nobody can change who the owner is.
+      allow update: if request.auth != null &&
+                    request.auth.uid in resource.data.members &&
+                    request.resource.data.get('createdBy', null) == resource.data.get('createdBy', null) &&
+                    (isHouseholdOwner() ||
+                     request.resource.data.members.toSet() == resource.data.members.toSet() ||
+                     request.resource.data.members.toSet() ==
+                       resource.data.members.toSet().difference([request.auth.uid].toSet()));
+
+      allow delete: if request.auth != null && isHouseholdOwner();
+    }
+
+    match /households/{householdId}/{subCollection}/{docId} {
+      allow read, write: if request.auth != null &&
+                         request.auth.uid in get(/databases/$(database)/documents/households/$(householdId)).data.members;
+    }
+
+    // --- INVITE SYSTEM RULES ---
+
+    match /invites/{inviteId} {
+      allow create: if request.auth != null &&
+                    request.resource.data.inviterUid == request.auth.uid;
+
+      // Link invites are opened by id; the in-app list only shows your own
+      allow get: if request.auth != null;
+      allow list: if request.auth != null &&
+                  resource.data.inviteeUid == request.auth.uid;
+
+      // Accept (the onInviteAccepted Cloud Function does the joining): only a
+      // pending invite, and a direct invite only by the person it was sent to.
+      // Decline: only a direct invite, by its invitee, and nothing but status.
+      allow update: if request.auth != null &&
+                    resource.data.status == 'pending' &&
+                    (
+                      (request.resource.data.status == 'accepted' &&
+                       request.resource.data.acceptedByUid == request.auth.uid &&
+                       resource.data.get('inviteeUid', request.auth.uid) == request.auth.uid) ||
+                      (request.resource.data.status == 'declined' &&
+                       resource.data.get('inviteeUid', null) == request.auth.uid &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']))
+                    );
+
+      allow delete: if request.auth != null &&
+                    request.auth.uid == resource.data.inviterUid;
+    }
+
+    // --- HELPER FUNCTIONS ---
+
+    // Check if uid is a member of any household in the target user's householdIds
+    function sharesHousehold(uid, householdIds) {
+      return householdIds != null &&
+             householdIds.size() > 0 &&
+             (
+               (householdIds.size() >= 1 && exists(/databases/$(database)/documents/households/$(householdIds[0])) && uid in get(/databases/$(database)/documents/households/$(householdIds[0])).data.members) ||
+               (householdIds.size() >= 2 && exists(/databases/$(database)/documents/households/$(householdIds[1])) && uid in get(/databases/$(database)/documents/households/$(householdIds[1])).data.members) ||
+               (householdIds.size() >= 3 && exists(/databases/$(database)/documents/households/$(householdIds[2])) && uid in get(/databases/$(database)/documents/households/$(householdIds[2])).data.members) ||
+               (householdIds.size() >= 4 && exists(/databases/$(database)/documents/households/$(householdIds[3])) && uid in get(/databases/$(database)/documents/households/$(householdIds[3])).data.members)
+             );
+    }
+
+    // The household's creator; older households without createdBy fall back
+    // to their first member, as the app does
+    function isHouseholdOwner() {
+      return resource.data.get('createdBy', null) == request.auth.uid ||
+             (resource.data.get('createdBy', null) == null &&
+              resource.data.members.size() > 0 &&
+              resource.data.members[0] == request.auth.uid);
+    }
+
+    function validateBudgetData() {
+      let incomingData = request.resource.data;
+
+      let hasRequiredFields =
+          'income' in incomingData &&
+          'saving' in incomingData &&
+          'spending' in incomingData &&
+          'luxuries' in incomingData;
+
+      let hasValidTypes =
+          incomingData.income is number &&
+          incomingData.saving is number &&
+          incomingData.spending is number &&
+          incomingData.luxuries is number;
+
+      let totalPercentage =
+          incomingData.saving +
+          incomingData.spending +
+          incomingData.luxuries;
+
+      let hasValidPercentages =
+          totalPercentage <= 100 &&
+          incomingData.saving >= 0 &&
+          incomingData.spending >= 0 &&
+          incomingData.luxuries >= 0;
+
+      return hasRequiredFields && hasValidTypes && hasValidPercentages;
+    }
+  }
+}

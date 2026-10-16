@@ -153,26 +153,11 @@ class _RegisterState extends State<Register> {
     setState(() => _loading = true);
 
     try {
-      // Try to check username in new usernames collection first
-      // If that fails (collection doesn't exist yet), fall back to users collection
-      bool usernameExists = false;
-      bool emailExists = false;
-
-      try {
-        final usernameDoc = await FirebaseFirestore.instance
-            .collection("usernames")
-            .doc(username.toLowerCase())
-            .get();
-        usernameExists = usernameDoc.exists;
-      } catch (e) {
-        // Fallback: Check in users collection if usernames collection doesn't exist
-        final usernameQuery = await FirebaseFirestore.instance
-            .collection("users")
-            .where("username", isEqualTo: username)
-            .limit(1)
-            .get();
-        usernameExists = usernameQuery.docs.isNotEmpty;
-      }
+      final usernameDoc = await FirebaseFirestore.instance
+          .collection("usernames")
+          .doc(username.toLowerCase())
+          .get();
+      final usernameExists = usernameDoc.exists;
 
       if (usernameExists) {
         if (!mounted) return;
@@ -189,21 +174,11 @@ class _RegisterState extends State<Register> {
         return;
       }
 
-      try {
-        final emailDoc = await FirebaseFirestore.instance
-            .collection("emails")
-            .doc(email.toLowerCase())
-            .get();
-        emailExists = emailDoc.exists;
-      } catch (e) {
-        // Fallback: Check in users collection if emails collection doesn't exist
-        final emailQuery = await FirebaseFirestore.instance
-            .collection("users")
-            .where("email", isEqualTo: email)
-            .limit(1)
-            .get();
-        emailExists = emailQuery.docs.isNotEmpty;
-      }
+      final emailDoc = await FirebaseFirestore.instance
+          .collection("emails")
+          .doc(email.toLowerCase())
+          .get();
+      final emailExists = emailDoc.exists;
 
       if (emailExists) {
         if (!mounted) return;
