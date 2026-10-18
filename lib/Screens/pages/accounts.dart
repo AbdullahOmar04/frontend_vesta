@@ -37,6 +37,43 @@ class _AccountsPageState extends State<AccountsPage> {
     }
   }
 
+  /// One consent covers every Housing Bank account, so removing one removes all.
+  Future<void> _showHbtfDisconnectDialog() async {
+    final confirmed = await confirmDialog(
+      context,
+      title: 'Disconnect Housing Bank?',
+      message:
+          'This removes all your Housing Bank accounts and their transactions '
+          'from Vesta, and deletes Vesta\'s access to your Housing Bank data. '
+          'You can link it again any time.',
+      confirmLabel: 'Disconnect',
+    );
+    if (!confirmed) return;
+
+    setState(() => _unlinking = true);
+    try {
+      await hbtfDisconnect();
+      await calcTotalBalance();
+      if (mounted) {
+        setState(() => _removing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Housing Bank disconnected')),
+        );
+      }
+    } on HbtfException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.userMessage),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _unlinking = false);
+    }
+  }
+
   Future<void> _deleteAccount(String accountId) async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
@@ -226,27 +263,24 @@ class _AccountsPageState extends State<AccountsPage> {
 
     final balance = _balanceOf(acc);
 
-    // No unlink/revoke endpoint exists for Housing Bank yet
+    // A Housing Bank account goes through the backend, which holds its consent
     final isHbtf = acc["provider"] == hbtfProviderLabel;
     final isLoan = _isHbtfLoan(acc);
+    final onRemove = _unlinking
+        ? null
+        : isHbtf
+        ? _showHbtfDisconnectDialog
+        : () => _showDeleteDialog(accountId, bankName);
 
     return GestureDetector(
-      onLongPress: _unlinking || isHbtf
-          ? null
-          : () => _showDeleteDialog(accountId, bankName),
+      onLongPress: onRemove,
       child: VestaCard(
         radius: VestaRadius.lg,
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            if (_removing && isHbtf)
-              const SizedBox(width: 26 + VestaSpace.md)
-            else if (_removing) ...[
-              RemoveBadge(
-                onTap: _unlinking
-                    ? null
-                    : () => _showDeleteDialog(accountId, bankName),
-              ),
+            if (_removing) ...[
+              RemoveBadge(onTap: onRemove),
               const SizedBox(width: VestaSpace.md),
             ],
             BankBadge(bankName),

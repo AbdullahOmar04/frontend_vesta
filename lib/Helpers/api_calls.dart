@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:frontend_vesta/Helpers/account_balance.dart';
 import 'package:frontend_vesta/Helpers/pinned_http_client.dart';
 import 'package:http/http.dart' as http;
 
@@ -915,6 +916,27 @@ String? hbtfConsentLink(dynamic links) {
 Future<String?> hbtfExchangeConsentToken() async {
   final resp = await _hbtfPost('consent/token');
   return resp['expires_at']?.toString();
+}
+
+/// Forgets the Housing Bank link: the backend deletes the stored consent and
+/// token and the bankLinks status doc, then this deletes every Housing Bank
+/// account with its transactions. HBTF can't revoke a consent, so it stays
+/// valid at the bank until it expires, but nothing in Vesta can use it.
+Future<void> hbtfDisconnect() async {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) throw HbtfException(HbtfErrorKind.unknown);
+
+  await _hbtfPost('disconnect');
+
+  final accounts = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(uid)
+      .collection('accounts')
+      .where('provider', isEqualTo: hbtfProviderLabel)
+      .get();
+  for (final doc in accounts.docs) {
+    await deleteAccountAndTransactions(uid: uid, accountId: doc.id);
+  }
 }
 
 Future<int> hbtfSyncAccounts() async {
