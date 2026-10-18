@@ -977,7 +977,11 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
     });
 
     try {
-      final result = await etihadLoginComplete(otp);
+      final result = await etihadLoginComplete(
+        _usernameController.text.trim(),
+        _passwordController.text.trim(),
+        otp,
+      );
 
       if (!mounted) return;
 
@@ -1022,21 +1026,26 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
         return;
       }
 
-      // Extract first customer ID
-      // Response shape: [{"User": "<uuid>", "Customer": null, "Accounts": [...]}]
+      // Response shape: [{"User": "<uuid>", "Customer": "<uuid>" | null, "Accounts": [...]}].
+      // Accounts hang off "Customer"; "User" is only the login and gets a 403 from the
+      // accounts API. Customer stays null until Etihad has onboarded the user (KYC).
       final rawData = custResult['data'];
       String? customerId;
-      if (rawData is List && rawData.isNotEmpty) {
-        final first = Map<String, dynamic>.from(rawData[0] as Map);
-        customerId = (first['User'] ?? first['Id'] ?? first['id'])?.toString();
-      } else if (rawData is Map) {
-        final first = Map<String, dynamic>.from(rawData);
-        customerId = (first['User'] ?? first['Id'] ?? first['id'])?.toString();
+      if (rawData is List) {
+        for (final entry in rawData) {
+          if (entry is! Map) continue;
+          final id = entry['Customer']?.toString() ?? '';
+          if (id.isNotEmpty) {
+            customerId = id;
+            break;
+          }
+        }
       }
 
       if (customerId == null || customerId.isEmpty) {
         setState(() {
-          _error = 'No customer found for this account.';
+          _error = 'This Etihad login has no bank accounts yet. '
+              'Open an account with Bank al Etihad first, then try again.';
           _syncing = false;
         });
         return;
@@ -1189,6 +1198,14 @@ class _EtihadLinkScreenState extends State<EtihadLinkScreen> {
 
     await batch.commit();
     await calcTotalBalance();
+
+    // Pull the linked accounts' transactions now rather than on the next refresh
+    if (_customerId != null) {
+      for (final id in _selected) {
+        await etihadSyncTransactions(
+            _customerId!, id.replaceFirst('etihad_', ''));
+      }
+    }
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(

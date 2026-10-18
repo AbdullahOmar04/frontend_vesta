@@ -98,15 +98,9 @@ Future<void> getTransactions() async {
         continue;
       }
 
-      final Uri url;
-      if (provider == 'Ahli') {
-        url = Uri.parse("$baseUrl/banks/ahli/get_transactions/$uid/$accountId");
-      } else if (provider == 'Capital') {
-        url = Uri.parse("$baseUrl/banks/capital/get_transactions/$uid/$accountId");
-      } else if (provider == 'Etihad') {
-        // Etihad transactions are synced via sync_transactions endpoint;
-        // get_transactions requires customer_id + account_number, so we
-        // read them from the Firestore account doc.
+      if (provider == 'Etihad') {
+        // Etihad's get_transactions only returns data; sync_transactions stores it.
+        // Both need the customer id and raw account number from the account doc.
         final accData = doc.data();
         final customerId = accData['customerId']?.toString() ?? '';
         final accountNumber = accData['accountNumber']?.toString() ?? '';
@@ -114,7 +108,16 @@ Future<void> getTransactions() async {
           print("Skipping Etihad account $accountId: missing customerId or accountNumber");
           continue;
         }
-        url = Uri.parse("$baseUrl/banks/etihad/get_transactions/$uid/$customerId/$accountNumber");
+        final result = await etihadSyncTransactions(customerId, accountNumber);
+        print("Etihad transaction sync for $accountId: $result");
+        continue;
+      }
+
+      final Uri url;
+      if (provider == 'Ahli') {
+        url = Uri.parse("$baseUrl/banks/ahli/get_transactions/$uid/$accountId");
+      } else if (provider == 'Capital') {
+        url = Uri.parse("$baseUrl/banks/capital/get_transactions/$uid/$accountId");
       } else {
         url = Uri.parse("$baseUrl/get_transactions/$uid/$accountId");
       }
@@ -530,7 +533,7 @@ Future<Map<String, dynamic>?> etihadCreateUser({
 
   final url = Uri.parse("$baseUrl/banks/etihad/create_user");
   try {
-    final resp = await http.post(
+    final resp = await getPinnedHttpClient().post(
       url,
       headers: {
         ...await _authHeaders(),
@@ -564,7 +567,7 @@ Future<Map<String, dynamic>?> etihadLoginInit(String username, String password) 
 
   final url = Uri.parse("$baseUrl/banks/etihad/login_init/${user.uid}");
   try {
-    final resp = await http.post(
+    final resp = await getPinnedHttpClient().post(
       url,
       headers: {
         ...await _authHeaders(),
@@ -583,20 +586,22 @@ Future<Map<String, dynamic>?> etihadLoginInit(String username, String password) 
 }
 
 /// Step 2: Verify OTP code → completes login and links the bank.
+/// The backend never stores the password, so the credentials are sent again.
 /// Returns {"status": "success"} on success.
-Future<Map<String, dynamic>?> etihadLoginComplete(String otp) async {
+Future<Map<String, dynamic>?> etihadLoginComplete(
+    String username, String password, String otp) async {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) return null;
 
   final url = Uri.parse("$baseUrl/banks/etihad/login_complete/${user.uid}");
   try {
-    final resp = await http.post(
+    final resp = await getPinnedHttpClient().post(
       url,
       headers: {
         ...await _authHeaders(),
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({'otp': otp}),
+      body: jsonEncode({'username': username, 'password': password, 'otp': otp}),
     );
     if (resp.statusCode == 200) {
       return jsonDecode(resp.body) as Map<String, dynamic>;
@@ -616,7 +621,7 @@ Future<Map<String, dynamic>?> etihadGetCustomers() async {
 
   final url = Uri.parse("$baseUrl/banks/etihad/get_customers/${user.uid}");
   try {
-    final resp = await http.get(url, headers: await _authHeaders());
+    final resp = await getPinnedHttpClient().get(url, headers: await _authHeaders());
     if (resp.statusCode == 200) {
       return jsonDecode(resp.body) as Map<String, dynamic>;
     }
@@ -637,7 +642,7 @@ Future<Map<String, dynamic>?> etihadCreateAccount(
 
   final url = Uri.parse("$baseUrl/banks/etihad/create_account/${user.uid}/$customerId");
   try {
-    final resp = await http.post(
+    final resp = await getPinnedHttpClient().post(
       url,
       headers: {
         ...await _authHeaders(),
@@ -662,7 +667,7 @@ Future<Map<String, dynamic>?> etihadSyncAccounts(String customerId) async {
 
   final url = Uri.parse("$baseUrl/banks/etihad/sync_accounts/${user.uid}/$customerId");
   try {
-    final resp = await http.post(url, headers: await _authHeaders());
+    final resp = await getPinnedHttpClient().post(url, headers: await _authHeaders());
     if (resp.statusCode == 200) {
       return jsonDecode(resp.body) as Map<String, dynamic>;
     }
@@ -680,7 +685,7 @@ Future<Map<String, dynamic>?> etihadSyncTransactions(String customerId, String a
 
   final url = Uri.parse("$baseUrl/banks/etihad/sync_transactions/${user.uid}/$customerId/$accountNumber");
   try {
-    final resp = await http.post(url, headers: await _authHeaders());
+    final resp = await getPinnedHttpClient().post(url, headers: await _authHeaders());
     if (resp.statusCode == 200) {
       return jsonDecode(resp.body) as Map<String, dynamic>;
     }
