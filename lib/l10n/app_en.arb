@@ -1891,5 +1891,22 @@
   "iconSecTransport": "Transport & travel",
   "iconSecLifestyle": "Lifestyle",
   "iconSecPeople": "People & other",
-  "chooseAnIcon": "Choose an icon"
+  "chooseAnIcon": "Choose an icon",
+  "pasteBankSmsAnyLanguage": "Paste your bank SMS, in English or Arabic",
+  "smsPrivacyNote": "Vesta reads the message on your phone, and asks Google's Gemini only when it can't. Check the details before saving; only they are kept, never the message.",
+  "smsFilledConvert": "Filled from your SMS. The amount is in {from}, so change it to {to} before saving.",
+  "@smsFilledConvert": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "smsCouldntRead": "We couldn't read this message. Check your connection, or try the Manual tab.",
+  "smsMaybeDeclined": "This may be a declined or failed payment. If it went through, add it in Manual.",
+  "smsOneTimeCode": "This looks like a one-time code, not a payment.",
+  "smsNotAPayment": "This message isn't a payment or a transfer. Try the Manual tab."
 }

@@ -2811,4 +2811,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chooseAnIcon => 'Choose an icon';
+
+  @override
+  String get pasteBankSmsAnyLanguage =>
+      'Paste your bank SMS, in English or Arabic';
+
+  @override
+  String get smsPrivacyNote =>
+      'Vesta reads the message on your phone, and asks Google\'s Gemini only when it can\'t. Check the details before saving; only they are kept, never the message.';
+
+  @override
+  String smsFilledConvert(String from, String to) {
+    return 'Filled from your SMS. The amount is in $from, so change it to $to before saving.';
+  }
+
+  @override
+  String get smsCouldntRead =>
+      'We couldn\'t read this message. Check your connection, or try the Manual tab.';
+
+  @override
+  String get smsMaybeDeclined =>
+      'This may be a declined or failed payment. If it went through, add it in Manual.';
+
+  @override
+  String get smsOneTimeCode =>
+      'This looks like a one-time code, not a payment.';
+
+  @override
+  String get smsNotAPayment =>
+      'This message isn\'t a payment or a transfer. Try the Manual tab.';
 }

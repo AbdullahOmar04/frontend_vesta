@@ -4790,6 +4790,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose an icon'**
   String get chooseAnIcon;
+
+  /// No description provided for @pasteBankSmsAnyLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste your bank SMS, in English or Arabic'**
+  String get pasteBankSmsAnyLanguage;
+
+  /// No description provided for @smsPrivacyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Vesta reads the message on your phone, and asks Google\'s Gemini only when it can\'t. Check the details before saving; only they are kept, never the message.'**
+  String get smsPrivacyNote;
+
+  /// No description provided for @smsFilledConvert.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled from your SMS. The amount is in {from}, so change it to {to} before saving.'**
+  String smsFilledConvert(String from, String to);
+
+  /// No description provided for @smsCouldntRead.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t read this message. Check your connection, or try the Manual tab.'**
+  String get smsCouldntRead;
+
+  /// No description provided for @smsMaybeDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'This may be a declined or failed payment. If it went through, add it in Manual.'**
+  String get smsMaybeDeclined;
+
+  /// No description provided for @smsOneTimeCode.
+  ///
+  /// In en, this message translates to:
+  /// **'This looks like a one-time code, not a payment.'**
+  String get smsOneTimeCode;
+
+  /// No description provided for @smsNotAPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'This message isn\'t a payment or a transfer. Try the Manual tab.'**
+  String get smsNotAPayment;
 }
 
 class _AppLocalizationsDelegate

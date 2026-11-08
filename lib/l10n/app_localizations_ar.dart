@@ -2843,4 +2843,32 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chooseAnIcon => 'اختر أيقونة';
+
+  @override
+  String get pasteBankSmsAnyLanguage =>
+      'الصق رسالة البنك، بالعربية أو الإنجليزية';
+
+  @override
+  String get smsPrivacyNote =>
+      'يقرأ Vesta الرسالة على هاتفك، ولا يستعين بـGemini من Google إلا عند الحاجة. راجع التفاصيل قبل الحفظ؛ نحتفظ بالتفاصيل فقط، ولا نحتفظ بالرسالة أبداً.';
+
+  @override
+  String smsFilledConvert(String from, String to) {
+    return 'عبّأناها من رسالتك. المبلغ بعملة $from، فحوّله إلى $to قبل الحفظ.';
+  }
+
+  @override
+  String get smsCouldntRead =>
+      'تعذّرت قراءة الرسالة. تحقق من اتصالك، أو جرّب الإدخال اليدوي.';
+
+  @override
+  String get smsMaybeDeclined =>
+      'قد تكون هذه دفعة مرفوضة أو فاشلة. إن تمّت فعلاً، أضفها يدوياً.';
+
+  @override
+  String get smsOneTimeCode => 'تبدو هذه رمز تحقق لمرة واحدة، لا دفعة.';
+
+  @override
+  String get smsNotAPayment =>
+      'هذه الرسالة ليست دفعة ولا تحويلاً. جرّب الإدخال اليدوي.';
 }
