@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/referral_codes.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/Onboarding/onboarding_questions.dart';
 import 'package:frontend_vesta/Screens/Onboarding/phone_number.dart';
@@ -21,6 +22,7 @@ class _RegisterState extends State<Register> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _repeatPassword = TextEditingController();
+  final _referral = TextEditingController();
   bool _loading = false;
   bool _obscurePassword = true;
   bool _obscureRepeatPassword = true;
@@ -49,6 +51,7 @@ class _RegisterState extends State<Register> {
     _email.dispose();
     _password.dispose();
     _repeatPassword.dispose();
+    _referral.dispose();
     super.dispose();
   }
 
@@ -192,6 +195,27 @@ class _RegisterState extends State<Register> {
         return;
       }
 
+      // An optional friend's code, checked now so a typo isn't found out
+      // only after the phone step
+      String? referral;
+      if (_referral.text.trim().isNotEmpty) {
+        referral = normalizeReferralCode(_referral.text);
+        if (await referralCodeOwner(referral) == null) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text(
+                "We couldn't find that referral code. Check it, or leave it "
+                'empty.',
+              ),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+          setState(() => _loading = false);
+          return;
+        }
+      }
+
       if (!mounted) return;
 
       Navigator.push(
@@ -203,6 +227,7 @@ class _RegisterState extends State<Register> {
                 email: email,
                 password: pass,
                 answers: widget.answers,
+                referralCode: referral,
               ),
         ),
       );
@@ -326,6 +351,15 @@ class _RegisterState extends State<Register> {
                     _obscureRepeatPassword = !_obscureRepeatPassword;
                   });
                 }),
+              ),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _referral,
+              textCapitalization: TextCapitalization.characters,
+              decoration: const InputDecoration(
+                labelText: 'Referral code',
+                hintText: 'Optional, e.g. MAYA-25K9',
               ),
             ),
             const SizedBox(height: VestaSpace.xl),

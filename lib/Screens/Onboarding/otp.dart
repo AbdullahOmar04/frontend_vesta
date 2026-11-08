@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/referral_codes.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/Onboarding/onboarding_questions.dart';
 import 'package:frontend_vesta/Screens/pages/main_screen.dart';
@@ -21,6 +22,9 @@ class OTPVerificationPage extends StatefulWidget {
   /// Answers from the questions before sign-up, saved with the new account.
   final OnboardingAnswers? answers;
 
+  /// A friend's code entered at sign-up, saved as referredBy.
+  final String? referralCode;
+
   final String verificationId;
   final int? resendToken;
 
@@ -31,6 +35,7 @@ class OTPVerificationPage extends StatefulWidget {
     required this.password,
     required this.phoneNumber,
     this.answers,
+    this.referralCode,
     required this.verificationId,
     this.resendToken,
   });
@@ -320,6 +325,8 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
         "totalExpense": 0.0,
         "dayOfMonth": 28,
         "householdIds": [],
+        // The onUserCreated function gives both sides their points
+        if (widget.referralCode != null) "referredBy": widget.referralCode,
         // Income, focus and banks from the questions, when answered
         ...?widget.answers?.userFields,
       });
@@ -348,6 +355,14 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       }
 
       await initializeDefaultCategories(uid);
+
+      // The account works without it; Referrals reserves one later if this
+      // fails
+      try {
+        await ensureReferralCode(uid);
+      } catch (e) {
+        debugPrint('⚠️ Could not reserve a referral code: $e');
+      }
 
       if (!mounted) return;
 

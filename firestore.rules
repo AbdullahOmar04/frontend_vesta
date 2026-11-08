@@ -41,13 +41,20 @@ service cloud.firestore {
                  (request.auth.uid == userId ||
                   sharesHousehold(request.auth.uid, resource.data.get('householdIds', [])));
       allow list: if false;
-      allow create: if request.auth != null && request.auth.uid == userId;
+      // Points are only ever given by the onUserCreated function; referredBy
+      // must name someone else's existing code
+      allow create: if request.auth != null && request.auth.uid == userId &&
+                    !request.resource.data.keys().hasAny(['referralPoints', 'referralCount', 'referralCode']) &&
+                    (!('referredBy' in request.resource.data) ||
+                     isOthersReferralCode(request.resource.data.referredBy));
 
       // Allow update if:
-      // 1. You're updating your own document, OR
+      // 1. You're updating your own document, leaving the referral fields
+      //    alone (except claiming your one code), OR
       // 2. Only householdIds changed AND you share a household with this user
       allow update: if request.auth != null &&
-                    (request.auth.uid == userId ||
+                    ((request.auth.uid == userId &&
+                      (referralFieldsUnchanged() || claimsOwnReferralCode())) ||
                      (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['householdIds']) &&
                       sharesHousehold(request.auth.uid, resource.data.householdIds)));
 
@@ -96,9 +103,31 @@ service cloud.firestore {
         }
       }
 
-      match /{collection}/{document} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Friends who signed up with this user's code, written by onUserCreated
+      match /referrals/{refereeUid} {
+        allow read, delete: if request.auth != null && request.auth.uid == userId;
       }
+
+      match /{collection}/{document} {
+        allow read, write: if request.auth != null && request.auth.uid == userId &&
+                           collection != 'referrals';
+      }
+    }
+
+    // --- REFERRAL CODES ---
+    // One per user, like MAYA-25K9. Readable one at a time so sign-up can
+    // check a code; created only together with the user doc that claims it,
+    // and never changed. onUserDeleted frees them with admin rights.
+
+    match /referralCodes/{code} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if request.auth != null &&
+                    code.matches('^[A-Z0-9]{4}-[A-Z0-9]{4}$') &&
+                    request.resource.data.keys().hasOnly(['uid', 'createdAt']) &&
+                    request.resource.data.uid == request.auth.uid &&
+                    getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('referralCode', null) == code;
+      allow update, delete: if false;
     }
 
     // --- SHARED HOUSEHOLD RULES ---
@@ -159,6 +188,28 @@ service cloud.firestore {
     }
 
     // --- HELPER FUNCTIONS ---
+
+    // A referral code that exists and belongs to someone other than the caller
+    function isOthersReferralCode(code) {
+      let ref = /databases/$(database)/documents/referralCodes/$(code);
+      return code is string && exists(ref) && get(ref).data.uid != request.auth.uid;
+    }
+
+    function referralFieldsUnchanged() {
+      return !request.resource.data.diff(resource.data).affectedKeys()
+               .hasAny(['referralPoints', 'referralCount', 'referredBy', 'referralCode']);
+    }
+
+    // Setting referralCode once, to a code reserved for this user in the same
+    // batch, and touching no other referral field
+    function claimsOwnReferralCode() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      let code = request.resource.data.referralCode;
+      return !('referralCode' in resource.data) &&
+             !changed.hasAny(['referralPoints', 'referralCount', 'referredBy']) &&
+             code is string &&
+             getAfter(/databases/$(database)/documents/referralCodes/$(code)).data.uid == request.auth.uid;
+    }
 
     // Check if uid is a member of any household in the target user's householdIds
     function sharesHousehold(uid, householdIds) {
