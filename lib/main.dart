@@ -1,4 +1,6 @@
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/appearance.dart';
@@ -31,6 +33,23 @@ Future<void> main() async {
   await SecurityService().initialize();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Proves requests come from the real app; Gemini (Firebase AI Logic) refuses
+  // anything else. Debug builds use a debug token registered under App Check >
+  // the co.vestaapp.app.debug app > Manage debug tokens: pass one with
+  // --dart-define=APP_CHECK_DEBUG_TOKEN=<token>, or register the one the
+  // debug provider prints to logcat.
+  const debugToken = String.fromEnvironment('APP_CHECK_DEBUG_TOKEN');
+  await FirebaseAppCheck.instance.activate(
+    providerAndroid: kDebugMode
+        ? AndroidDebugProvider(
+            debugToken: debugToken.isEmpty ? null : debugToken,
+          )
+        : const AndroidPlayIntegrityProvider(),
+    providerApple: kDebugMode
+        ? AppleDebugProvider(debugToken: debugToken.isEmpty ? null : debugToken)
+        : const AppleAppAttestWithDeviceCheckFallbackProvider(),
+  );
 
   startCategoryListener();
   await loadAppearance();

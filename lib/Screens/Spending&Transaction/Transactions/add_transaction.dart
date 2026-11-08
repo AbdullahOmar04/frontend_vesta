@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/account_balance.dart';
+import 'package:frontend_vesta/Helpers/bank_sms.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
@@ -47,7 +48,11 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
 
   int _tab = _manualTab;
   String? _smsError;
+  bool _reading = false;
   bool _fromSms = false;
+
+  /// The currency the pasted SMS was in, when Gemini could tell.
+  String? _smsCurrency;
 
   List<Map<String, dynamic>> _accounts = [];
   List<String> _categories = [];
@@ -99,6 +104,8 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
           'id': d.id,
           'name': data['accountName'] ?? d.id,
           'type': data['accountTypeName'],
+          // Last digits, to find the account a bank SMS names
+          'mask': data['mask']?.toString(),
         };
       }).toList();
 
@@ -213,7 +220,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
 
   // ============ SMS PASTE FEATURE ============
 
-  /// A message in the format [_fillFromSms] reads, dated yesterday.
+  /// A message Vesta reads on the phone, dated yesterday.
   String _sampleSms() {
     final d = DateTime.now().subtract(const Duration(days: 1));
     String two(int n) => n.toString().padLeft(2, '0');
@@ -222,82 +229,61 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
         '${two(d.day)}/${two(d.month)}/${d.year} 14:05.';
   }
 
-  void _readSms() {
+  /// Reads the pasted SMS into the Manual tab for the user to check.
+  Future<void> _readSms() async {
     final smsText = _smsCtrl.text.trim();
-    if (smsText.isEmpty) return;
-    if (!_fillFromSms(smsText)) {
-      setState(() {
-        _smsError =
-            "We couldn't find an amount in this message. Try the Manual tab.";
-      });
-      return;
-    }
+    if (smsText.isEmpty || _reading) return;
     setState(() {
+      _reading = true;
       _smsError = null;
-      _fromSms = true;
-      _tab = _manualTab;
+      _smsCurrency = null;
+    });
+
+    String? error;
+    try {
+      final sms = await readBankSms(smsText, categories: _categories);
+      if (!mounted) return;
+      _fillFromBankSms(sms);
+    } on BankSmsException catch (e) {
+      error = e.message;
+    } catch (e) {
+      // The phone couldn't read it and Gemini couldn't be reached
+      debugPrint("⚠️ Couldn't read the SMS: $e");
+      error =
+          "We couldn't read this message. Check your connection, or try the "
+          'Manual tab.';
+    }
+    if (!mounted) return;
+    setState(() {
+      _reading = false;
+      _smsError = error;
+      if (error == null) {
+        _fromSms = true;
+        _tab = _manualTab;
+      }
     });
   }
 
-  /// Fills the manual fields from [sms]. False when no amount was found, in
-  /// which case nothing is changed.
-  bool _fillFromSms(String sms) {
-    final lower = sms.toLowerCase();
+  /// Fills the manual fields from the SMS, including the account whose last
+  /// digits the bank quoted.
+  void _fillFromBankSms(BankSms sms) {
+    _amountCtrl.text = sms.amountText;
+    _merchantCtrl.text = sms.counterparty ?? '';
+    _noteCtrl.text = sms.description ?? '';
 
-    final amountMatch = RegExp(
-      r'JOD\s+(\d+(\.\d+)?)',
-      caseSensitive: false,
-    ).firstMatch(sms);
-    if (amountMatch == null) return false;
-    _amountCtrl.text = amountMatch.group(1)!; // "3.000"
-
-    final merchantMatch = RegExp(
-      r'from\s+(.+?)\s+amount',
-      caseSensitive: false,
-    ).firstMatch(sms);
-    if (merchantMatch != null) {
-      _merchantCtrl.text = merchantMatch.group(1)!.trim();
-    }
-
-    // 3) Date & time: "on 16/11/2025 18:32"
-    final dateMatch = RegExp(
-      r'on\s+(\d{2}/\d{2}/\d{4})\s+(\d{2}:\d{2})',
-      caseSensitive: false,
-    ).firstMatch(sms);
-
-    DateTime? parsedDate;
-    if (dateMatch != null) {
-      final dateStr = dateMatch.group(1)!; // dd/MM/yyyy
-      final timeStr = dateMatch.group(2)!; // HH:mm
-
-      final dParts = dateStr.split('/');
-      final tParts = timeStr.split(':');
-
-      try {
-        final day = int.parse(dParts[0]);
-        final month = int.parse(dParts[1]);
-        final year = int.parse(dParts[2]);
-        final hour = int.parse(tParts[0]);
-        final minute = int.parse(tParts[1]);
-
-        parsedDate = DateTime(year, month, day, hour, minute);
-      } catch (_) {}
-    }
-
-    // 4) Type: "purchase transaction" => debit
-    TransactionType guessedType = TransactionType.debit;
-    if (lower.contains("received") ||
-        (lower.contains("credit") && !lower.contains("credit card"))) {
-      guessedType = TransactionType.credit;
-    }
+    final accountId = accountForReference(sms.account, {
+      for (final a in _accounts)
+        if ((a['mask'] as String? ?? '').isNotEmpty)
+          a['id'] as String: a['mask'] as String,
+    });
 
     setState(() {
-      _type = guessedType;
-      if (parsedDate != null) {
-        _date = parsedDate;
-      }
+      _type = sms.type;
+      _smsCurrency = sms.currency;
+      if (sms.date != null) _date = sms.date!;
+      if (accountId != null) _selectedAccountId = accountId;
+      if (sms.category != null) _selectedCategory = sms.category;
     });
-    return true;
   }
 
   // ============ UI ============
@@ -358,7 +344,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Paste your bank SMS',
+          'Paste your bank SMS, in English or Arabic',
           style: TextStyle(fontSize: 12, color: v.muted),
         ),
         const SizedBox(height: 6),
@@ -406,11 +392,14 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
         const SizedBox(height: VestaSpace.md),
         PrimaryButton(
           label: 'Read message',
+          loading: _reading,
           onPressed: _smsCtrl.text.trim().isEmpty ? null : _readSms,
         ),
         const SizedBox(height: VestaSpace.md),
         Text(
-          "We'll fill in the details so you can check them before saving.",
+          "Vesta reads the message on your phone, and asks Google's Gemini "
+          "only when it can't. Check the details before saving; only they "
+          'are kept, never the message.',
           style: TextStyle(fontSize: 12, color: v.muted),
         ),
       ],
@@ -443,7 +432,12 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
                 const SizedBox(width: VestaSpace.sm),
                 Expanded(
                   child: Text(
-                    'Filled from your SMS. Check the details below.',
+                    // Amounts are saved as JOD, so a foreign one needs converting
+                    _smsCurrency != null && _smsCurrency != 'JOD'
+                        ? 'Filled from your SMS. The amount is in '
+                              '$_smsCurrency, so change it to JOD before '
+                              'saving.'
+                        : 'Filled from your SMS. Check the details below.',
                     style: TextStyle(fontSize: 12, color: v.tintText),
                   ),
                 ),
