@@ -12,12 +12,16 @@ class PhoneNumberPage extends StatefulWidget {
   final String password;
   final OnboardingAnswers? answers;
 
+  /// A friend's code entered at sign-up, already checked.
+  final String? referralCode;
+
   const PhoneNumberPage({
     super.key,
     required this.username,
     required this.email,
     required this.password,
     this.answers,
+    this.referralCode,
   });
 
   @override
@@ -133,6 +137,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                 password: widget.password,
                 phoneNumber: fullPhone,
                 answers: widget.answers,
+                referralCode: widget.referralCode,
                 verificationId: verificationId,
                 resendToken: resendToken,
               ),

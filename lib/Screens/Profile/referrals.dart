@@ -4,32 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/referral_codes.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/Profile/subscriptions.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
-/// Points a friend's sign-up earns, and what points buy (the prototype's
-/// numbers).
-const referralReward = 250;
+/// What points buy (the prototype's numbers).
 const _plusPoints = 1000;
 const _premiumPoints = 1500;
 
-/// The user's referral code: their stored one, or one made from the
-/// username and uid (e.g. MAYA-25K9).
-String referralCode(String uid, Map<String, dynamic> userData) {
-  final stored = userData['referralCode'] as String?;
-  if (stored != null && stored.isNotEmpty) return stored;
-  final name = (userData['username'] ?? 'VEST')
-      .toString()
-      .toUpperCase()
-      .replaceAll(RegExp(r'[^A-Z0-9]'), '');
-  final head = (name.length >= 4
-      ? name.substring(0, 4)
-      : name.padRight(4, 'X'));
-  final tail = uid.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
-  return '$head-${tail.length >= 4 ? tail.substring(0, 4) : tail}';
-}
+/// Codes being reserved for accounts that don't have one yet, so a rebuild
+/// doesn't start a second reservation.
+final _reserving = <String, Future<String?>>{};
 
 class ReferralsPage extends StatelessWidget {
   const ReferralsPage({super.key});
@@ -41,13 +28,25 @@ class ReferralsPage extends StatelessWidget {
         icon: PhosphorIconsRegular.gift,
         title: 'How referrals work',
         message:
-            'Share your code. When a friend signs up with it, you get '
-            '$referralReward points. 1,000 points get you a free month of '
-            'Plus, and 1,500 a free month of Premium. Sign-ups with your code '
-            'start counting in an upcoming update.',
+            'Share your code. When a friend enters it while signing up, you '
+            'get $referralReward points and they get $referralWelcome. 1,000 '
+            'points get you a free month of Plus, and 1,500 a free month of '
+            'Premium.',
         cancelLabel: null,
         confirmLabel: 'Got it',
       ),
+    );
+  }
+
+  /// Accounts from before referrals get their code the first time they look.
+  void _reserveCode(String uid) {
+    _reserving.putIfAbsent(
+      uid,
+      () => ensureReferralCode(uid).catchError((Object e) {
+        debugPrint('⚠️ Could not reserve a referral code: $e');
+        _reserving.remove(uid);
+        return null;
+      }),
     );
   }
 
@@ -65,8 +64,9 @@ class ReferralsPage extends StatelessWidget {
           builder: (context, snap) {
             final data = snap.data?.data() ?? const <String, dynamic>{};
             final points = (data['referralPoints'] as num?)?.toInt() ?? 0;
-            final code = referralCode(uid, data);
-            final link = 'https://vestaapp.co/r/$code';
+            final code = data['referralCode'] as String?;
+            if (snap.hasData && code == null) _reserveCode(uid);
+            final link = 'https://vestaapp.co/r/${code ?? ''}';
             return ListView(
               padding: const EdgeInsets.fromLTRB(
                 VestaSpace.gutter,
@@ -154,7 +154,9 @@ class ReferralsPage extends StatelessWidget {
     );
   }
 
-  Widget _codeCard(BuildContext context, String code, String link) {
+  /// The user's code, or a placeholder with the buttons off while one is
+  /// being reserved.
+  Widget _codeCard(BuildContext context, String? code, String link) {
     final v = context.vesta;
     return VestaCard(
       child: Column(
@@ -175,13 +177,18 @@ class ReferralsPage extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    code,
-                    style: amountStyle(15).copyWith(letterSpacing: 2),
+                    code ?? '····-····',
+                    style: amountStyle(15).copyWith(
+                      letterSpacing: 2,
+                      color: code == null ? v.muted : null,
+                    ),
                   ),
                 ),
                 IconButton(
                   tooltip: 'Copy code',
-                  onPressed: () => _copy(context, code, 'Code copied'),
+                  onPressed: code == null
+                      ? null
+                      : () => _copy(context, code, 'Code copied'),
                   icon: Icon(
                     PhosphorIconsRegular.copy,
                     size: 18,
@@ -197,20 +204,24 @@ class ReferralsPage extends StatelessWidget {
               Expanded(
                 child: OutlineButton(
                   label: 'Copy link',
-                  onPressed: () => _copy(context, link, 'Link copied'),
+                  onPressed: code == null
+                      ? null
+                      : () => _copy(context, link, 'Link copied'),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: PrimaryButton(
                   label: 'Share',
-                  onPressed: () => SharePlus.instance.share(
-                    ShareParams(
-                      text:
-                          'I use Vesta to plan my money. Join with my code '
-                          '$code: $link',
-                    ),
-                  ),
+                  onPressed: code == null
+                      ? null
+                      : () => SharePlus.instance.share(
+                          ShareParams(
+                            text:
+                                'I use Vesta to plan my money. Join with my '
+                                'code $code: $link',
+                          ),
+                        ),
                 ),
               ),
             ],
