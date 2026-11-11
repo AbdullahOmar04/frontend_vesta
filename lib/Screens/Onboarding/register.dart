@@ -42,10 +42,19 @@ class _RegisterState extends State<Register> {
     super.initState();
     _password.addListener(_validatePassword);
     _username.text = widget.answers?.username ?? '';
+    // Opened from a friend's vestaapp.co/r/<code> link
+    _fillReferral();
+    pendingReferralCode.addListener(_fillReferral);
+  }
+
+  void _fillReferral() {
+    final code = pendingReferralCode.value;
+    if (code != null && _referral.text.isEmpty) _referral.text = code;
   }
 
   @override
   void dispose() {
+    pendingReferralCode.removeListener(_fillReferral);
     _password.removeListener(_validatePassword);
     _username.dispose();
     _email.dispose();

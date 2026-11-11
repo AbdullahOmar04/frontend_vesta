@@ -23,7 +23,9 @@ class SecurityService {
       androidConfig: AndroidConfig(
         packageName: 'co.vestaapp.app',
         signingCertHashes: [
-          '3XFYFijXYtSFYbVN0NYjPJQYubOxkmQCqJu1SZ8lFOI='
+          // Upload key (vesta-release.jks). Add Play App Signing's key once the
+          // app exists in Play Console: Play re-signs every upload with it.
+          'Lm0xTJKieVrNQNwYVuq6RqVwQxYHebiURjplYsW339k=',
         ],
         supportedStores: ['com.android.vending'],
       ),

@@ -36,7 +36,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Deep link for invites -->
+            <!-- Deep links: household invites (/join) and referral codes (/r/) -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -45,6 +45,7 @@
                     android:scheme="https"
                     android:host="vestaapp.co"
                     android:pathPrefix="/join" />
+                <data android:pathPrefix="/r/" />
 
             </intent-filter>
         </activity>
