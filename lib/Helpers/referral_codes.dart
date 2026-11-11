@@ -1,6 +1,8 @@
 import 'dart:math';
 
+import 'package:app_links/app_links.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 // Every user gets a code like MAYA-25K9, reserved in referralCodes/{code} so no
 // two users share one. A new user may enter a friend's code at sign-up; it is
@@ -26,6 +28,27 @@ String normalizeReferralCode(String input) {
   return plain.length == 8
       ? '${plain.substring(0, 4)}-${plain.substring(4)}'
       : input.trim().toUpperCase();
+}
+
+/// The code from a shared vestaapp.co/r/<code> link, for Sign up to fill in.
+final pendingReferralCode = ValueNotifier<String?>(null);
+
+/// Watches for referral links from launch on. They're for people who haven't
+/// signed up yet, so this can't wait for DeepLinkService, which starts after
+/// login.
+void listenForReferralLinks() {
+  void take(Uri uri) {
+    final parts = uri.pathSegments;
+    if (parts.length == 2 && parts[0] == 'r' && parts[1].isNotEmpty) {
+      pendingReferralCode.value = normalizeReferralCode(parts[1]);
+    }
+  }
+
+  final links = AppLinks();
+  links.getInitialLink().then((uri) {
+    if (uri != null) take(uri);
+  });
+  links.uriLinkStream.listen(take);
 }
 
 /// The uid behind [code], or null when no account has it. Works before

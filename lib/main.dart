@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/appearance.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/referral_codes.dart';
 import 'package:frontend_vesta/Helpers/security_service.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Onboarding/auth_gate.dart';
@@ -33,6 +34,7 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   startCategoryListener();
+  listenForReferralLinks();
   await loadAppearance();
 
   runApp(const MainApp());
