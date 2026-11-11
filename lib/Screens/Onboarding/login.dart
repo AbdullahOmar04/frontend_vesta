@@ -193,9 +193,11 @@ class _LoginState extends State<Login> {
       handleBudgetCycleOnLogin();
 
       if (mounted) {
-        Navigator.pushReplacement(
+        // Clear Welcome and Login so back doesn't return to them
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const MainScreen()),
+          (_) => false,
         );
       }
     } on FirebaseAuthException catch (e) {
@@ -261,9 +263,10 @@ class _LoginState extends State<Login> {
       if (currentUser != null && currentUser.uid == userId) {
         handleBudgetCycleOnLogin();
         if (mounted) {
-          Navigator.pushReplacement(
+          Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const MainScreen()),
+            (_) => false,
           );
         }
       } else {

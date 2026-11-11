@@ -31,7 +31,8 @@ android {
     defaultConfig {
         applicationId = "co.vestaapp.app"
         minSdk = 29
-        targetSdk = 34
+        // Google Play requires API 36 for new apps and updates from 2026-08-31
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled = true
