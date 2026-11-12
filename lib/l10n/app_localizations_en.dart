@@ -652,4 +652,238 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get banksBody =>
       'Pick any that apply. Nothing gets connected; it helps us set Vesta up around your accounts.';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get comingLater => 'This is coming in a later update.';
+
+  @override
+  String get greetingMorning => 'Good morning,';
+
+  @override
+  String get greetingAfternoon => 'Good afternoon,';
+
+  @override
+  String get greetingEvening => 'Good evening,';
+
+  @override
+  String get greetingNight => 'Good night,';
+
+  @override
+  String get greetingFallbackName => 'there';
+
+  @override
+  String get noData => 'No data available';
+
+  @override
+  String get totalBalance => 'Total balance';
+
+  @override
+  String amountSpent(String amount) {
+    return '$amount spent';
+  }
+
+  @override
+  String amountEarned(String amount) {
+    return '$amount earned';
+  }
+
+  @override
+  String get accountsLabel => 'Accounts';
+
+  @override
+  String accountCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count accounts',
+      one: '1 account',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tileBudgeting => 'Budgeting';
+
+  @override
+  String get tileSpendings => 'Spendings';
+
+  @override
+  String get tileSavings => 'Savings';
+
+  @override
+  String get tileShared => 'Shared finances';
+
+  @override
+  String monthBudget(String month) {
+    return '$month budget';
+  }
+
+  @override
+  String get seeAll => 'See all';
+
+  @override
+  String get noBudgetPlan => 'No budget plan for this month yet.';
+
+  @override
+  String get planYourBudget => 'Plan your budget';
+
+  @override
+  String spentOfBudget(String spent, String budget) {
+    return '$spent of $budget to spend';
+  }
+
+  @override
+  String daysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days left',
+      one: '1 day left',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notInPlan => 'Not in the plan';
+
+  @override
+  String get targetReached => 'Target reached';
+
+  @override
+  String amountToGo(String amount) {
+    return '$amount to go';
+  }
+
+  @override
+  String amountOver(String amount) {
+    return '$amount over';
+  }
+
+  @override
+  String amountLeft(String amount) {
+    return '$amount left';
+  }
+
+  @override
+  String get comingUp => 'Coming up';
+
+  @override
+  String get allBills => 'All bills';
+
+  @override
+  String get nothingDue => 'Nothing due soon.';
+
+  @override
+  String get addYourBills => 'Add your bills';
+
+  @override
+  String get goals => 'Goals';
+
+  @override
+  String get noGoals => 'No saving goals yet.';
+
+  @override
+  String get createGoal => 'Create a goal';
+
+  @override
+  String get goalFallback => 'Goal';
+
+  @override
+  String get recent => 'Recent';
+
+  @override
+  String get noTransactions => 'No transactions yet.';
+
+  @override
+  String get addOne => 'Add one';
+
+  @override
+  String get coachLabel => 'YOUR COACH';
+
+  @override
+  String get coachPlanTitle => 'Let\'s plan this month.';
+
+  @override
+  String get coachPlanBody =>
+      'Set your income and split it into savings, necessities and luxuries. I\'ll tell you how your spending is pacing against it.';
+
+  @override
+  String get coachMostlyOnPace => 'You\'re mostly on pace.';
+
+  @override
+  String get coachRunningHot => 'Spending is running a little hot.';
+
+  @override
+  String get bucketNecessitiesLower => 'necessities';
+
+  @override
+  String get bucketLuxuriesLower => 'luxuries';
+
+  @override
+  String coachOverWithOther(
+    String name,
+    String by,
+    String left,
+    String other,
+    String perDay,
+    String until,
+  ) {
+    return '$name is $by over its limit. You still have $left for $other, about $perDay a day until $until.';
+  }
+
+  @override
+  String coachOverUsedUp(String name, String by, String until) {
+    return '$name is $by over its limit, and your spending budget is used up until $until.';
+  }
+
+  @override
+  String get coachAheadTitle => 'Spending is running ahead.';
+
+  @override
+  String coachAheadBody(String used, String left, String perDay) {
+    return 'You\'ve used $used% of your spending budget with $left% of the cycle left. $perDay a day keeps you on track.';
+  }
+
+  @override
+  String get coachOnPaceTitle => 'You\'re on pace this cycle.';
+
+  @override
+  String coachOnPaceBody(String left, String perDay, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: 'day',
+    );
+    return '$left left to spend, about $perDay a day for the next $_temp0.';
+  }
+
+  @override
+  String get coachPlanLink => 'Plan your budget →';
+
+  @override
+  String get coachInsightsLink => 'See insights →';
+
+  @override
+  String amountThisMonth(String amount) {
+    return '$amount this month';
+  }
 }

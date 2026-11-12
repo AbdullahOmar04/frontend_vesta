@@ -644,4 +644,248 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get banksBody =>
       'اختر كل ما ينطبق. لن نربط أي حساب؛ هذا يساعدنا فقط على تجهيز Vesta حول حساباتك.';
+
+  @override
+  String get cancel => 'إلغاء';
+
+  @override
+  String get yes => 'نعم';
+
+  @override
+  String get add => 'إضافة';
+
+  @override
+  String get remove => 'حذف';
+
+  @override
+  String get done => 'تم';
+
+  @override
+  String get close => 'إغلاق';
+
+  @override
+  String get comingLater => 'هذه الميزة قادمة في تحديث لاحق.';
+
+  @override
+  String get greetingMorning => 'صباح الخير،';
+
+  @override
+  String get greetingAfternoon => 'مساء الخير،';
+
+  @override
+  String get greetingEvening => 'مساء الخير،';
+
+  @override
+  String get greetingNight => 'مساء الخير،';
+
+  @override
+  String get greetingFallbackName => 'يا صديقي';
+
+  @override
+  String get noData => 'لا توجد بيانات';
+
+  @override
+  String get totalBalance => 'الرصيد الإجمالي';
+
+  @override
+  String amountSpent(String amount) {
+    return 'أنفقت $amount';
+  }
+
+  @override
+  String amountEarned(String amount) {
+    return 'دخل $amount';
+  }
+
+  @override
+  String get accountsLabel => 'الحسابات';
+
+  @override
+  String accountCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count حساب',
+      many: '$count حساباً',
+      few: '$count حسابات',
+      two: 'حسابان',
+      one: 'حساب واحد',
+      zero: 'لا حسابات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tileBudgeting => 'الميزانية';
+
+  @override
+  String get tileSpendings => 'المصاريف';
+
+  @override
+  String get tileSavings => 'المدخرات';
+
+  @override
+  String get tileShared => 'المالية المشتركة';
+
+  @override
+  String monthBudget(String month) {
+    return 'ميزانية $month';
+  }
+
+  @override
+  String get seeAll => 'عرض الكل';
+
+  @override
+  String get noBudgetPlan => 'لا توجد خطة ميزانية لهذا الشهر بعد.';
+
+  @override
+  String get planYourBudget => 'خطّط لميزانيتك';
+
+  @override
+  String spentOfBudget(String spent, String budget) {
+    return '$spent من $budget للإنفاق';
+  }
+
+  @override
+  String daysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'بقي $count يوم',
+      many: 'بقي $count يوماً',
+      few: 'بقي $count أيام',
+      two: 'بقي يومان',
+      one: 'بقي يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notInPlan => 'خارج الخطة';
+
+  @override
+  String get targetReached => 'تم بلوغ الهدف';
+
+  @override
+  String amountToGo(String amount) {
+    return 'بقي $amount';
+  }
+
+  @override
+  String amountOver(String amount) {
+    return 'تجاوز بـ $amount';
+  }
+
+  @override
+  String amountLeft(String amount) {
+    return 'متبقٍّ $amount';
+  }
+
+  @override
+  String get comingUp => 'القادمة';
+
+  @override
+  String get allBills => 'كل الفواتير';
+
+  @override
+  String get nothingDue => 'لا دفعات قريبة.';
+
+  @override
+  String get addYourBills => 'أضف فواتيرك';
+
+  @override
+  String get goals => 'الأهداف';
+
+  @override
+  String get noGoals => 'لا أهداف ادخار بعد.';
+
+  @override
+  String get createGoal => 'أنشئ هدفاً';
+
+  @override
+  String get goalFallback => 'هدف';
+
+  @override
+  String get recent => 'الأحدث';
+
+  @override
+  String get noTransactions => 'لا معاملات بعد.';
+
+  @override
+  String get addOne => 'أضف معاملة';
+
+  @override
+  String get coachLabel => 'مدرّبك';
+
+  @override
+  String get coachPlanTitle => 'لنخطّط لهذا الشهر.';
+
+  @override
+  String get coachPlanBody =>
+      'أدخل دخلك وقسّمه بين الادخار والضروريات والكماليات، وسأخبرك كيف يسير إنفاقك مقارنة بالخطة.';
+
+  @override
+  String get coachMostlyOnPace => 'إنفاقك منضبط في معظمه.';
+
+  @override
+  String get coachRunningHot => 'إنفاقك أعلى قليلاً من المعتاد.';
+
+  @override
+  String get bucketNecessitiesLower => 'الضروريات';
+
+  @override
+  String get bucketLuxuriesLower => 'الكماليات';
+
+  @override
+  String coachOverWithOther(
+    String name,
+    String by,
+    String left,
+    String other,
+    String perDay,
+    String until,
+  ) {
+    return 'تجاوزت $name حدّها بـ $by. ما زال لديك $left لـ$other، أي نحو $perDay يومياً حتى $until.';
+  }
+
+  @override
+  String coachOverUsedUp(String name, String by, String until) {
+    return 'تجاوزت $name حدّها بـ $by، ونفدت ميزانية إنفاقك حتى $until.';
+  }
+
+  @override
+  String get coachAheadTitle => 'إنفاقك يسبق الخطة.';
+
+  @override
+  String coachAheadBody(String used, String left, String perDay) {
+    return 'استخدمت $used% من ميزانية إنفاقك وما زال $left% من الدورة. إنفاق $perDay يومياً يبقيك على المسار.';
+  }
+
+  @override
+  String get coachOnPaceTitle => 'إنفاقك على المسار في هذه الدورة.';
+
+  @override
+  String coachOnPaceBody(String left, String perDay, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'للـ$days يوم القادمة',
+      many: 'للـ$days يوماً القادمة',
+      few: 'للأيام الـ$days القادمة',
+      two: 'لليومين القادمين',
+      one: 'لليوم المتبقي',
+    );
+    return 'متبقٍّ للإنفاق $left، أي نحو $perDay يومياً $_temp0.';
+  }
+
+  @override
+  String get coachPlanLink => 'خطّط لميزانيتك ←';
+
+  @override
+  String get coachInsightsLink => 'عرض التحليلات ←';
+
+  @override
+  String amountThisMonth(String amount) {
+    return '$amount هذا الشهر';
+  }
 }

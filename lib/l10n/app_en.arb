@@ -305,5 +305,199 @@
   "focusBudget": "Build a monthly budget",
   "focusClarity": "Get financial clarity",
   "banksTitle": "Which banks do you use?",
-  "banksBody": "Pick any that apply. Nothing gets connected; it helps us set Vesta up around your accounts."
+  "banksBody": "Pick any that apply. Nothing gets connected; it helps us set Vesta up around your accounts.",
+  "cancel": "Cancel",
+  "yes": "Yes",
+  "add": "Add",
+  "remove": "Remove",
+  "done": "Done",
+  "close": "Close",
+  "comingLater": "This is coming in a later update.",
+  "greetingMorning": "Good morning,",
+  "greetingAfternoon": "Good afternoon,",
+  "greetingEvening": "Good evening,",
+  "greetingNight": "Good night,",
+  "greetingFallbackName": "there",
+  "noData": "No data available",
+  "totalBalance": "Total balance",
+  "amountSpent": "{amount} spent",
+  "@amountSpent": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "amountEarned": "{amount} earned",
+  "@amountEarned": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "accountsLabel": "Accounts",
+  "accountCount": "{count, plural, =1{1 account} other{{count} accounts}}",
+  "@accountCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tileBudgeting": "Budgeting",
+  "tileSpendings": "Spendings",
+  "tileSavings": "Savings",
+  "tileShared": "Shared finances",
+  "monthBudget": "{month} budget",
+  "@monthBudget": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "seeAll": "See all",
+  "noBudgetPlan": "No budget plan for this month yet.",
+  "planYourBudget": "Plan your budget",
+  "spentOfBudget": "{spent} of {budget} to spend",
+  "@spentOfBudget": {
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "budget": {
+        "type": "String"
+      }
+    }
+  },
+  "daysLeft": "{count, plural, =1{1 day left} other{{count} days left}}",
+  "@daysLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notInPlan": "Not in the plan",
+  "targetReached": "Target reached",
+  "amountToGo": "{amount} to go",
+  "@amountToGo": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "amountOver": "{amount} over",
+  "@amountOver": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "amountLeft": "{amount} left",
+  "@amountLeft": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "comingUp": "Coming up",
+  "allBills": "All bills",
+  "nothingDue": "Nothing due soon.",
+  "addYourBills": "Add your bills",
+  "goals": "Goals",
+  "noGoals": "No saving goals yet.",
+  "createGoal": "Create a goal",
+  "goalFallback": "Goal",
+  "recent": "Recent",
+  "noTransactions": "No transactions yet.",
+  "addOne": "Add one",
+  "coachLabel": "YOUR COACH",
+  "coachPlanTitle": "Let's plan this month.",
+  "coachPlanBody": "Set your income and split it into savings, necessities and luxuries. I'll tell you how your spending is pacing against it.",
+  "coachMostlyOnPace": "You're mostly on pace.",
+  "coachRunningHot": "Spending is running a little hot.",
+  "bucketNecessitiesLower": "necessities",
+  "bucketLuxuriesLower": "luxuries",
+  "coachOverWithOther": "{name} is {by} over its limit. You still have {left} for {other}, about {perDay} a day until {until}.",
+  "@coachOverWithOther": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "by": {
+        "type": "String"
+      },
+      "left": {
+        "type": "String"
+      },
+      "other": {
+        "type": "String"
+      },
+      "perDay": {
+        "type": "String"
+      },
+      "until": {
+        "type": "String"
+      }
+    }
+  },
+  "coachOverUsedUp": "{name} is {by} over its limit, and your spending budget is used up until {until}.",
+  "@coachOverUsedUp": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "by": {
+        "type": "String"
+      },
+      "until": {
+        "type": "String"
+      }
+    }
+  },
+  "coachAheadTitle": "Spending is running ahead.",
+  "coachAheadBody": "You've used {used}% of your spending budget with {left}% of the cycle left. {perDay} a day keeps you on track.",
+  "@coachAheadBody": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "left": {
+        "type": "String"
+      },
+      "perDay": {
+        "type": "String"
+      }
+    }
+  },
+  "coachOnPaceTitle": "You're on pace this cycle.",
+  "coachOnPaceBody": "{left} left to spend, about {perDay} a day for the next {days, plural, =1{day} other{{days} days}}.",
+  "@coachOnPaceBody": {
+    "placeholders": {
+      "left": {
+        "type": "String"
+      },
+      "perDay": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "coachPlanLink": "Plan your budget →",
+  "coachInsightsLink": "See insights →",
+  "amountThisMonth": "{amount} this month",
+  "@amountThisMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -284,7 +284,7 @@ class AddRemoveButtons extends StatelessWidget {
       children: [
         OutlineIconButton(
           icon: PhosphorIconsRegular.plus,
-          tooltip: addTooltip,
+          tooltip: _shared(context, addTooltip),
           onPressed: onAdd,
         ),
         if (canRemove || removing)
@@ -293,7 +293,7 @@ class AddRemoveButtons extends StatelessWidget {
                 ? PhosphorIconsRegular.check
                 : PhosphorIconsRegular.minus,
             color: removing ? null : context.vesta.neg,
-            tooltip: removing ? 'Done' : removeTooltip,
+            tooltip: removing ? context.l10n.done : _shared(context, removeTooltip),
             onPressed: onToggleRemove,
           ),
       ],
@@ -359,6 +359,20 @@ class HeaderButton extends StatelessWidget {
 }
 
 final NumberFormat _money = NumberFormat('#,##0.00', 'en_US');
+
+/// The shared widgets' English defaults ('Cancel', 'Yes'…) in the app's
+/// language. Screens pass their own labels already translated.
+String _shared(BuildContext context, String text) {
+  final l10n = context.l10n;
+  return switch (text) {
+    'Cancel' => l10n.cancel,
+    'Yes' => l10n.yes,
+    'Add' => l10n.add,
+    'Remove' => l10n.remove,
+    'Coming soon' => l10n.comingSoon,
+    _ => text,
+  };
+}
 
 /// The currency as shown: "JOD", or "د.أ" in Arabic.
 String currencyLabel(String currency) =>
@@ -1156,7 +1170,7 @@ class ComingSoonPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final v = context.vesta;
     return Scaffold(
-      appBar: VestaAppBar(title: title),
+      appBar: VestaAppBar(title: _shared(context, title)),
       body: VestaBackground(
         child: Padding(
           padding: const EdgeInsets.only(top: 64),
@@ -1168,7 +1182,7 @@ class ComingSoonPage extends StatelessWidget {
                 Icon(PhosphorIconsRegular.hammer, size: 30, color: v.accentInk),
                 const SizedBox(height: VestaSpace.md),
                 Text(
-                  "This is coming in a later update.",
+                  context.l10n.comingLater,
                   style: TextStyle(fontSize: 13, color: v.muted),
                 ),
               ],
@@ -1309,7 +1323,7 @@ class VestaDialog extends StatelessWidget {
                   Expanded(child: Text(title, style: headingStyle(18))),
                   if (cancelLabel != null)
                     IconButton(
-                      tooltip: 'Close',
+                      tooltip: context.l10n.close,
                       onPressed: cancel,
                       icon: Icon(PhosphorIconsRegular.x, color: v.muted),
                     ),
@@ -1334,7 +1348,10 @@ class VestaDialog extends StatelessWidget {
                 children: [
                   if (cancelLabel != null && cancelButton)
                     Expanded(
-                      child: OutlineButton(label: cancelLabel!, onPressed: cancel),
+                      child: OutlineButton(
+                        label: _shared(context, cancelLabel!),
+                        onPressed: cancel,
+                      ),
                     ),
                   if (cancelLabel != null && cancelButton && confirmLabel != null)
                     const SizedBox(width: 10),
@@ -1342,12 +1359,12 @@ class VestaDialog extends StatelessWidget {
                     Expanded(
                       child: destructive
                           ? DangerButton(
-                              label: confirmLabel!,
+                              label: _shared(context, confirmLabel!),
                               onPressed: onConfirm,
                               loading: loading,
                             )
                           : PrimaryButton(
-                              label: confirmLabel!,
+                              label: _shared(context, confirmLabel!),
                               onPressed: onConfirm,
                               loading: loading,
                             ),

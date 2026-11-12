@@ -1243,6 +1243,373 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pick any that apply. Nothing gets connected; it helps us set Vesta up around your accounts.'**
   String get banksBody;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get yes;
+
+  /// No description provided for @add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add;
+
+  /// No description provided for @remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get remove;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @comingLater.
+  ///
+  /// In en, this message translates to:
+  /// **'This is coming in a later update.'**
+  String get comingLater;
+
+  /// No description provided for @greetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning,'**
+  String get greetingMorning;
+
+  /// No description provided for @greetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon,'**
+  String get greetingAfternoon;
+
+  /// No description provided for @greetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening,'**
+  String get greetingEvening;
+
+  /// No description provided for @greetingNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Good night,'**
+  String get greetingNight;
+
+  /// No description provided for @greetingFallbackName.
+  ///
+  /// In en, this message translates to:
+  /// **'there'**
+  String get greetingFallbackName;
+
+  /// No description provided for @noData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data available'**
+  String get noData;
+
+  /// No description provided for @totalBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Total balance'**
+  String get totalBalance;
+
+  /// No description provided for @amountSpent.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} spent'**
+  String amountSpent(String amount);
+
+  /// No description provided for @amountEarned.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} earned'**
+  String amountEarned(String amount);
+
+  /// No description provided for @accountsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get accountsLabel;
+
+  /// No description provided for @accountCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 account} other{{count} accounts}}'**
+  String accountCount(int count);
+
+  /// No description provided for @tileBudgeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Budgeting'**
+  String get tileBudgeting;
+
+  /// No description provided for @tileSpendings.
+  ///
+  /// In en, this message translates to:
+  /// **'Spendings'**
+  String get tileSpendings;
+
+  /// No description provided for @tileSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings'**
+  String get tileSavings;
+
+  /// No description provided for @tileShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared finances'**
+  String get tileShared;
+
+  /// No description provided for @monthBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'{month} budget'**
+  String monthBudget(String month);
+
+  /// No description provided for @seeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get seeAll;
+
+  /// No description provided for @noBudgetPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'No budget plan for this month yet.'**
+  String get noBudgetPlan;
+
+  /// No description provided for @planYourBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan your budget'**
+  String get planYourBudget;
+
+  /// No description provided for @spentOfBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'{spent} of {budget} to spend'**
+  String spentOfBudget(String spent, String budget);
+
+  /// No description provided for @daysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day left} other{{count} days left}}'**
+  String daysLeft(int count);
+
+  /// No description provided for @notInPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in the plan'**
+  String get notInPlan;
+
+  /// No description provided for @targetReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Target reached'**
+  String get targetReached;
+
+  /// No description provided for @amountToGo.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} to go'**
+  String amountToGo(String amount);
+
+  /// No description provided for @amountOver.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} over'**
+  String amountOver(String amount);
+
+  /// No description provided for @amountLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} left'**
+  String amountLeft(String amount);
+
+  /// No description provided for @comingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming up'**
+  String get comingUp;
+
+  /// No description provided for @allBills.
+  ///
+  /// In en, this message translates to:
+  /// **'All bills'**
+  String get allBills;
+
+  /// No description provided for @nothingDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing due soon.'**
+  String get nothingDue;
+
+  /// No description provided for @addYourBills.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your bills'**
+  String get addYourBills;
+
+  /// No description provided for @goals.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals'**
+  String get goals;
+
+  /// No description provided for @noGoals.
+  ///
+  /// In en, this message translates to:
+  /// **'No saving goals yet.'**
+  String get noGoals;
+
+  /// No description provided for @createGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a goal'**
+  String get createGoal;
+
+  /// No description provided for @goalFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal'**
+  String get goalFallback;
+
+  /// No description provided for @recent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get recent;
+
+  /// No description provided for @noTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions yet.'**
+  String get noTransactions;
+
+  /// No description provided for @addOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Add one'**
+  String get addOne;
+
+  /// No description provided for @coachLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR COACH'**
+  String get coachLabel;
+
+  /// No description provided for @coachPlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s plan this month.'**
+  String get coachPlanTitle;
+
+  /// No description provided for @coachPlanBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your income and split it into savings, necessities and luxuries. I\'ll tell you how your spending is pacing against it.'**
+  String get coachPlanBody;
+
+  /// No description provided for @coachMostlyOnPace.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re mostly on pace.'**
+  String get coachMostlyOnPace;
+
+  /// No description provided for @coachRunningHot.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending is running a little hot.'**
+  String get coachRunningHot;
+
+  /// No description provided for @bucketNecessitiesLower.
+  ///
+  /// In en, this message translates to:
+  /// **'necessities'**
+  String get bucketNecessitiesLower;
+
+  /// No description provided for @bucketLuxuriesLower.
+  ///
+  /// In en, this message translates to:
+  /// **'luxuries'**
+  String get bucketLuxuriesLower;
+
+  /// No description provided for @coachOverWithOther.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is {by} over its limit. You still have {left} for {other}, about {perDay} a day until {until}.'**
+  String coachOverWithOther(
+    String name,
+    String by,
+    String left,
+    String other,
+    String perDay,
+    String until,
+  );
+
+  /// No description provided for @coachOverUsedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is {by} over its limit, and your spending budget is used up until {until}.'**
+  String coachOverUsedUp(String name, String by, String until);
+
+  /// No description provided for @coachAheadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending is running ahead.'**
+  String get coachAheadTitle;
+
+  /// No description provided for @coachAheadBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve used {used}% of your spending budget with {left}% of the cycle left. {perDay} a day keeps you on track.'**
+  String coachAheadBody(String used, String left, String perDay);
+
+  /// No description provided for @coachOnPaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re on pace this cycle.'**
+  String get coachOnPaceTitle;
+
+  /// No description provided for @coachOnPaceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{left} left to spend, about {perDay} a day for the next {days, plural, =1{day} other{{days} days}}.'**
+  String coachOnPaceBody(String left, String perDay, int days);
+
+  /// No description provided for @coachPlanLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan your budget →'**
+  String get coachPlanLink;
+
+  /// No description provided for @coachInsightsLink.
+  ///
+  /// In en, this message translates to:
+  /// **'See insights →'**
+  String get coachInsightsLink;
+
+  /// No description provided for @amountThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} this month'**
+  String amountThisMonth(String amount);
 }
 
 class _AppLocalizationsDelegate

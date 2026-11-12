@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
 import 'package:frontend_vesta/Helpers/account_balance.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
@@ -1600,18 +1601,19 @@ class _StateMessage extends StatelessWidget {
   }
 }
 
-String homePageGreeting() {
+String homePageGreeting(BuildContext context) {
+  final l10n = context.l10n;
   final now = DateTime.now();
   final hour = now.hour;
 
   if (hour >= 5 && hour <= 12) {
-    return 'Good morning,';
+    return l10n.greetingMorning;
   } else if (hour > 12 && hour < 17) {
-    return 'Good afternoon,';
+    return l10n.greetingAfternoon;
   } else if (hour >= 17 && hour < 21) {
-    return 'Good evening,';
+    return l10n.greetingEvening;
   } else {
-    return 'Good night,'; // Covers 21:00 to 04:59
+    return l10n.greetingNight; // Covers 21:00 to 04:59
   }
 
 }
