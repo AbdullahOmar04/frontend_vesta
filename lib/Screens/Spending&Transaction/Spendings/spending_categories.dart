@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icon_picker.dart';
@@ -22,11 +23,11 @@ class SpendingCategories extends StatefulWidget {
 
 enum _Sort { high, low, name, limit }
 
-const _sortLabels = {
-  _Sort.high: 'Highest spent',
-  _Sort.low: 'Lowest spent',
-  _Sort.name: 'Name (A–Z)',
-  _Sort.limit: 'Closest to limit',
+String _sortLabel(BuildContext context, _Sort s) => switch (s) {
+  _Sort.high => context.l10n.sortHigh,
+  _Sort.low => context.l10n.sortLow,
+  _Sort.name => context.l10n.sortName,
+  _Sort.limit => context.l10n.sortLimit,
 };
 
 /// Which categories to show: a bucket ('essential', 'luxury', or null for
@@ -190,7 +191,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
     );
     if (added == true && mounted) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Category added')));
+          .showSnackBar(SnackBar(content: Text(context.l10n.categoryAdded)));
     }
   }
 
@@ -202,9 +203,9 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
 
     final confirmed = await confirmDialog(
       context,
-      title: 'Delete "$categoryName"?',
-      message: 'Its transactions keep their amounts but will have no category.',
-      confirmLabel: 'Delete',
+      title: context.l10n.deleteNameTitle(categoryLabel(categoryName)),
+      message: context.l10n.deleteCategoryMessage,
+      confirmLabel: context.l10n.delete,
     );
 
     if (!confirmed) return;
@@ -226,14 +227,14 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Category "$categoryName" deleted and unassigned.'),
+          content: Text(context.l10n.categoryDeleted(categoryLabel(categoryName))),
         ),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Error deleting category: $e"),
+          content: Text(context.l10n.categoryDeleteError('$e')),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -317,7 +318,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Sort by', style: headingStyle(18)),
+                Text(context.l10n.sortBy, style: headingStyle(18)),
                 const SizedBox(height: VestaSpace.sm),
                 for (final (i, s) in _Sort.values.indexed)
                   DecoratedBox(
@@ -335,7 +336,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
                         ),
                         child: Row(
                           children: [
-                            Expanded(child: Text(_sortLabels[s]!)),
+                            Expanded(child: Text(_sortLabel(context, s))),
                             if (s == _sort)
                               Icon(
                                 PhosphorIconsRegular.check,
@@ -415,13 +416,13 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
     final uid = _auth.currentUser?.uid;
 
     if (uid == null) {
-      return const Scaffold(body: Center(child: Text("No logged-in user.")));
+      return Scaffold(body: Center(child: Text(context.l10n.notLoggedIn)));
     }
 
     final v = context.vesta;
 
     return Scaffold(
-      appBar: const VestaAppBar(title: "All categories"),
+      appBar: VestaAppBar(title: context.l10n.allCategories),
       body: VestaBackground(
         child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
           stream: _db
@@ -434,7 +435,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
               return const Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError) {
-              return Center(child: Text("Error: ${snapshot.error}"));
+              return Center(child: Text(context.l10n.errorWith('${snapshot.error}')));
             }
 
             final categories = snapshot.hasData
@@ -460,21 +461,21 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
                         _ToolButton(
                           icon: PhosphorIconsRegular.funnelSimple,
                           label: _filterCount > 0
-                              ? 'Filter · $_filterCount'
-                              : 'Filter',
+                              ? context.l10n.filterCount('$_filterCount')
+                              : context.l10n.filter,
                           active: _filterCount > 0,
                           onTap: _openFilter,
                         ),
                         const SizedBox(width: VestaSpace.sm),
                         _ToolButton(
                           icon: PhosphorIconsRegular.sortAscending,
-                          label: 'Sort',
+                          label: context.l10n.sort,
                           onTap: _openSort,
                         ),
                         const Spacer(),
                         if (_loadingTotals)
                           const Padding(
-                            padding: EdgeInsets.only(right: VestaSpace.sm),
+                            padding: EdgeInsetsDirectional.only(end: VestaSpace.sm),
                             child: SizedBox(
                               width: 16,
                               height: 16,
@@ -483,10 +484,10 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
                           ),
                         AddRemoveButtons(
                           onAdd: _showCreateCategoryDialog,
-                          addTooltip: "New category",
+                          addTooltip: context.l10n.newCategory,
                           removing: _removing,
                           canRemove: categories.isNotEmpty,
-                          removeTooltip: "Remove a category",
+                          removeTooltip: context.l10n.removeACategory,
                           onToggleRemove: () =>
                               setState(() => _removing = !_removing),
                         ),
@@ -497,7 +498,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 28),
                       child: Text(
-                        "No categories yet. Tap + to create one.",
+                        context.l10n.noCategoriesYet,
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 13, color: v.muted),
                       ),
@@ -508,14 +509,14 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
                       child: Column(
                         children: [
                           Text(
-                            "No categories match this filter.",
+                            context.l10n.noCategoriesMatch,
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 13, color: v.muted),
                           ),
                           TextButton(
                             onPressed: () =>
                                 setState(() => _filter = _noFilter),
-                            child: const Text('Clear filter'),
+                            child: Text(context.l10n.clearFilter),
                           ),
                         ],
                       ),
@@ -598,7 +599,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    categoryName,
+                    categoryLabel(categoryName),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -620,7 +621,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
                 ),
                 if (limit > 0)
                   Text(
-                    'of ${formatMoney(limit)}',
+                    context.l10n.ofAmount(formatMoney(limit)),
                     style: TextStyle(fontSize: 11, color: v.muted),
                   ),
               ],
@@ -661,7 +662,7 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
               const SizedBox(height: VestaSpace.sm),
               FittedBox(
                 fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
+                alignment: AlignmentDirectional.centerStart,
                 child: MoneyText(spent, size: 18),
               ),
               const SizedBox(height: VestaSpace.sm),
@@ -673,10 +674,10 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
               const SizedBox(height: VestaSpace.sm),
               Text(
                 budget <= 0
-                    ? 'No budget planned'
+                    ? context.l10n.noBudgetPlanned
                     : over
-                    ? '${formatMoney(-left)} over'
-                    : '${formatMoney(left)} left',
+                    ? context.l10n.amountOver(formatMoney(-left))
+                    : context.l10n.amountLeft(formatMoney(left)),
                 style: TextStyle(fontSize: 12, color: over ? v.neg : v.muted),
               ),
             ],
@@ -689,14 +690,14 @@ class _SpendingCategoriesState extends State<SpendingCategories> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         card(
-          'Necessities',
+          context.l10n.bucketNecessities,
           v.bucketEssential,
           s?.essentialSpent ?? 0,
           s?.essentialBudget ?? 0,
         ),
         const SizedBox(width: VestaSpace.md),
         card(
-          'Luxuries',
+          context.l10n.bucketLuxuries,
           v.bucketLuxury,
           s?.luxurySpent ?? 0,
           s?.luxuryBudget ?? 0,
@@ -835,40 +836,40 @@ class _FilterSheetState extends State<_FilterSheet> {
           children: [
             Row(
               children: [
-                Expanded(child: Text('Filter', style: headingStyle(20))),
+                Expanded(child: Text(context.l10n.filter, style: headingStyle(20))),
                 IconButton(
-                  tooltip: 'Close',
+                  tooltip: context.l10n.close,
                   onPressed: () => Navigator.pop(context),
                   icon: Icon(PhosphorIconsRegular.x, color: v.muted),
                 ),
               ],
             ),
             const SizedBox(height: VestaSpace.sm),
-            Text('Type', style: TextStyle(fontSize: 12, color: v.muted)),
+            Text(context.l10n.type, style: TextStyle(fontSize: 12, color: v.muted)),
             const SizedBox(height: VestaSpace.sm),
             Row(
               children: [
                 _Choice(
-                  label: 'All',
+                  label: context.l10n.periodAll,
                   selected: _bucket == null,
                   onTap: () => setState(() => _bucket = null),
                 ),
                 const SizedBox(width: VestaSpace.sm),
                 _Choice(
-                  label: 'Necessities',
+                  label: context.l10n.bucketNecessities,
                   selected: _bucket == 'essential',
                   onTap: () => setState(() => _bucket = 'essential'),
                 ),
                 const SizedBox(width: VestaSpace.sm),
                 _Choice(
-                  label: 'Luxuries',
+                  label: context.l10n.bucketLuxuries,
                   selected: _bucket == 'luxury',
                   onTap: () => setState(() => _bucket = 'luxury'),
                 ),
               ],
             ),
             const SizedBox(height: VestaSpace.lg),
-            Text('Show', style: TextStyle(fontSize: 12, color: v.muted)),
+            Text(context.l10n.show, style: TextStyle(fontSize: 12, color: v.muted)),
             const SizedBox(height: VestaSpace.sm),
             Container(
               decoration: BoxDecoration(
@@ -879,13 +880,13 @@ class _FilterSheetState extends State<_FilterSheet> {
               child: Column(
                 children: [
                   check(
-                    'Only categories with spending',
+                    context.l10n.onlyWithSpending,
                     _onlySpending,
                     (x) => _onlySpending = x,
                   ),
                   Divider(height: 1, color: v.divider),
                   check(
-                    'Only categories over their limit',
+                    context.l10n.onlyOverLimit,
                     _onlyOver,
                     (x) => _onlyOver = x,
                   ),
@@ -897,14 +898,14 @@ class _FilterSheetState extends State<_FilterSheet> {
               children: [
                 Expanded(
                   child: OutlineButton(
-                    label: 'Reset',
+                    label: context.l10n.reset,
                     onPressed: () => Navigator.pop(context, _noFilter),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: PrimaryButton(
-                    label: 'Show results',
+                    label: context.l10n.showResults,
                     onPressed: () => Navigator.pop(context, (
                       bucket: _bucket,
                       onlySpending: _onlySpending,
@@ -958,7 +959,7 @@ class _NewCategoryDialogState extends State<_NewCategoryDialog> {
   Future<void> _save() async {
     final name = _name.text.trim();
     if (name.isEmpty) {
-      setState(() => _error = 'Give the category a name.');
+      setState(() => _error = context.l10n.giveCategoryName);
       return;
     }
     setState(() {
@@ -974,7 +975,7 @@ class _NewCategoryDialogState extends State<_NewCategoryDialog> {
       if ((await ref.get()).exists) {
         setState(() {
           _saving = false;
-          _error = 'You already have a category called "$name".';
+          _error = context.l10n.categoryExists(name);
         });
         return;
       }
@@ -990,7 +991,7 @@ class _NewCategoryDialogState extends State<_NewCategoryDialog> {
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = "Couldn't add the category: $e";
+          _error = context.l10n.categoryAddFailed('$e');
         });
       }
     }
@@ -1007,9 +1008,9 @@ class _NewCategoryDialogState extends State<_NewCategoryDialog> {
     );
 
     return VestaDialog(
-      title: 'Add a new category',
+      title: context.l10n.addNewCategory,
       cancelButton: false,
-      confirmLabel: 'Add category',
+      confirmLabel: context.l10n.addCategory,
       loading: _saving,
       onConfirm: _save,
       content: Column(
@@ -1033,8 +1034,8 @@ class _NewCategoryDialogState extends State<_NewCategoryDialog> {
                   maxLength: 30,
                   textCapitalization: TextCapitalization.words,
                   onChanged: (_) => setState(() => _error = null),
-                  decoration: const InputDecoration(
-                    hintText: 'Category name',
+                  decoration: InputDecoration(
+                    hintText: context.l10n.categoryName,
                     counterText: '',
                   ),
                 ),
@@ -1042,18 +1043,18 @@ class _NewCategoryDialogState extends State<_NewCategoryDialog> {
             ],
           ),
           const SizedBox(height: VestaSpace.lg),
-          label('Budget'),
+          label(context.l10n.budget),
           Row(
             children: [
               _Choice(
-                label: 'Necessities',
+                label: context.l10n.bucketNecessities,
                 color: v.bucketEssential,
                 selected: _bucket == 'essential',
                 onTap: () => setState(() => _bucket = 'essential'),
               ),
               const SizedBox(width: VestaSpace.sm),
               _Choice(
-                label: 'Luxuries',
+                label: context.l10n.bucketLuxuries,
                 color: v.bucketLuxury,
                 selected: _bucket == 'luxury',
                 onTap: () => setState(() => _bucket = 'luxury'),
@@ -1061,7 +1062,7 @@ class _NewCategoryDialogState extends State<_NewCategoryDialog> {
             ],
           ),
           const SizedBox(height: VestaSpace.lg),
-          label('Monthly spending limit'),
+          label(context.l10n.monthlyLimit),
           TextField(
             controller: _limit,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -1069,10 +1070,10 @@ class _NewCategoryDialogState extends State<_NewCategoryDialog> {
               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
             ],
             onChanged: (_) => setState(() => _error = null),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               prefixIcon: CurrencyPrefix(),
               prefixIconConstraints: currencyPrefixConstraints,
-              hintText: 'No limit',
+              hintText: context.l10n.noLimit,
             ),
           ),
           const SizedBox(height: VestaSpace.md),
@@ -1089,13 +1090,13 @@ class _NewCategoryDialogState extends State<_NewCategoryDialog> {
                     Expanded(
                       child: Text(
                         _bucket == 'essential'
-                            ? 'Necessities budget'
-                            : 'Luxuries budget',
+                            ? context.l10n.necessitiesBudget
+                            : context.l10n.luxuriesBudget,
                         style: TextStyle(fontSize: 12, color: v.muted),
                       ),
                     ),
                     Text(
-                      budget > 0 ? formatMoney(budget) : 'Not planned',
+                      budget > 0 ? formatMoney(budget) : context.l10n.notPlanned,
                       style: amountStyle(12),
                     ),
                   ],
@@ -1103,11 +1104,11 @@ class _NewCategoryDialogState extends State<_NewCategoryDialog> {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Expanded(
-                      child: Text('This limit', style: TextStyle(fontSize: 12)),
+                    Expanded(
+                      child: Text(context.l10n.thisLimit, style: const TextStyle(fontSize: 12)),
                     ),
                     Text(
-                      budget > 0 ? '$share% of budget' : '—',
+                      budget > 0 ? context.l10n.percentOfBudget('$share') : '—',
                       style: TextStyle(
                         fontSize: 12,
                         color: share > 100 ? v.neg : null,

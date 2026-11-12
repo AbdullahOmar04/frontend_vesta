@@ -1090,7 +1090,7 @@ class CurrencyPrefix extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(left: left, right: 6),
       child: Text(
-        'JOD',
+        currencyLabel('JOD'),
         style: TextStyle(fontSize: size, color: context.vesta.muted),
       ),
     );

@@ -1377,4 +1377,127 @@ class AppLocalizationsAr extends AppLocalizations {
   String onePurchase(String date) {
     return 'معظمها من عملية شراء واحدة في $date. تستحق نظرة قبل نهاية الشهر.';
   }
+
+  @override
+  String get categoryAdded => 'أُضيفت الفئة';
+
+  @override
+  String get deleteCategoryMessage => 'تبقى معاملاتها بمبالغها لكن بلا فئة.';
+
+  @override
+  String categoryDeleted(String name) {
+    return 'حُذفت فئة \"$name\" وأُزيلت من معاملاتها.';
+  }
+
+  @override
+  String categoryDeleteError(String error) {
+    return 'تعذّر حذف الفئة: $error';
+  }
+
+  @override
+  String get sortBy => 'ترتيب حسب';
+
+  @override
+  String get sortHigh => 'الأعلى إنفاقاً';
+
+  @override
+  String get sortLow => 'الأقل إنفاقاً';
+
+  @override
+  String get sortName => 'الاسم (أ–ي)';
+
+  @override
+  String get sortLimit => 'الأقرب إلى الحد';
+
+  @override
+  String get filter => 'تصفية';
+
+  @override
+  String filterCount(String count) {
+    return 'تصفية · $count';
+  }
+
+  @override
+  String get sort => 'ترتيب';
+
+  @override
+  String get newCategory => 'فئة جديدة';
+
+  @override
+  String get removeACategory => 'حذف فئة';
+
+  @override
+  String get noCategoriesYet => 'لا فئات بعد. اضغط + لإنشاء فئة.';
+
+  @override
+  String get noCategoriesMatch => 'لا فئات تطابق هذه التصفية.';
+
+  @override
+  String get clearFilter => 'مسح التصفية';
+
+  @override
+  String get noBudgetPlanned => 'لا ميزانية مخططة';
+
+  @override
+  String get show => 'عرض';
+
+  @override
+  String get onlyWithSpending => 'الفئات التي فيها إنفاق فقط';
+
+  @override
+  String get onlyOverLimit => 'الفئات التي تجاوزت حدّها فقط';
+
+  @override
+  String get reset => 'إعادة ضبط';
+
+  @override
+  String get showResults => 'عرض النتائج';
+
+  @override
+  String get giveCategoryName => 'اكتب اسماً للفئة.';
+
+  @override
+  String categoryExists(String name) {
+    return 'لديك فئة باسم \"$name\" مسبقاً.';
+  }
+
+  @override
+  String categoryAddFailed(String error) {
+    return 'تعذّرت إضافة الفئة: $error';
+  }
+
+  @override
+  String get addNewCategory => 'إضافة فئة جديدة';
+
+  @override
+  String get addCategory => 'إضافة الفئة';
+
+  @override
+  String get categoryName => 'اسم الفئة';
+
+  @override
+  String get budget => 'الميزانية';
+
+  @override
+  String get monthlyLimit => 'حد الإنفاق الشهري';
+
+  @override
+  String get noLimit => 'بلا حد';
+
+  @override
+  String get necessitiesBudget => 'ميزانية الضروريات';
+
+  @override
+  String get luxuriesBudget => 'ميزانية الكماليات';
+
+  @override
+  String get notPlanned => 'غير مخطط';
+
+  @override
+  String get thisLimit => 'هذا الحد';
+
+  @override
+  String percentOfBudget(String percent) {
+    return '$percent% من الميزانية';
+  }
 }

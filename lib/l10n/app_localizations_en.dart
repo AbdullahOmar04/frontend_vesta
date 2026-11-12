@@ -1366,4 +1366,128 @@ class AppLocalizationsEn extends AppLocalizations {
   String onePurchase(String date) {
     return 'Most of it came from one purchase on $date. Worth a look before the month closes.';
   }
+
+  @override
+  String get categoryAdded => 'Category added';
+
+  @override
+  String get deleteCategoryMessage =>
+      'Its transactions keep their amounts but will have no category.';
+
+  @override
+  String categoryDeleted(String name) {
+    return 'Category \"$name\" deleted and unassigned.';
+  }
+
+  @override
+  String categoryDeleteError(String error) {
+    return 'Error deleting category: $error';
+  }
+
+  @override
+  String get sortBy => 'Sort by';
+
+  @override
+  String get sortHigh => 'Highest spent';
+
+  @override
+  String get sortLow => 'Lowest spent';
+
+  @override
+  String get sortName => 'Name (A–Z)';
+
+  @override
+  String get sortLimit => 'Closest to limit';
+
+  @override
+  String get filter => 'Filter';
+
+  @override
+  String filterCount(String count) {
+    return 'Filter · $count';
+  }
+
+  @override
+  String get sort => 'Sort';
+
+  @override
+  String get newCategory => 'New category';
+
+  @override
+  String get removeACategory => 'Remove a category';
+
+  @override
+  String get noCategoriesYet => 'No categories yet. Tap + to create one.';
+
+  @override
+  String get noCategoriesMatch => 'No categories match this filter.';
+
+  @override
+  String get clearFilter => 'Clear filter';
+
+  @override
+  String get noBudgetPlanned => 'No budget planned';
+
+  @override
+  String get show => 'Show';
+
+  @override
+  String get onlyWithSpending => 'Only categories with spending';
+
+  @override
+  String get onlyOverLimit => 'Only categories over their limit';
+
+  @override
+  String get reset => 'Reset';
+
+  @override
+  String get showResults => 'Show results';
+
+  @override
+  String get giveCategoryName => 'Give the category a name.';
+
+  @override
+  String categoryExists(String name) {
+    return 'You already have a category called \"$name\".';
+  }
+
+  @override
+  String categoryAddFailed(String error) {
+    return 'Couldn\'t add the category: $error';
+  }
+
+  @override
+  String get addNewCategory => 'Add a new category';
+
+  @override
+  String get addCategory => 'Add category';
+
+  @override
+  String get categoryName => 'Category name';
+
+  @override
+  String get budget => 'Budget';
+
+  @override
+  String get monthlyLimit => 'Monthly spending limit';
+
+  @override
+  String get noLimit => 'No limit';
+
+  @override
+  String get necessitiesBudget => 'Necessities budget';
+
+  @override
+  String get luxuriesBudget => 'Luxuries budget';
+
+  @override
+  String get notPlanned => 'Not planned';
+
+  @override
+  String get thisLimit => 'This limit';
+
+  @override
+  String percentOfBudget(String percent) {
+    return '$percent% of budget';
+  }
 }

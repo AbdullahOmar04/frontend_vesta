@@ -2420,6 +2420,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Most of it came from one purchase on {date}. Worth a look before the month closes.'**
   String onePurchase(String date);
+
+  /// No description provided for @categoryAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Category added'**
+  String get categoryAdded;
+
+  /// No description provided for @deleteCategoryMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Its transactions keep their amounts but will have no category.'**
+  String get deleteCategoryMessage;
+
+  /// No description provided for @categoryDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Category \"{name}\" deleted and unassigned.'**
+  String categoryDeleted(String name);
+
+  /// No description provided for @categoryDeleteError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error deleting category: {error}'**
+  String categoryDeleteError(String error);
+
+  /// No description provided for @sortBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get sortBy;
+
+  /// No description provided for @sortHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest spent'**
+  String get sortHigh;
+
+  /// No description provided for @sortLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowest spent'**
+  String get sortLow;
+
+  /// No description provided for @sortName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (A–Z)'**
+  String get sortName;
+
+  /// No description provided for @sortLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Closest to limit'**
+  String get sortLimit;
+
+  /// No description provided for @filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get filter;
+
+  /// No description provided for @filterCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter · {count}'**
+  String filterCount(String count);
+
+  /// No description provided for @sort.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get sort;
+
+  /// No description provided for @newCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'New category'**
+  String get newCategory;
+
+  /// No description provided for @removeACategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove a category'**
+  String get removeACategory;
+
+  /// No description provided for @noCategoriesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No categories yet. Tap + to create one.'**
+  String get noCategoriesYet;
+
+  /// No description provided for @noCategoriesMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No categories match this filter.'**
+  String get noCategoriesMatch;
+
+  /// No description provided for @clearFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filter'**
+  String get clearFilter;
+
+  /// No description provided for @noBudgetPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'No budget planned'**
+  String get noBudgetPlanned;
+
+  /// No description provided for @show.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get show;
+
+  /// No description provided for @onlyWithSpending.
+  ///
+  /// In en, this message translates to:
+  /// **'Only categories with spending'**
+  String get onlyWithSpending;
+
+  /// No description provided for @onlyOverLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Only categories over their limit'**
+  String get onlyOverLimit;
+
+  /// No description provided for @reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get reset;
+
+  /// No description provided for @showResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Show results'**
+  String get showResults;
+
+  /// No description provided for @giveCategoryName.
+  ///
+  /// In en, this message translates to:
+  /// **'Give the category a name.'**
+  String get giveCategoryName;
+
+  /// No description provided for @categoryExists.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have a category called \"{name}\".'**
+  String categoryExists(String name);
+
+  /// No description provided for @categoryAddFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add the category: {error}'**
+  String categoryAddFailed(String error);
+
+  /// No description provided for @addNewCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a new category'**
+  String get addNewCategory;
+
+  /// No description provided for @addCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Add category'**
+  String get addCategory;
+
+  /// No description provided for @categoryName.
+  ///
+  /// In en, this message translates to:
+  /// **'Category name'**
+  String get categoryName;
+
+  /// No description provided for @budget.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget'**
+  String get budget;
+
+  /// No description provided for @monthlyLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly spending limit'**
+  String get monthlyLimit;
+
+  /// No description provided for @noLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'No limit'**
+  String get noLimit;
+
+  /// No description provided for @necessitiesBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Necessities budget'**
+  String get necessitiesBudget;
+
+  /// No description provided for @luxuriesBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Luxuries budget'**
+  String get luxuriesBudget;
+
+  /// No description provided for @notPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Not planned'**
+  String get notPlanned;
+
+  /// No description provided for @thisLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'This limit'**
+  String get thisLimit;
+
+  /// No description provided for @percentOfBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of budget'**
+  String percentOfBudget(String percent);
 }
 
 class _AppLocalizationsDelegate

@@ -818,5 +818,84 @@
         "type": "String"
       }
     }
+  },
+  "categoryAdded": "Category added",
+  "deleteCategoryMessage": "Its transactions keep their amounts but will have no category.",
+  "categoryDeleted": "Category \"{name}\" deleted and unassigned.",
+  "@categoryDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryDeleteError": "Error deleting category: {error}",
+  "@categoryDeleteError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sortBy": "Sort by",
+  "sortHigh": "Highest spent",
+  "sortLow": "Lowest spent",
+  "sortName": "Name (A–Z)",
+  "sortLimit": "Closest to limit",
+  "filter": "Filter",
+  "filterCount": "Filter · {count}",
+  "@filterCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "sort": "Sort",
+  "newCategory": "New category",
+  "removeACategory": "Remove a category",
+  "noCategoriesYet": "No categories yet. Tap + to create one.",
+  "noCategoriesMatch": "No categories match this filter.",
+  "clearFilter": "Clear filter",
+  "noBudgetPlanned": "No budget planned",
+  "show": "Show",
+  "onlyWithSpending": "Only categories with spending",
+  "onlyOverLimit": "Only categories over their limit",
+  "reset": "Reset",
+  "showResults": "Show results",
+  "giveCategoryName": "Give the category a name.",
+  "categoryExists": "You already have a category called \"{name}\".",
+  "@categoryExists": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryAddFailed": "Couldn't add the category: {error}",
+  "@categoryAddFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addNewCategory": "Add a new category",
+  "addCategory": "Add category",
+  "categoryName": "Category name",
+  "budget": "Budget",
+  "monthlyLimit": "Monthly spending limit",
+  "noLimit": "No limit",
+  "necessitiesBudget": "Necessities budget",
+  "luxuriesBudget": "Luxuries budget",
+  "notPlanned": "Not planned",
+  "thisLimit": "This limit",
+  "percentOfBudget": "{percent}% of budget",
+  "@percentOfBudget": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
   }
 }
