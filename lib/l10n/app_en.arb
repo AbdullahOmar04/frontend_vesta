@@ -559,5 +559,159 @@
   "optional": "Optional",
   "amountOwed": "Amount owed",
   "currentBalance": "Current balance",
-  "manualAccountsNote": "Manual accounts don't sync. You'll add transactions and update the balance yourself."
+  "manualAccountsNote": "Manual accounts don't sync. You'll add transactions and update the balance yourself.",
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "bucketNecessity": "Necessity",
+  "bucketLuxury": "Luxury",
+  "income": "Income",
+  "expense": "Expense",
+  "other": "Other",
+  "catFoodDrinks": "Food And Drinks",
+  "catGroceries": "Groceries",
+  "catEntertainment": "Entertainment",
+  "catOthers": "Others",
+  "catRent": "Rent",
+  "catShopping": "Shopping",
+  "catTransport": "Transport",
+  "catHealth": "Health",
+  "catBills": "Bills & Utilities",
+  "catSavings": "Savings",
+  "budgetDayHelp": "Your budget cycle starts on this day each month, usually payday.",
+  "dayOfMonth": "Day of month",
+  "enterDay": "Please enter a day",
+  "enterValidNumber": "Please enter a valid number",
+  "dayRange": "Day must be between 1 and 31",
+  "currentDay": "Current: day {day}",
+  "@currentDay": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "save": "Save",
+  "budgetDayUpdated": "Budget reset day updated to {day}",
+  "@budgetDayUpdated": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetDayFailed": "Failed to update day. Try again.",
+  "allAccounts": "All accounts",
+  "allCategories": "All categories",
+  "uncategorized": "Uncategorized",
+  "categoryUpdated": "Updated category to {name}",
+  "@categoryUpdated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "category": "Category",
+  "type": "Type",
+  "merchant": "Merchant",
+  "account": "Account",
+  "source": "Source",
+  "sourceManual": "Manual",
+  "sourceSms": "SMS",
+  "sourceBank": "Bank",
+  "description": "Description",
+  "addedBy": "Added by",
+  "date": "Date",
+  "assignToHousehold": "Assign to household",
+  "transactionDeleted": "Transaction deleted",
+  "transactionDeleteError": "Error deleting transaction: {error}",
+  "@transactionDeleteError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteTransaction": "Delete transaction",
+  "removeFromHousehold": "Remove from household",
+  "notInAnyHousehold": "You are not part of any household.",
+  "transactionNotFound": "Transaction not found",
+  "assignedTo": "Assigned to '{name}' successfully!",
+  "@assignedTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loadTransactionsFailed": "Couldn't load transactions",
+  "retry": "Retry",
+  "noTransactionsTitle": "No transactions yet",
+  "addFirstTransaction": "Tap + to add your first one.",
+  "refresh": "Refresh",
+  "noMatchingTransactions": "No transactions match these filters",
+  "tryOtherFilters": "Try a different account, category or date.",
+  "clearFilters": "Clear filters",
+  "selectMonth": "Select Month",
+  "periodAll": "All",
+  "periodLast7": "Last 7 days",
+  "periodLast30": "Last 30 days",
+  "month": "Month",
+  "transactionsTitle": "Transactions",
+  "deleteTransactionTitle": "Delete this transaction?",
+  "deleteTxnReturned": "It will be removed and {amount} returned to the account balance.",
+  "@deleteTxnReturned": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteTxnTakenOff": "It will be removed and {amount} taken off the account balance.",
+  "@deleteTxnTakenOff": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "transactionDeleteFailed": "Couldn't delete the transaction: {error}",
+  "@transactionDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addTransaction": "Add transaction",
+  "removeATransaction": "Remove a transaction",
+  "enterValidAmount": "Enter a valid amount.",
+  "selectAnAccount": "Select an account.",
+  "transactionAdded": "Transaction added.",
+  "smsNoAmount": "We couldn't find an amount in this message. Try the Manual tab.",
+  "addATransaction": "Add a transaction",
+  "pasteBankSms": "Paste your bank SMS",
+  "trySample": "Try a sample message",
+  "readMessage": "Read message",
+  "smsWillFill": "We'll fill in the details so you can check them before saving.",
+  "filledFromSms": "Filled from your SMS. Check the details below.",
+  "noAccountsAddInWallet": "No accounts yet. Add one in Wallet first.",
+  "amountIn": "Amount ({currency})",
+  "@amountIn": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "merchantFrom": "Merchant / From",
+  "noteOptional": "Note (optional)",
+  "transactionCountRecent": "{count, plural, =1{1 transaction · Most recent} other{{count} transactions · Most recent}}",
+  "@transactionCountRecent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -998,4 +998,286 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get manualAccountsNote =>
       'Manual accounts don\'t sync. You\'ll add transactions and update the balance yourself.';
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get yesterday => 'Yesterday';
+
+  @override
+  String get bucketNecessity => 'Necessity';
+
+  @override
+  String get bucketLuxury => 'Luxury';
+
+  @override
+  String get income => 'Income';
+
+  @override
+  String get expense => 'Expense';
+
+  @override
+  String get other => 'Other';
+
+  @override
+  String get catFoodDrinks => 'Food And Drinks';
+
+  @override
+  String get catGroceries => 'Groceries';
+
+  @override
+  String get catEntertainment => 'Entertainment';
+
+  @override
+  String get catOthers => 'Others';
+
+  @override
+  String get catRent => 'Rent';
+
+  @override
+  String get catShopping => 'Shopping';
+
+  @override
+  String get catTransport => 'Transport';
+
+  @override
+  String get catHealth => 'Health';
+
+  @override
+  String get catBills => 'Bills & Utilities';
+
+  @override
+  String get catSavings => 'Savings';
+
+  @override
+  String get budgetDayHelp =>
+      'Your budget cycle starts on this day each month, usually payday.';
+
+  @override
+  String get dayOfMonth => 'Day of month';
+
+  @override
+  String get enterDay => 'Please enter a day';
+
+  @override
+  String get enterValidNumber => 'Please enter a valid number';
+
+  @override
+  String get dayRange => 'Day must be between 1 and 31';
+
+  @override
+  String currentDay(String day) {
+    return 'Current: day $day';
+  }
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String budgetDayUpdated(String day) {
+    return 'Budget reset day updated to $day';
+  }
+
+  @override
+  String get budgetDayFailed => 'Failed to update day. Try again.';
+
+  @override
+  String get allAccounts => 'All accounts';
+
+  @override
+  String get allCategories => 'All categories';
+
+  @override
+  String get uncategorized => 'Uncategorized';
+
+  @override
+  String categoryUpdated(String name) {
+    return 'Updated category to $name';
+  }
+
+  @override
+  String get category => 'Category';
+
+  @override
+  String get type => 'Type';
+
+  @override
+  String get merchant => 'Merchant';
+
+  @override
+  String get account => 'Account';
+
+  @override
+  String get source => 'Source';
+
+  @override
+  String get sourceManual => 'Manual';
+
+  @override
+  String get sourceSms => 'SMS';
+
+  @override
+  String get sourceBank => 'Bank';
+
+  @override
+  String get description => 'Description';
+
+  @override
+  String get addedBy => 'Added by';
+
+  @override
+  String get date => 'Date';
+
+  @override
+  String get assignToHousehold => 'Assign to household';
+
+  @override
+  String get transactionDeleted => 'Transaction deleted';
+
+  @override
+  String transactionDeleteError(String error) {
+    return 'Error deleting transaction: $error';
+  }
+
+  @override
+  String get deleteTransaction => 'Delete transaction';
+
+  @override
+  String get removeFromHousehold => 'Remove from household';
+
+  @override
+  String get notInAnyHousehold => 'You are not part of any household.';
+
+  @override
+  String get transactionNotFound => 'Transaction not found';
+
+  @override
+  String assignedTo(String name) {
+    return 'Assigned to \'$name\' successfully!';
+  }
+
+  @override
+  String get loadTransactionsFailed => 'Couldn\'t load transactions';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get noTransactionsTitle => 'No transactions yet';
+
+  @override
+  String get addFirstTransaction => 'Tap + to add your first one.';
+
+  @override
+  String get refresh => 'Refresh';
+
+  @override
+  String get noMatchingTransactions => 'No transactions match these filters';
+
+  @override
+  String get tryOtherFilters => 'Try a different account, category or date.';
+
+  @override
+  String get clearFilters => 'Clear filters';
+
+  @override
+  String get selectMonth => 'Select Month';
+
+  @override
+  String get periodAll => 'All';
+
+  @override
+  String get periodLast7 => 'Last 7 days';
+
+  @override
+  String get periodLast30 => 'Last 30 days';
+
+  @override
+  String get month => 'Month';
+
+  @override
+  String get transactionsTitle => 'Transactions';
+
+  @override
+  String get deleteTransactionTitle => 'Delete this transaction?';
+
+  @override
+  String deleteTxnReturned(String amount) {
+    return 'It will be removed and $amount returned to the account balance.';
+  }
+
+  @override
+  String deleteTxnTakenOff(String amount) {
+    return 'It will be removed and $amount taken off the account balance.';
+  }
+
+  @override
+  String transactionDeleteFailed(String error) {
+    return 'Couldn\'t delete the transaction: $error';
+  }
+
+  @override
+  String get addTransaction => 'Add transaction';
+
+  @override
+  String get removeATransaction => 'Remove a transaction';
+
+  @override
+  String get enterValidAmount => 'Enter a valid amount.';
+
+  @override
+  String get selectAnAccount => 'Select an account.';
+
+  @override
+  String get transactionAdded => 'Transaction added.';
+
+  @override
+  String get smsNoAmount =>
+      'We couldn\'t find an amount in this message. Try the Manual tab.';
+
+  @override
+  String get addATransaction => 'Add a transaction';
+
+  @override
+  String get pasteBankSms => 'Paste your bank SMS';
+
+  @override
+  String get trySample => 'Try a sample message';
+
+  @override
+  String get readMessage => 'Read message';
+
+  @override
+  String get smsWillFill =>
+      'We\'ll fill in the details so you can check them before saving.';
+
+  @override
+  String get filledFromSms => 'Filled from your SMS. Check the details below.';
+
+  @override
+  String get noAccountsAddInWallet =>
+      'No accounts yet. Add one in Wallet first.';
+
+  @override
+  String amountIn(String currency) {
+    return 'Amount ($currency)';
+  }
+
+  @override
+  String get merchantFrom => 'Merchant / From';
+
+  @override
+  String get noteOptional => 'Note (optional)';
+
+  @override
+  String transactionCountRecent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count transactions · Most recent',
+      one: '1 transaction · Most recent',
+    );
+    return '$_temp0';
+  }
 }

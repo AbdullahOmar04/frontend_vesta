@@ -47,6 +47,10 @@ void _applyToIntl() {
   DateFormat.useNativeDigitsByDefaultFor('ar', false);
 }
 
+/// The app's texts in the current language, for code with no BuildContext
+/// (shared formatters). Widgets use `context.l10n`.
+AppLocalizations get l10nNow => lookupAppLocalizations(Locale(activeLanguage));
+
 /// The app's texts in the current language: `context.l10n.profileTitle`.
 extension L10nContext on BuildContext {
   AppLocalizations get l10n => AppLocalizations.of(this);

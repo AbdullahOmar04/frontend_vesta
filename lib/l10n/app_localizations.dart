@@ -1802,6 +1802,510 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Manual accounts don\'t sync. You\'ll add transactions and update the balance yourself.'**
   String get manualAccountsNote;
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get yesterday;
+
+  /// No description provided for @bucketNecessity.
+  ///
+  /// In en, this message translates to:
+  /// **'Necessity'**
+  String get bucketNecessity;
+
+  /// No description provided for @bucketLuxury.
+  ///
+  /// In en, this message translates to:
+  /// **'Luxury'**
+  String get bucketLuxury;
+
+  /// No description provided for @income.
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get income;
+
+  /// No description provided for @expense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get expense;
+
+  /// No description provided for @other.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get other;
+
+  /// No description provided for @catFoodDrinks.
+  ///
+  /// In en, this message translates to:
+  /// **'Food And Drinks'**
+  String get catFoodDrinks;
+
+  /// No description provided for @catGroceries.
+  ///
+  /// In en, this message translates to:
+  /// **'Groceries'**
+  String get catGroceries;
+
+  /// No description provided for @catEntertainment.
+  ///
+  /// In en, this message translates to:
+  /// **'Entertainment'**
+  String get catEntertainment;
+
+  /// No description provided for @catOthers.
+  ///
+  /// In en, this message translates to:
+  /// **'Others'**
+  String get catOthers;
+
+  /// No description provided for @catRent.
+  ///
+  /// In en, this message translates to:
+  /// **'Rent'**
+  String get catRent;
+
+  /// No description provided for @catShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping'**
+  String get catShopping;
+
+  /// No description provided for @catTransport.
+  ///
+  /// In en, this message translates to:
+  /// **'Transport'**
+  String get catTransport;
+
+  /// No description provided for @catHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get catHealth;
+
+  /// No description provided for @catBills.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills & Utilities'**
+  String get catBills;
+
+  /// No description provided for @catSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings'**
+  String get catSavings;
+
+  /// No description provided for @budgetDayHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Your budget cycle starts on this day each month, usually payday.'**
+  String get budgetDayHelp;
+
+  /// No description provided for @dayOfMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Day of month'**
+  String get dayOfMonth;
+
+  /// No description provided for @enterDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a day'**
+  String get enterDay;
+
+  /// No description provided for @enterValidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid number'**
+  String get enterValidNumber;
+
+  /// No description provided for @dayRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Day must be between 1 and 31'**
+  String get dayRange;
+
+  /// No description provided for @currentDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Current: day {day}'**
+  String currentDay(String day);
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @budgetDayUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget reset day updated to {day}'**
+  String budgetDayUpdated(String day);
+
+  /// No description provided for @budgetDayFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update day. Try again.'**
+  String get budgetDayFailed;
+
+  /// No description provided for @allAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'All accounts'**
+  String get allAccounts;
+
+  /// No description provided for @allCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'All categories'**
+  String get allCategories;
+
+  /// No description provided for @uncategorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncategorized'**
+  String get uncategorized;
+
+  /// No description provided for @categoryUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated category to {name}'**
+  String categoryUpdated(String name);
+
+  /// No description provided for @category.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get category;
+
+  /// No description provided for @type.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get type;
+
+  /// No description provided for @merchant.
+  ///
+  /// In en, this message translates to:
+  /// **'Merchant'**
+  String get merchant;
+
+  /// No description provided for @account.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get account;
+
+  /// No description provided for @source.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get source;
+
+  /// No description provided for @sourceManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get sourceManual;
+
+  /// No description provided for @sourceSms.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS'**
+  String get sourceSms;
+
+  /// No description provided for @sourceBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank'**
+  String get sourceBank;
+
+  /// No description provided for @description.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get description;
+
+  /// No description provided for @addedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Added by'**
+  String get addedBy;
+
+  /// No description provided for @date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get date;
+
+  /// No description provided for @assignToHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign to household'**
+  String get assignToHousehold;
+
+  /// No description provided for @transactionDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction deleted'**
+  String get transactionDeleted;
+
+  /// No description provided for @transactionDeleteError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error deleting transaction: {error}'**
+  String transactionDeleteError(String error);
+
+  /// No description provided for @deleteTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete transaction'**
+  String get deleteTransaction;
+
+  /// No description provided for @removeFromHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from household'**
+  String get removeFromHousehold;
+
+  /// No description provided for @notInAnyHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not part of any household.'**
+  String get notInAnyHousehold;
+
+  /// No description provided for @transactionNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction not found'**
+  String get transactionNotFound;
+
+  /// No description provided for @assignedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned to \'{name}\' successfully!'**
+  String assignedTo(String name);
+
+  /// No description provided for @loadTransactionsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load transactions'**
+  String get loadTransactionsFailed;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @noTransactionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions yet'**
+  String get noTransactionsTitle;
+
+  /// No description provided for @addFirstTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + to add your first one.'**
+  String get addFirstTransaction;
+
+  /// No description provided for @refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refresh;
+
+  /// No description provided for @noMatchingTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions match these filters'**
+  String get noMatchingTransactions;
+
+  /// No description provided for @tryOtherFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different account, category or date.'**
+  String get tryOtherFilters;
+
+  /// No description provided for @clearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get clearFilters;
+
+  /// No description provided for @selectMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Month'**
+  String get selectMonth;
+
+  /// No description provided for @periodAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get periodAll;
+
+  /// No description provided for @periodLast7.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 days'**
+  String get periodLast7;
+
+  /// No description provided for @periodLast30.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get periodLast30;
+
+  /// No description provided for @month.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get month;
+
+  /// No description provided for @transactionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get transactionsTitle;
+
+  /// No description provided for @deleteTransactionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this transaction?'**
+  String get deleteTransactionTitle;
+
+  /// No description provided for @deleteTxnReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'It will be removed and {amount} returned to the account balance.'**
+  String deleteTxnReturned(String amount);
+
+  /// No description provided for @deleteTxnTakenOff.
+  ///
+  /// In en, this message translates to:
+  /// **'It will be removed and {amount} taken off the account balance.'**
+  String deleteTxnTakenOff(String amount);
+
+  /// No description provided for @transactionDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t delete the transaction: {error}'**
+  String transactionDeleteFailed(String error);
+
+  /// No description provided for @addTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add transaction'**
+  String get addTransaction;
+
+  /// No description provided for @removeATransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove a transaction'**
+  String get removeATransaction;
+
+  /// No description provided for @enterValidAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid amount.'**
+  String get enterValidAmount;
+
+  /// No description provided for @selectAnAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an account.'**
+  String get selectAnAccount;
+
+  /// No description provided for @transactionAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction added.'**
+  String get transactionAdded;
+
+  /// No description provided for @smsNoAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t find an amount in this message. Try the Manual tab.'**
+  String get smsNoAmount;
+
+  /// No description provided for @addATransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a transaction'**
+  String get addATransaction;
+
+  /// No description provided for @pasteBankSms.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste your bank SMS'**
+  String get pasteBankSms;
+
+  /// No description provided for @trySample.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a sample message'**
+  String get trySample;
+
+  /// No description provided for @readMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Read message'**
+  String get readMessage;
+
+  /// No description provided for @smsWillFill.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll fill in the details so you can check them before saving.'**
+  String get smsWillFill;
+
+  /// No description provided for @filledFromSms.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled from your SMS. Check the details below.'**
+  String get filledFromSms;
+
+  /// No description provided for @noAccountsAddInWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts yet. Add one in Wallet first.'**
+  String get noAccountsAddInWallet;
+
+  /// No description provided for @amountIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount ({currency})'**
+  String amountIn(String currency);
+
+  /// No description provided for @merchantFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Merchant / From'**
+  String get merchantFrom;
+
+  /// No description provided for @noteOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get noteOptional;
+
+  /// No description provided for @transactionCountRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 transaction · Most recent} other{{count} transactions · Most recent}}'**
+  String transactionCountRecent(int count);
 }
 
 class _AppLocalizationsDelegate

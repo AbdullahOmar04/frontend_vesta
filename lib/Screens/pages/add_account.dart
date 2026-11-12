@@ -174,7 +174,7 @@ class _AddAccountSheetState extends State<_AddAccountSheet> {
               decoration: InputDecoration(labelText: context.l10n.accountType),
               items: [
                 for (var i = 0; i < _accountTypes.length; i++)
-                  DropdownMenuItem(value: i, child: Text(accountTypeLabel(context, _accountTypes[i].$1))),
+                  DropdownMenuItem(value: i, child: Text(accountTypeLabel(_accountTypes[i].$1))),
               ],
               onChanged: (i) => setState(() => _type = i ?? _type),
             ),

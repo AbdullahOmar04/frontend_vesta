@@ -1004,4 +1004,288 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get manualAccountsNote =>
       'الحسابات اليدوية لا تتزامن مع البنك؛ ستضيف المعاملات وتحدّث الرصيد بنفسك.';
+
+  @override
+  String get today => 'اليوم';
+
+  @override
+  String get yesterday => 'أمس';
+
+  @override
+  String get bucketNecessity => 'ضرورية';
+
+  @override
+  String get bucketLuxury => 'كمالية';
+
+  @override
+  String get income => 'دخل';
+
+  @override
+  String get expense => 'مصروف';
+
+  @override
+  String get other => 'أخرى';
+
+  @override
+  String get catFoodDrinks => 'طعام ومشروبات';
+
+  @override
+  String get catGroceries => 'بقالة';
+
+  @override
+  String get catEntertainment => 'ترفيه';
+
+  @override
+  String get catOthers => 'أخرى';
+
+  @override
+  String get catRent => 'إيجار';
+
+  @override
+  String get catShopping => 'تسوق';
+
+  @override
+  String get catTransport => 'مواصلات';
+
+  @override
+  String get catHealth => 'صحة';
+
+  @override
+  String get catBills => 'فواتير وخدمات';
+
+  @override
+  String get catSavings => 'ادخار';
+
+  @override
+  String get budgetDayHelp =>
+      'تبدأ دورة ميزانيتك في هذا اليوم من كل شهر، وغالباً يكون يوم الراتب.';
+
+  @override
+  String get dayOfMonth => 'يوم الشهر';
+
+  @override
+  String get enterDay => 'أدخل يوماً';
+
+  @override
+  String get enterValidNumber => 'أدخل رقماً صحيحاً';
+
+  @override
+  String get dayRange => 'يجب أن يكون اليوم بين 1 و31';
+
+  @override
+  String currentDay(String day) {
+    return 'الحالي: اليوم $day';
+  }
+
+  @override
+  String get save => 'حفظ';
+
+  @override
+  String budgetDayUpdated(String day) {
+    return 'أصبح يوم بداية الميزانية $day';
+  }
+
+  @override
+  String get budgetDayFailed => 'تعذّر تحديث اليوم. حاول مرة أخرى.';
+
+  @override
+  String get allAccounts => 'كل الحسابات';
+
+  @override
+  String get allCategories => 'كل الفئات';
+
+  @override
+  String get uncategorized => 'بلا فئة';
+
+  @override
+  String categoryUpdated(String name) {
+    return 'تغيّرت الفئة إلى $name';
+  }
+
+  @override
+  String get category => 'الفئة';
+
+  @override
+  String get type => 'النوع';
+
+  @override
+  String get merchant => 'التاجر';
+
+  @override
+  String get account => 'الحساب';
+
+  @override
+  String get source => 'المصدر';
+
+  @override
+  String get sourceManual => 'يدوي';
+
+  @override
+  String get sourceSms => 'رسالة نصية';
+
+  @override
+  String get sourceBank => 'البنك';
+
+  @override
+  String get description => 'الوصف';
+
+  @override
+  String get addedBy => 'أضافها';
+
+  @override
+  String get date => 'التاريخ';
+
+  @override
+  String get assignToHousehold => 'إضافة إلى المنزل المشترك';
+
+  @override
+  String get transactionDeleted => 'حُذفت المعاملة';
+
+  @override
+  String transactionDeleteError(String error) {
+    return 'تعذّر حذف المعاملة: $error';
+  }
+
+  @override
+  String get deleteTransaction => 'حذف المعاملة';
+
+  @override
+  String get removeFromHousehold => 'إزالة من المنزل المشترك';
+
+  @override
+  String get notInAnyHousehold => 'لست عضواً في أي منزل مشترك.';
+
+  @override
+  String get transactionNotFound => 'لم نجد المعاملة';
+
+  @override
+  String assignedTo(String name) {
+    return 'أُضيفت إلى \"$name\"';
+  }
+
+  @override
+  String get loadTransactionsFailed => 'تعذّر تحميل المعاملات';
+
+  @override
+  String get retry => 'إعادة المحاولة';
+
+  @override
+  String get noTransactionsTitle => 'لا معاملات بعد';
+
+  @override
+  String get addFirstTransaction => 'اضغط + لإضافة أول معاملة.';
+
+  @override
+  String get refresh => 'تحديث';
+
+  @override
+  String get noMatchingTransactions => 'لا معاملات تطابق هذه الفلاتر';
+
+  @override
+  String get tryOtherFilters => 'جرّب حساباً أو فئة أو تاريخاً آخر.';
+
+  @override
+  String get clearFilters => 'مسح الفلاتر';
+
+  @override
+  String get selectMonth => 'اختر الشهر';
+
+  @override
+  String get periodAll => 'الكل';
+
+  @override
+  String get periodLast7 => 'آخر 7 أيام';
+
+  @override
+  String get periodLast30 => 'آخر 30 يوماً';
+
+  @override
+  String get month => 'الشهر';
+
+  @override
+  String get transactionsTitle => 'المعاملات';
+
+  @override
+  String get deleteTransactionTitle => 'حذف هذه المعاملة؟';
+
+  @override
+  String deleteTxnReturned(String amount) {
+    return 'ستُحذف ويُعاد $amount إلى رصيد الحساب.';
+  }
+
+  @override
+  String deleteTxnTakenOff(String amount) {
+    return 'ستُحذف ويُخصم $amount من رصيد الحساب.';
+  }
+
+  @override
+  String transactionDeleteFailed(String error) {
+    return 'تعذّر حذف المعاملة: $error';
+  }
+
+  @override
+  String get addTransaction => 'إضافة معاملة';
+
+  @override
+  String get removeATransaction => 'حذف معاملة';
+
+  @override
+  String get enterValidAmount => 'أدخل مبلغاً صحيحاً.';
+
+  @override
+  String get selectAnAccount => 'اختر حساباً.';
+
+  @override
+  String get transactionAdded => 'أُضيفت المعاملة.';
+
+  @override
+  String get smsNoAmount =>
+      'لم نجد مبلغاً في هذه الرسالة. جرّب الإدخال اليدوي.';
+
+  @override
+  String get addATransaction => 'إضافة معاملة';
+
+  @override
+  String get pasteBankSms => 'الصق رسالة البنك';
+
+  @override
+  String get trySample => 'جرّب رسالة نموذجية';
+
+  @override
+  String get readMessage => 'قراءة الرسالة';
+
+  @override
+  String get smsWillFill => 'سنعبّئ التفاصيل لتراجعها قبل الحفظ.';
+
+  @override
+  String get filledFromSms => 'عبّأناها من رسالتك. راجع التفاصيل أدناه.';
+
+  @override
+  String get noAccountsAddInWallet =>
+      'لا حسابات بعد. أضف حساباً من المحفظة أولاً.';
+
+  @override
+  String amountIn(String currency) {
+    return 'المبلغ ($currency)';
+  }
+
+  @override
+  String get merchantFrom => 'التاجر / المرسل';
+
+  @override
+  String get noteOptional => 'ملاحظة (اختياري)';
+
+  @override
+  String transactionCountRecent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count معاملة · الأحدث أولاً',
+      many: '$count معاملة · الأحدث أولاً',
+      few: '$count معاملات · الأحدث أولاً',
+      two: 'معاملتان · الأحدث أولاً',
+      one: 'معاملة واحدة · الأحدث أولاً',
+    );
+    return '$_temp0';
+  }
 }

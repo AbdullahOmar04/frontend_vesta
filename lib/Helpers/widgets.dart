@@ -13,6 +13,8 @@ import 'package:frontend_vesta/Screens/pages/accounts.dart';
 
 import 'dart:async';
 
+import 'package:intl/intl.dart';
+
 Future<void> fetchCurrentCycleData() async {
   final uid = FirebaseAuth.instance.currentUser?.uid;
   if (uid == null) return;
@@ -294,7 +296,7 @@ Future<void> inputDayOfMonth(BuildContext context) async {
         builder: (context, setState) {
           final v = context.vesta;
           return VestaDialog(
-            title: "Budget reset day",
+            title: context.l10n.prefsResetDay,
             content: Form(
               key: formKey,
               child: Column(
@@ -302,7 +304,7 @@ Future<void> inputDayOfMonth(BuildContext context) async {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Your budget cycle starts on this day each month, usually payday.",
+                    context.l10n.budgetDayHelp,
                     style: TextStyle(fontSize: 13, color: v.muted),
                   ),
                   const SizedBox(height: 14),
@@ -310,33 +312,33 @@ Future<void> inputDayOfMonth(BuildContext context) async {
                     controller: controller,
                     autofocus: true,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: "Day of month",
+                    decoration: InputDecoration(
+                      labelText: context.l10n.dayOfMonth,
                       hintText: "1-31",
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Please enter a day';
+                        return context.l10n.enterDay;
                       }
                       final day = int.tryParse(value.trim());
                       if (day == null) {
-                        return 'Please enter a valid number';
+                        return context.l10n.enterValidNumber;
                       }
                       if (day < 1 || day > 31) {
-                        return 'Day must be between 1 and 31';
+                        return context.l10n.dayRange;
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: VestaSpace.sm),
                   Text(
-                    "Current: day $dayOfMonth",
+                    context.l10n.currentDay('$dayOfMonth'),
                     style: TextStyle(fontSize: 12, color: v.muted),
                   ),
                 ],
               ),
             ),
-            confirmLabel: "Save",
+            confirmLabel: context.l10n.save,
             onConfirm: isLoading
                 ? null
                 : () async {
@@ -362,7 +364,7 @@ Future<void> inputDayOfMonth(BuildContext context) async {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                "Budget reset day updated to $newDay",
+                                context.l10n.budgetDayUpdated('$newDay'),
                               ),
                             ),
                           );
@@ -376,8 +378,8 @@ Future<void> inputDayOfMonth(BuildContext context) async {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: const Text(
-                              "Failed to update day. Try again.",
+                            content: Text(
+                              context.l10n.budgetDayFailed,
                             ),
                             backgroundColor: Theme.of(
                               context,
@@ -413,9 +415,9 @@ class AccountFilterDropdown extends StatelessWidget {
     return _FilterDropdownShell<String?>(
       value: selectedAccountId,
       hintIcon: PhosphorIconsRegular.wallet,
-      hintText: 'All accounts',
+      hintText: context.l10n.allAccounts,
       items: [
-        const _FilterItem(null, 'All accounts', PhosphorIconsRegular.wallet),
+        _FilterItem(null, context.l10n.allAccounts, PhosphorIconsRegular.wallet),
         ...accounts.map(
           (acc) => _FilterItem(acc.id, acc.label, PhosphorIconsRegular.bank),
         ),
@@ -442,14 +444,14 @@ class CategoryFilterDropdown extends StatelessWidget {
     return _FilterDropdownShell<String?>(
       value: selectedCategory,
       hintIcon: PhosphorIconsRegular.funnelSimple,
-      hintText: 'All categories',
+      hintText: context.l10n.allCategories,
       items: [
-        const _FilterItem(
+        _FilterItem(
           null,
-          'All categories',
+          context.l10n.allCategories,
           PhosphorIconsRegular.funnelSimple,
         ),
-        ...categories.map((cat) => _FilterItem(cat, cat, categoryIcon(cat))),
+        ...categories.map((cat) => _FilterItem(cat, categoryLabel(cat), categoryIcon(cat))),
       ],
       onChanged: onChanged,
     );
@@ -568,7 +570,7 @@ class _TransactionCardState extends State<TransactionCard> {
     for (final s in [t.merchantName, t.description, t.category]) {
       if (s != null && s.trim().isNotEmpty) return s.trim();
     }
-    return t.isDebit ? 'Expense' : 'Income';
+    return t.isDebit ? context.l10n.expense : context.l10n.income;
   }
 
   String? get _accountText {
@@ -579,8 +581,8 @@ class _TransactionCardState extends State<TransactionCard> {
   String get _subtitle {
     final t = widget.transaction;
     final category = t.category != null && t.category!.isNotEmpty
-        ? t.category!
-        : 'Uncategorized';
+        ? categoryLabel(t.category!)
+        : context.l10n.uncategorized;
     return widget.showDate ? '$category · ${shortDateLabel(t.date)}' : category;
   }
 
@@ -712,12 +714,12 @@ class _TransactionCardState extends State<TransactionCard> {
 
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Updated category to $value")));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.categoryUpdated(categoryLabel(value)))));
       widget.onCategoryChanged?.call();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Error: $e"),
+          content: Text(context.l10n.errorWith('$e')),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -742,8 +744,12 @@ class _TransactionCardState extends State<TransactionCard> {
 
   void _showDetailsSheet(BuildContext context) {
     final isDebit = widget.transaction.isDebit;
-    final typeLabel = isDebit ? "Expense" : "Income";
-    final sourceLabel = widget.transaction.source.name;
+    final typeLabel = isDebit ? context.l10n.expense : context.l10n.income;
+    final sourceLabel = switch (widget.transaction.source) {
+      TransactionSource.manual => context.l10n.sourceManual,
+      TransactionSource.smsPaste => context.l10n.sourceSms,
+      TransactionSource.openBanking => context.l10n.sourceBank,
+    };
 
     showModalBottomSheet(
       context: context,
@@ -822,7 +828,7 @@ class _TransactionCardState extends State<TransactionCard> {
                           children: [
                             Expanded(
                               child: Text(
-                                'Category',
+                                context.l10n.category,
                                 style: Theme.of(sheetContext).textTheme.bodySmall,
                               ),
                             ),
@@ -836,7 +842,7 @@ class _TransactionCardState extends State<TransactionCard> {
                               GestureDetector(
                                 onTap: () => pick("Unassign"),
                                 child: Text(
-                                  'Remove',
+                                  context.l10n.remove,
                                   style: TextStyle(fontSize: 12, color: v.accentInk),
                                 ),
                               ),
@@ -849,7 +855,7 @@ class _TransactionCardState extends State<TransactionCard> {
                           children: [
                             for (final label in labels)
                               ChoiceTag(
-                                label: label,
+                                label: categoryLabel(label),
                                 icon: categoryIcon(label),
                                 selected: current == label,
                                 onTap: _isUpdating || current == label
@@ -859,23 +865,23 @@ class _TransactionCardState extends State<TransactionCard> {
                           ],
                         ),
                         const SizedBox(height: VestaSpace.lg),
-                        _info(sheetContext, "Type", typeLabel),
+                        _info(sheetContext, context.l10n.type, typeLabel),
                         _info(
                           sheetContext,
-                          "Merchant",
+                          context.l10n.merchant,
                           widget.transaction.merchantName ?? "—",
                         ),
-                        _info(sheetContext, "Account", _accountText ?? "—"),
-                        _info(sheetContext, "Source", sourceLabel),
+                        _info(sheetContext, context.l10n.account, _accountText ?? "—"),
+                        _info(sheetContext, context.l10n.source, sourceLabel),
                         if (widget.transaction.description?.isNotEmpty == true)
                           _info(
                             sheetContext,
-                            "Description",
+                            context.l10n.description,
                             widget.transaction.description!,
                           ),
                         _info(
                           sheetContext,
-                          "Date",
+                          context.l10n.date,
                           _formatDateInDetails(widget.transaction.date),
                         ),
                       ],
@@ -889,7 +895,7 @@ class _TransactionCardState extends State<TransactionCard> {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: OutlineButton(
-                          label: 'Assign to household',
+                          label: context.l10n.assignToHousehold,
                           onPressed: () => _showAssignToHouseholdSheet(context),
                         ),
                       );
@@ -907,8 +913,8 @@ class _TransactionCardState extends State<TransactionCard> {
                             .then((_) {
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Transaction deleted"),
+                                SnackBar(
+                                  content: Text(context.l10n.transactionDeleted),
                                 ),
                               );
                               widget.onDeleted?.call();
@@ -917,14 +923,14 @@ class _TransactionCardState extends State<TransactionCard> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    "Error deleting transaction: $e",
+                                    context.l10n.transactionDeleteError('$e'),
                                   ),
                                   backgroundColor: Theme.of(context).colorScheme.error,
                                 ),
                               );
                             });
                       },
-                      child: const Text('Delete transaction'),
+                      child: Text(context.l10n.deleteTransaction),
                     ),
                   ),
                 ],
@@ -959,23 +965,8 @@ class _TransactionCardState extends State<TransactionCard> {
 
   static String _formatDateInDetails(DateTime dt) {
     if (dt.millisecondsSinceEpoch == 0) return "—";
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    return "${months[dt.month - 1]} ${dt.day}, ${dt.year}, "
-        "${dt.hour.toString().padLeft(2, '0')}:"
-        "${dt.minute.toString().padLeft(2, '0')}";
+    
+    return DateFormat.yMMMd().add_Hm().format(dt);
   }
 
   void _showAssignToHouseholdSheet(BuildContext context) async {
@@ -994,7 +985,7 @@ class _TransactionCardState extends State<TransactionCard> {
     if (householdIds.isEmpty) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("You are not part of any household.")),
+          SnackBar(content: Text(context.l10n.notInAnyHousehold)),
         );
       }
       return;
@@ -1019,7 +1010,7 @@ class _TransactionCardState extends State<TransactionCard> {
           VestaSpace.gutter,
         ),
         children: [
-          Text("Assign to household", style: headingStyle(17)),
+          Text(context.l10n.assignToHousehold, style: headingStyle(17)),
           const SizedBox(height: 12),
           ...householdDocs.docs.map((doc) {
             final data = doc.data();
@@ -1046,7 +1037,7 @@ class _TransactionCardState extends State<TransactionCard> {
 
                 if (!transactionSnapshot.exists) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Transaction not found")),
+                    SnackBar(content: Text(context.l10n.transactionNotFound)),
                   );
                   return;
                 }
@@ -1073,7 +1064,7 @@ class _TransactionCardState extends State<TransactionCard> {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text("Assigned to '$name' successfully!"),
+                      content: Text(context.l10n.assignedTo(name)),
                     ),
                   );
                 }
@@ -1122,14 +1113,14 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
     for (final s in [t.merchantName, t.description, t.category]) {
       if (s != null && s.trim().isNotEmpty) return s.trim();
     }
-    return t.isDebit ? 'Expense' : 'Income';
+    return t.isDebit ? context.l10n.expense : context.l10n.income;
   }
 
   String get _subtitle {
     final t = widget.transaction;
     final category = t.category != null && t.category!.isNotEmpty
-        ? t.category!
-        : 'Uncategorized';
+        ? categoryLabel(t.category!)
+        : context.l10n.uncategorized;
     return '$category · ${shortDateLabel(t.date)}';
   }
 
@@ -1250,12 +1241,12 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
 
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Updated category to $value")));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.categoryUpdated(categoryLabel(value)))));
       widget.onCategoryChanged?.call();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Error: $e"),
+          content: Text(context.l10n.errorWith('$e')),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -1276,8 +1267,12 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
 
   void _showDetailsSheet(BuildContext context) {
     final isDebit = widget.transaction.isDebit;
-    final typeLabel = isDebit ? "Expense" : "Income";
-    final sourceLabel = widget.transaction.source.name;
+    final typeLabel = isDebit ? context.l10n.expense : context.l10n.income;
+    final sourceLabel = switch (widget.transaction.source) {
+      TransactionSource.manual => context.l10n.sourceManual,
+      TransactionSource.smsPaste => context.l10n.sourceSms,
+      TransactionSource.openBanking => context.l10n.sourceBank,
+    };
 
     showModalBottomSheet(
       context: context,
@@ -1351,7 +1346,7 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
                           children: [
                             Expanded(
                               child: Text(
-                                'Category',
+                                context.l10n.category,
                                 style: Theme.of(sheetContext).textTheme.bodySmall,
                               ),
                             ),
@@ -1365,7 +1360,7 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
                               GestureDetector(
                                 onTap: () => pick("Unassign"),
                                 child: Text(
-                                  'Remove',
+                                  context.l10n.remove,
                                   style: TextStyle(fontSize: 12, color: v.accentInk),
                                 ),
                               ),
@@ -1378,7 +1373,7 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
                           children: [
                             for (final label in categoryLabels)
                               ChoiceTag(
-                                label: label,
+                                label: categoryLabel(label),
                                 icon: categoryIcon(label),
                                 selected: current == label,
                                 onTap: _isUpdating || current == label
@@ -1388,29 +1383,29 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
                           ],
                         ),
                         const SizedBox(height: VestaSpace.lg),
-                        _info(sheetContext, "Type", typeLabel),
+                        _info(sheetContext, context.l10n.type, typeLabel),
                         _info(
                           sheetContext,
-                          "Merchant",
+                          context.l10n.merchant,
                           widget.transaction.merchantName ?? "—",
                         ),
                         _info(
                           sheetContext,
-                          "Account",
+                          context.l10n.account,
                           widget.transaction.accountLabel ?? "—",
                         ),
-                        _info(sheetContext, "Source", sourceLabel),
+                        _info(sheetContext, context.l10n.source, sourceLabel),
                         if (widget.transaction.description?.isNotEmpty == true)
                           _info(
                             sheetContext,
-                            "Description",
+                            context.l10n.description,
                             widget.transaction.description!,
                           ),
                         if (_addedByName != null)
-                          _info(sheetContext, "Added by", _addedByName!),
+                          _info(sheetContext, context.l10n.addedBy, _addedByName!),
                         _info(
                           sheetContext,
-                          "Date",
+                          context.l10n.date,
                           _formatDateInDetails(widget.transaction.date),
                         ),
                       ],
@@ -1429,8 +1424,8 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
                             .then((_) {
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Transaction deleted"),
+                                SnackBar(
+                                  content: Text(context.l10n.transactionDeleted),
                                 ),
                               );
                               widget.onDeleted?.call();
@@ -1439,14 +1434,14 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    "Error deleting transaction: $e",
+                                    context.l10n.transactionDeleteError('$e'),
                                   ),
                                   backgroundColor: Theme.of(context).colorScheme.error,
                                 ),
                               );
                             });
                       },
-                      child: const Text('Remove from household'),
+                      child: Text(context.l10n.removeFromHousehold),
                     ),
                   ),
                 ],
@@ -1479,23 +1474,8 @@ class _HouseholdTransactionCardState extends State<HouseholdTransactionCard> {
 
   static String _formatDateInDetails(DateTime dt) {
     if (dt.millisecondsSinceEpoch == 0) return "—";
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    return "${months[dt.month - 1]} ${dt.day}, ${dt.year}, "
-        "${dt.hour.toString().padLeft(2, '0')}:"
-        "${dt.minute.toString().padLeft(2, '0')}";
+    
+    return DateFormat.yMMMd().add_Hm().format(dt);
   }
 }
 
@@ -1514,9 +1494,9 @@ class ErrorView extends StatelessWidget {
         child: _StateMessage(
           icon: PhosphorIconsRegular.warningCircle,
           iconColor: context.vesta.neg,
-          title: "Couldn't load transactions",
+          title: context.l10n.loadTransactionsFailed,
           message: message,
-          actionLabel: "Retry",
+          actionLabel: context.l10n.retry,
           onAction: onRetry,
         ),
       ),
@@ -1534,9 +1514,9 @@ class EmptyTransactionsState extends StatelessWidget {
   Widget build(BuildContext context) {
     return _StateMessage(
       icon: PhosphorIconsRegular.receipt,
-      title: "No transactions yet",
-      message: "Tap + to add your first one.",
-      actionLabel: "Refresh",
+      title: context.l10n.noTransactionsTitle,
+      message: context.l10n.addFirstTransaction,
+      actionLabel: context.l10n.refresh,
       onAction: onSync,
     );
   }
@@ -1551,9 +1531,9 @@ class EmptyFilterState extends StatelessWidget {
   Widget build(BuildContext context) {
     return _StateMessage(
       icon: PhosphorIconsRegular.funnelSimple,
-      title: "No transactions match these filters",
-      message: "Try a different account, category or date.",
-      actionLabel: "Clear filters",
+      title: context.l10n.noMatchingTransactions,
+      message: context.l10n.tryOtherFilters,
+      actionLabel: context.l10n.clearFilters,
       onAction: onClearFilter,
     );
   }

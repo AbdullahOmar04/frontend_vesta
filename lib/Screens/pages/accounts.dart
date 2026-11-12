@@ -24,7 +24,7 @@ class _AccountsPageState extends State<AccountsPage> {
   Future<void> _showDeleteDialog(String accountId, String bankName) async {
     final confirmed = await confirmDialog(
       context,
-      title: context.l10n.deleteNameTitle(accountTypeLabel(context, bankName)),
+      title: context.l10n.deleteNameTitle(accountTypeLabel(bankName)),
       message: context.l10n.deleteAccountMessage,
       confirmLabel: context.l10n.delete,
     );
@@ -200,7 +200,7 @@ class _AccountsPageState extends State<AccountsPage> {
     final iban = acc["iban"]?.toString().trim() ?? "";
     final mask = acc["mask"]?.toString().trim() ?? "";
     final last4 = iban.length >= 4 ? iban.substring(iban.length - 4) : mask;
-    final typeLabel = accountTypeLabel(context, accountType);
+    final typeLabel = accountTypeLabel(accountType);
     final subtitle = last4.isNotEmpty ? "$typeLabel · •••• $last4" : typeLabel;
 
     final balance = _balanceOf(acc);
@@ -234,7 +234,7 @@ class _AccountsPageState extends State<AccountsPage> {
                     children: [
                       Expanded(
                         child: Text(
-                          accountTypeLabel(context, bankName),
+                          accountTypeLabel(bankName),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontWeight: FontWeight.w500),
