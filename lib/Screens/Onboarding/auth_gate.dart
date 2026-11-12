@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Helpers/biometric_service.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
@@ -68,7 +69,7 @@ class _AuthGateState extends State<AuthGate> {
   Future<void> _unlock() async {
     if (_unlocking) return;
     setState(() => _unlocking = true);
-    final ok = await _biometrics.authenticate(reason: 'Unlock Vesta');
+    final ok = await _biometrics.authenticate(reason: context.l10n.unlockReason);
     if (!mounted) return;
     setState(() => _unlocking = false);
     if (ok) _open();
@@ -115,26 +116,25 @@ class _AuthGateState extends State<AuthGate> {
                 const SizedBox(height: VestaSpace.lg),
                 Text(
                   name == null || name.isEmpty
-                      ? 'Welcome back'
-                      : 'Welcome back, $name',
+                      ? context.l10n.welcomeBack : context.l10n.welcomeBackName(name),
                   textAlign: TextAlign.center,
                   style: headingStyle(24),
                 ),
                 const SizedBox(height: VestaSpace.sm),
                 Text(
-                  'Unlock to see your money.',
+                  context.l10n.unlockSubtitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14, color: v.muted),
                 ),
                 const SizedBox(height: VestaSpace.xl),
                 PrimaryButton(
-                  label: 'Unlock',
+                  label: context.l10n.unlock,
                   loading: _unlocking,
                   onPressed: _unlock,
                 ),
                 const SizedBox(height: 10),
                 OutlineButton(
-                  label: 'Log in with password',
+                  label: context.l10n.logInWithPassword,
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const Login()),
@@ -145,8 +145,8 @@ class _AuthGateState extends State<AuthGate> {
                 const SizedBox(height: VestaSpace.sm),
                 TextButton(
                   onPressed: _unlocking ? null : _useAnotherAccount,
-                  child: const Text(
-                    'Not you? Use another account or sign up',
+                  child: Text(
+                    context.l10n.notYou,
                     textAlign: TextAlign.center,
                   ),
                 ),

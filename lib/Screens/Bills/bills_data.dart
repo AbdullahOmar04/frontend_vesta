@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
 
 // Bills the user adds live in users/{uid}/bills/{billId}:
@@ -92,7 +93,7 @@ class UpcomingPayment {
     return UpcomingPayment(
       source: PaymentSource.bill,
       billId: id,
-      title: (data['name'] ?? 'Bill').toString(),
+      title: (data['name'] ?? l10nNow.billFallback).toString(),
       amount: (data['amount'] as num?)?.toDouble() ?? 0,
       currency: (data['currency'] ?? 'JOD').toString(),
       dueDay: dueDay,
@@ -113,7 +114,8 @@ class UpcomingPayment {
   ) {
     final schedule = sosp['paymentSchedule'] as Map<String, dynamic>?;
     final next = schedule?['nextPaymentAmount'] as Map<String, dynamic>?;
-    final nickname = (sosp['SOSPNickname'] ?? 'Scheduled payment').toString();
+    final nickname = (sosp['SOSPNickname'] ?? l10nNow.scheduledPayment)
+        .toString();
     return UpcomingPayment(
       source: PaymentSource.standingOrder,
       title:
@@ -153,9 +155,12 @@ Future<List<UpcomingPayment>> loadUpcomingPayments() async {
     final data = account.data();
     accountNames[account.id] = AccountInfo(
       id: account.id,
-      name: (data['nickname'] ?? data['accountName'] ?? data['name'] ??
-              'Account ${account.id}')
-          .toString(),
+      name:
+          (data['nickname'] ??
+                  data['accountName'] ??
+                  data['name'] ??
+                  l10nNow.accountFallback(account.id))
+              .toString(),
       type: data['accountTypeName'] as String?,
     ).label;
 

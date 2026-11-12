@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:firebase_auth/firebase_auth.dart'; 
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
@@ -51,35 +52,35 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
       context: context,
       barrierDismissible: false,
       builder: (context) => VestaDialog(
-        title: 'Phone Number Blocked',
+        title: context.l10n.blockedTitle,
         icon: PhosphorIconsRegular.warningCircle,
         iconColor: context.vesta.neg,
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Your phone number has been temporarily blocked due to multiple verification attempts.',
+              context.l10n.blockedVerifyBody,
               style: TextStyle(fontSize: 15),
             ),
             SizedBox(height: 16),
             Text(
-              'Block Duration: 30 minutes',
+              context.l10n.blockedDuration,
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
             SizedBox(height: 12),
             Text(
-              'To regain access:',
+              context.l10n.blockedRegain,
               style: TextStyle(fontWeight: FontWeight.w500),
             ),
             SizedBox(height: 8),
-            Text('1. Wait for the block period to expire (up to 30 minutes)'),
-            Text('2. Ensure you have access to the phone number'),
-            Text('3. Try again after the waiting period'),
+            Text(context.l10n.blockedStep1),
+            Text(context.l10n.blockedStep2),
+            Text(context.l10n.blockedStep3Later),
           ],
         ),
         cancelLabel: null,
-        confirmLabel: 'OK',
+        confirmLabel: context.l10n.ok,
         onConfirm: () => Navigator.of(context).pop(),
       ),
     );
@@ -93,7 +94,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            "Enter a valid Jordan number starting with 7 (e.g. 79xxxxxxx)",
+            context.l10n.phoneInvalid,
           ),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
@@ -119,7 +120,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(e.message ?? "Phone verification failed"),
+                content: Text(e.message ?? context.l10n.phoneVerifyFailed),
                 backgroundColor: Theme.of(context).colorScheme.error,
               ),
             );
@@ -154,7 +155,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Error starting phone verification: $e"),
+            content: Text(context.l10n.phoneVerifyStartError('$e')),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -167,7 +168,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
     final v = context.vesta;
 
     return Scaffold(
-      appBar: const VestaAppBar(title: 'Sign up'),
+      appBar: VestaAppBar(title: context.l10n.signUp),
       body: VestaBackground(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
@@ -177,10 +178,10 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
             VestaSpace.xl,
           ),
           children: [
-            Text('Your phone number', style: headingStyle(24)),
+            Text(context.l10n.phoneTitle, style: headingStyle(24)),
             const SizedBox(height: VestaSpace.xs),
             Text(
-              "We'll send you a verification code to the provided number.",
+              context.l10n.phoneSubtitle,
               style: TextStyle(fontSize: 14, color: v.muted),
             ),
             const SizedBox(height: VestaSpace.xl),
@@ -188,15 +189,15 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
               controller: _phoneController,
               keyboardType: TextInputType.number,
               style: amountStyle(16),
-              decoration: const InputDecoration(
-                labelText: 'Phone number',
+              decoration: InputDecoration(
+                labelText: context.l10n.phoneLabel,
                 prefixText: '+962 ',
                 hintText: '7XXXXXXX',
               ),
             ),
             const SizedBox(height: VestaSpace.xl),
             PrimaryButton(
-              label: 'Send code',
+              label: context.l10n.sendCode,
               loading: _loading,
               onPressed: _goToOtp,
             ),

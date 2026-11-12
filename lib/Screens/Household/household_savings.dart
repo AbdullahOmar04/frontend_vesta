@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icon_picker.dart';
@@ -37,7 +38,7 @@ class _HouseholdSavingsTabState extends State<HouseholdSavingsTab> {
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text('Something went wrong: $e')));
+    ).showSnackBar(SnackBar(content: Text(context.l10n.somethingWentWrong('$e'))));
   }
 
   Future<void> _addGoal() async {
@@ -55,18 +56,16 @@ class _HouseholdSavingsTabState extends State<HouseholdSavingsTab> {
     if (added && mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Shared goal added')));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.sharedGoalAdded)));
     }
   }
 
   Future<void> _removeGoal(HouseholdGoal goal) async {
     final sure = await confirmDialog(
       context,
-      title: 'Delete ${goal.title}?',
-      message:
-          "It's removed for everyone. What members put in goes back to their "
-          'free share.',
-      confirmLabel: 'Delete',
+      title: context.l10n.deleteNameTitle(goal.title),
+      message: context.l10n.deleteSharedGoalMessage,
+      confirmLabel: context.l10n.delete,
     );
     if (!sure) return;
     try {
@@ -103,10 +102,13 @@ class _HouseholdSavingsTabState extends State<HouseholdSavingsTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Total saved', style: TextStyle(fontSize: 12, color: v.muted)),
+          Text(
+            context.l10n.totalSaved,
+            style: TextStyle(fontSize: 12, color: v.muted),
+          ),
           const SizedBox(height: VestaSpace.xs),
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: MoneyText.hero(s.totalSaved, size: 30),
           ),
           const SizedBox(height: VestaSpace.md),
@@ -116,12 +118,12 @@ class _HouseholdSavingsTabState extends State<HouseholdSavingsTab> {
             children: [
               Expanded(
                 child: Text(
-                  'Shared by members',
+                  context.l10n.sharedByMembers,
                   style: TextStyle(fontSize: 12, color: v.muted),
                 ),
               ),
               Text(
-                'Allocated / shared',
+                context.l10n.allocatedShared,
                 style: TextStyle(fontSize: 12, color: v.muted),
               ),
             ],
@@ -134,7 +136,7 @@ class _HouseholdSavingsTabState extends State<HouseholdSavingsTab> {
             children: [
               Expanded(
                 child: Text(
-                  'Left to allocate',
+                  context.l10n.leftToAllocate,
                   style: TextStyle(fontSize: 13, color: v.muted),
                 ),
               ),
@@ -150,15 +152,14 @@ class _HouseholdSavingsTabState extends State<HouseholdSavingsTab> {
               minimumSize: const Size.fromHeight(46),
             ),
             icon: const Icon(PhosphorIconsRegular.handCoins, size: 18),
-            label: const Text('Set how much you share'),
+            label: Text(context.l10n.setHowMuchYouShare),
           ),
           const SizedBox(height: VestaSpace.md),
           const Divider(),
           const SizedBox(height: 10),
           if (plan <= 0)
             Text(
-              "Set what you plan to add each month to track the household's "
-              'monthly savings.',
+              context.l10n.setMonthlyPlanHint,
               style: TextStyle(fontSize: 12, color: v.muted),
             )
           else ...[
@@ -166,13 +167,13 @@ class _HouseholdSavingsTabState extends State<HouseholdSavingsTab> {
               children: [
                 Expanded(
                   child: Text(
-                    '$monthName savings goal ${formatMoney(plan)}',
+                    context.l10n.monthSavingsGoal(monthName, formatMoney(plan)),
                     style: TextStyle(fontSize: 13, color: v.muted),
                   ),
                 ),
                 toGo <= 0
-                    ? TagChip('Reached', color: v.pos)
-                    : TagChip('Not yet', color: v.bucketLuxury),
+                    ? TagChip(context.l10n.reached, color: v.pos)
+                    : TagChip(context.l10n.notYet, color: v.bucketLuxury),
               ],
             ),
             const SizedBox(height: VestaSpace.sm),
@@ -182,10 +183,12 @@ class _HouseholdSavingsTabState extends State<HouseholdSavingsTab> {
             const SizedBox(height: VestaSpace.sm),
             Text(
               toGo <= 0
-                  ? '${formatMoney(savedThisMonth.toDouble())} saved this month.'
-                  : '${formatMoney(savedThisMonth.toDouble())} saved so far, '
-                        '${formatMoney(toGo.toDouble())} to go with '
-                        '${daysLeft == 1 ? '1 day' : '$daysLeft days'} left.',
+                  ? context.l10n.savedThisMonth(formatMoney(savedThisMonth.toDouble()))
+                  : context.l10n.savedSoFarToGo(
+                      formatMoney(savedThisMonth.toDouble()),
+                      formatMoney(toGo.toDouble()),
+                      context.l10n.remindersDays(daysLeft),
+                    ),
               style: TextStyle(fontSize: 12, color: v.muted),
             ),
           ],
@@ -215,7 +218,7 @@ class _HouseholdSavingsTabState extends State<HouseholdSavingsTab> {
                   children: [
                     Expanded(
                       child: Text(
-                        m.uid == _me ? '${m.name} (you)' : m.name,
+                        m.uid == _me ? context.l10n.nameYou(m.name) : m.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -237,13 +240,13 @@ class _HouseholdSavingsTabState extends State<HouseholdSavingsTab> {
                     Expanded(
                       child: Text(
                         (share?.monthly ?? 0) > 0
-                            ? 'Plans ${formatMoney(share!.monthly)} a month'
-                            : 'No monthly plan yet',
+                            ? context.l10n.plansPerMonth(formatMoney(share!.monthly))
+                            : context.l10n.noMonthlyPlan,
                         style: TextStyle(fontSize: 11, color: v.muted),
                       ),
                     ),
                     Text(
-                      '${formatMoney(s.freeFor(m.uid))} free',
+                      context.l10n.amountFree(formatMoney(s.freeFor(m.uid))),
                       style: TextStyle(fontSize: 11, color: v.pos),
                     ),
                   ],
@@ -264,14 +267,14 @@ class _HouseholdSavingsTabState extends State<HouseholdSavingsTab> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SectionHeader(
-            title: 'Saving goals',
+            title: context.l10n.savingGoals,
             trailing: [
               AddRemoveButtons(
                 onAdd: _addGoal,
-                addTooltip: 'New shared goal',
+                addTooltip: context.l10n.newSharedGoal,
                 removing: _removing,
                 canRemove: goals.isNotEmpty,
-                removeTooltip: 'Remove a goal',
+                removeTooltip: context.l10n.removeAGoal,
                 onToggleRemove: () => setState(() => _removing = !_removing),
               ),
             ],
@@ -281,8 +284,7 @@ class _HouseholdSavingsTabState extends State<HouseholdSavingsTab> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: VestaSpace.lg),
               child: Text(
-                'No shared goals yet. Add one to save for something '
-                'together.',
+                context.l10n.noSharedGoals,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: v.muted),
               ),
@@ -342,13 +344,18 @@ class _HouseholdSavingsTabState extends State<HouseholdSavingsTab> {
                     children: [
                       Expanded(
                         child: Text(
-                          '${formatMoney(goal.saved)} of ${formatMoney(goal.target)}',
+                          context.l10n.amountOfAmount(
+                            formatMoney(goal.saved),
+                            formatMoney(goal.target),
+                          ),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ),
                       if (goal.targetDate != null)
                         Text(
-                          'By ${DateFormat('MMM yyyy').format(goal.targetDate!)}',
+                          context.l10n.byDate(
+                            DateFormat('MMM yyyy').format(goal.targetDate!),
+                          ),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                     ],
@@ -444,9 +451,7 @@ class _ShareDialogState extends State<_ShareDialog> {
     final m = double.tryParse(_monthly.text.trim()) ?? 0;
     if (a < widget.allocated) {
       setState(
-        () => _error =
-            'You already put ${formatMoney(widget.allocated)} into goals, so '
-            'share at least that.',
+        () => _error = context.l10n.shareAtLeast(formatMoney(widget.allocated)),
       );
       return;
     }
@@ -458,7 +463,7 @@ class _ShareDialogState extends State<_ShareDialog> {
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = "Couldn't save: $e";
+          _error = context.l10n.saveFailed('$e');
         });
       }
     }
@@ -468,11 +473,9 @@ class _ShareDialogState extends State<_ShareDialog> {
   Widget build(BuildContext context) {
     final v = context.vesta;
     return VestaDialog(
-      title: 'Your savings share',
-      message:
-          'How much of your savings you share with the household, and what '
-          'you plan to add each month. Everyone in it sees these.',
-      confirmLabel: 'Save',
+      title: context.l10n.yourSavingsShare,
+      message: context.l10n.savingsShareMessage,
+      confirmLabel: context.l10n.save,
       loading: _saving,
       onConfirm: _save,
       content: Column(
@@ -483,9 +486,9 @@ class _ShareDialogState extends State<_ShareDialog> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [_moneyFormat],
             onChanged: (_) => setState(() => _error = null),
-            decoration: const InputDecoration(
-              labelText: 'Amount you share',
-              prefixText: 'JOD ',
+            decoration: InputDecoration(
+              labelText: context.l10n.amountYouShare,
+              prefixText: '${currencyLabel('JOD')} ',
             ),
           ),
           const SizedBox(height: VestaSpace.md),
@@ -494,9 +497,9 @@ class _ShareDialogState extends State<_ShareDialog> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [_moneyFormat],
             onChanged: (_) => setState(() => _error = null),
-            decoration: const InputDecoration(
-              labelText: 'You plan to add each month',
-              prefixText: 'JOD ',
+            decoration: InputDecoration(
+              labelText: context.l10n.planToAddMonthly,
+              prefixText: '${currencyLabel('JOD')} ',
             ),
           ),
           if (_error != null) ...[
@@ -543,15 +546,14 @@ class _ContributeDialogState extends State<_ContributeDialog> {
     final amount = double.tryParse(_amount.text.trim()) ?? 0;
     final limit = _takeOut ? widget.mine : widget.free;
     if (amount <= 0) {
-      setState(() => _error = 'Enter an amount.');
+      setState(() => _error = context.l10n.enterAnAmount);
       return;
     }
     if (amount > limit + 0.001) {
       setState(
         () => _error = _takeOut
-            ? 'You have ${formatMoney(widget.mine)} in this goal.'
-            : 'Your free share is ${formatMoney(widget.free)}. Share more '
-                  'first with "Set how much you share".',
+            ? context.l10n.youHaveInGoal(formatMoney(widget.mine))
+            : context.l10n.freeShareIs(formatMoney(widget.free)),
       );
       return;
     }
@@ -567,7 +569,7 @@ class _ContributeDialogState extends State<_ContributeDialog> {
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = "Couldn't save: $e";
+          _error = context.l10n.saveFailed('$e');
         });
       }
     }
@@ -579,7 +581,7 @@ class _ContributeDialogState extends State<_ContributeDialog> {
     final goal = widget.goal;
     return VestaDialog(
       title: goal.title,
-      confirmLabel: _takeOut ? 'Take out' : 'Add',
+      confirmLabel: _takeOut ? context.l10n.takeOut : context.l10n.add,
       destructive: _takeOut,
       loading: _saving,
       onConfirm: _save,
@@ -596,7 +598,10 @@ class _ContributeDialogState extends State<_ContributeDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${formatMoney(goal.saved)} of ${formatMoney(goal.target)} saved',
+                  context.l10n.savedOfTarget(
+                    formatMoney(goal.saved),
+                    formatMoney(goal.target),
+                  ),
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     color: v.tintText,
@@ -604,8 +609,10 @@ class _ContributeDialogState extends State<_ContributeDialog> {
                 ),
                 const SizedBox(height: VestaSpace.xs),
                 Text(
-                  'From you: ${formatMoney(widget.mine)} · Your free share: '
-                  '${formatMoney(widget.free)}',
+                  context.l10n.fromYouFreeShare(
+                    formatMoney(widget.mine),
+                    formatMoney(widget.free),
+                  ),
                   style: TextStyle(fontSize: 12, color: v.muted),
                 ),
               ],
@@ -615,7 +622,7 @@ class _ContributeDialogState extends State<_ContributeDialog> {
           Row(
             children: [
               ChoiceTag(
-                label: 'Add',
+                label: context.l10n.add,
                 icon: PhosphorIconsRegular.plus,
                 selected: !_takeOut,
                 onTap: () => setState(() {
@@ -625,7 +632,7 @@ class _ContributeDialogState extends State<_ContributeDialog> {
               ),
               const SizedBox(width: VestaSpace.sm),
               ChoiceTag(
-                label: 'Take out',
+                label: context.l10n.takeOut,
                 icon: PhosphorIconsRegular.minus,
                 selected: _takeOut,
                 onTap: () => setState(() {
@@ -643,8 +650,8 @@ class _ContributeDialogState extends State<_ContributeDialog> {
             inputFormatters: [_moneyFormat],
             onChanged: (_) => setState(() => _error = null),
             decoration: InputDecoration(
-              labelText: _takeOut ? 'Amount to take out' : 'Amount to add',
-              prefixText: 'JOD ',
+              labelText: _takeOut ? context.l10n.amountToTakeOut : context.l10n.amountToAdd,
+              prefixText: '${currencyLabel('JOD')} ',
             ),
           ),
           if (_error != null) ...[

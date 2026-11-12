@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
@@ -64,7 +65,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     final email = _email.text.trim();
 
     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
-      setState(() => _error = 'Enter a valid email address.');
+      setState(() => _error = context.l10n.enterValidEmail);
       return;
     }
 
@@ -73,6 +74,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
       _error = null;
     });
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     try {
       if (email.toLowerCase() != _savedEmail.toLowerCase()) {
         final sent = await _changeEmail(user, email);
@@ -80,7 +82,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           messenger.showSnackBar(
             SnackBar(
               content: Text(
-                'We sent a link to $email. Your email changes once you open it.',
+                l10n.emailLinkSent('\u2066$email\u2069'),
               ),
             ),
           );
@@ -99,7 +101,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = "Couldn't save: $e";
+          _error = l10n.saveFailed('$e');
         });
       }
     }
@@ -110,7 +112,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   Future<bool> _changeEmail(User user, String email) async {
     final taken = await _db.collection('emails').doc(email.toLowerCase()).get();
     if (taken.exists && taken.data()?['uid'] != user.uid) {
-      throw _Problem('That email already has a Vesta account.');
+      throw _Problem(l10nNow.emailTakenByOther);
     }
     try {
       await user.verifyBeforeUpdateEmail(email);
@@ -134,7 +136,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     );
 
     return Scaffold(
-      appBar: const VestaAppBar(title: 'Personal information'),
+      appBar: VestaAppBar(title: context.l10n.profilePersonalInfo),
       body: VestaBackground(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
@@ -171,29 +173,31 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        label('Username'),
+                        label(context.l10n.username),
                         // Not changeable for now (the Firestore rules refuse
                         // moving the usernames/{name} reservation)
-                        _LockedField(text: '@ $_savedUsername'),
+                        _LockedField(text: '\u2066@ $_savedUsername\u2069'),
                         const SizedBox(height: VestaSpace.md),
-                        label('Email'),
+                        label(context.l10n.email),
                         TextField(
                           controller: _email,
                           keyboardType: TextInputType.emailAddress,
                           onChanged: (_) => setState(() => _error = null),
                         ),
                         const SizedBox(height: VestaSpace.md),
-                        label('Phone number'),
+                        label(context.l10n.phoneLabel),
                         _LockedField(
-                          text: _phone.isEmpty ? 'Not added' : _phone,
+                          text: _phone.isEmpty
+                              ? context.l10n.notAdded
+                              : '\u2066$_phone\u2069',
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'To change your number, contact support.',
+                          context.l10n.changeNumberSupport,
                           style: TextStyle(fontSize: 11, color: v.muted),
                         ),
                         const SizedBox(height: VestaSpace.md),
-                        label('User ID'),
+                        label(context.l10n.userId),
                         _LockedField(
                           text: userId,
                           trailing: TextButton(
@@ -203,18 +207,18 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                               );
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('User ID copied'),
+                                  SnackBar(
+                                    content: Text(context.l10n.userIdCopied),
                                   ),
                                 );
                               }
                             },
-                            child: const Text('Copy'),
+                            child: Text(context.l10n.copy),
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          "Your user ID is given to you and can't be changed.",
+                          context.l10n.userIdFixed,
                           style: TextStyle(fontSize: 11, color: v.muted),
                         ),
                       ],
@@ -239,7 +243,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                         ),
                       ),
                       icon: const Icon(PhosphorIconsRegular.trash, size: 16),
-                      label: const Text('Delete Vesta account'),
+                      label: Text(context.l10n.deleteVestaAccount),
                     ),
                   ),
                   const SizedBox(height: VestaSpace.md),
@@ -247,14 +251,14 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     children: [
                       Expanded(
                         child: OutlineButton(
-                          label: 'Cancel',
+                          label: context.l10n.cancel,
                           onPressed: () => Navigator.pop(context),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: PrimaryButton(
-                          label: 'Save',
+                          label: context.l10n.save,
                           loading: _saving,
                           onPressed: _changed ? _save : null,
                         ),
@@ -284,7 +288,12 @@ class _LockedField extends StatelessWidget {
   Widget build(BuildContext context) {
     final v = context.vesta;
     return Container(
-      padding: EdgeInsets.fromLTRB(14, 4, trailing == null ? 14 : 4, 4),
+      padding: EdgeInsetsDirectional.fromSTEB(
+        14,
+        4,
+        trailing == null ? 14 : 4,
+        4,
+      ),
       constraints: const BoxConstraints(minHeight: 48),
       decoration: BoxDecoration(
         color: v.raised,

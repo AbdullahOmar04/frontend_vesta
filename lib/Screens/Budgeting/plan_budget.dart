@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
@@ -14,8 +15,8 @@ typedef BudgetSplit = ({double total, List<double> percents});
 Future<bool> showBudgetPlanDialog(BuildContext context) {
   return showBudgetSplitDialog(
     context,
-    title: 'Your budget plan',
-    totalLabel: 'Total monthly income',
+    title: context.l10n.yourBudgetPlan,
+    totalLabel: context.l10n.totalMonthlyIncome,
     load: _loadPersonalPlan,
     save: _savePersonalPlan,
   );
@@ -193,7 +194,7 @@ class _BudgetPlanDialogState extends State<_BudgetPlanDialog> {
       setState(() => _saving = false);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Couldn't save the plan: $e")));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.planSaveFailed('$e'))));
     }
   }
 
@@ -209,7 +210,7 @@ class _BudgetPlanDialogState extends State<_BudgetPlanDialog> {
               child: Center(child: CircularProgressIndicator()),
             )
           : _form(total),
-      confirmLabel: 'Save plan',
+      confirmLabel: context.l10n.savePlan,
       onConfirm: valid && !_loading ? _save : null,
       loading: _saving,
     );
@@ -218,7 +219,11 @@ class _BudgetPlanDialogState extends State<_BudgetPlanDialog> {
   Widget _form(double total) {
     final v = context.vesta;
     final colors = [v.bucketSavings, v.bucketEssential, v.bucketLuxury];
-    const labels = ['Savings', 'Necessities', 'Luxuries'];
+    final labels = [
+      context.l10n.bucketSavings,
+      context.l10n.bucketNecessities,
+      context.l10n.bucketLuxuries,
+    ];
     final amountFormat = FilteringTextInputFormatter.allow(
       RegExp(r'^\d*\.?\d{0,2}'),
     );
@@ -227,11 +232,11 @@ class _BudgetPlanDialogState extends State<_BudgetPlanDialog> {
     final left = income - planned;
 
     final (String status, Color statusColor) = income <= 0
-        ? ('Enter an amount to plan it.', v.muted)
+        ? (context.l10n.enterAmountToPlan, v.muted)
         : total > 100.05
-        ? ('Over by ${formatMoney(-left)}', v.neg)
+        ? (context.l10n.overBy(formatMoney(-left)), v.neg)
         : left.abs() < 0.01
-        ? ('All of it is planned', v.pos)
+        ? (context.l10n.allPlanned, v.pos)
         : ('${formatMoney(left)} left to plan', v.muted);
 
     return Column(
@@ -258,7 +263,7 @@ class _BudgetPlanDialogState extends State<_BudgetPlanDialog> {
             SizedBox(
               width: 104,
               child: Text(
-                'Amount',
+                context.l10n.amount,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12, color: v.muted),
               ),
@@ -348,7 +353,7 @@ class _BudgetPlanDialogState extends State<_BudgetPlanDialog> {
                     Expanded(
                       flex: (_num(_percents[i]).clamp(0, 100) * 10).round(),
                       child: Padding(
-                        padding: const EdgeInsets.only(right: 2),
+                        padding: const EdgeInsetsDirectional.only(end: 2),
                         child: ColoredBox(color: colors[i]),
                       ),
                     ),

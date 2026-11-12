@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:firebase_ai/firebase_ai.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Screens/Spending&Transaction/Transactions/transaction_models.dart';
 
 // A bank text is read on the phone first. Banks word their messages
@@ -79,9 +80,8 @@ Future<BankSms> readBankSms(
     // unless the payment may not have gone through
     if (local == null) rethrow;
     if (_declined.hasMatch(westernDigits(text).toLowerCase())) {
-      throw const BankSmsException(
-        'This may be a declined or failed payment. If it went through, '
-        'add it in Manual.',
+      throw BankSmsException(
+        l10nNow.smsMaybeDeclined,
       );
     }
     return local.sms;
@@ -199,8 +199,8 @@ const _months = [
   final lower = t.toLowerCase();
 
   if (_isOneTimeCode(lower)) {
-    throw const BankSmsException(
-      'This looks like a one-time code, not a payment.',
+    throw BankSmsException(
+      l10nNow.smsOneTimeCode,
     );
   }
 
@@ -432,8 +432,8 @@ BankSms bankSmsFromJson(
   List<String> categories = const [],
 }) {
   if (json['isTransaction'] != true) {
-    throw const BankSmsException(
-      "This message isn't a payment or a transfer. Try the Manual tab.",
+    throw BankSmsException(
+      l10nNow.smsNotAPayment,
     );
   }
 
@@ -445,8 +445,8 @@ BankSms bankSmsFromJson(
   if (amount == null ||
       amount <= 0 ||
       !numbersIn(text).any((n) => (n - amount).abs() < 0.0005)) {
-    throw const BankSmsException(
-      "We couldn't find an amount in this message. Try the Manual tab.",
+    throw BankSmsException(
+      l10nNow.smsNoAmount,
     );
   }
 

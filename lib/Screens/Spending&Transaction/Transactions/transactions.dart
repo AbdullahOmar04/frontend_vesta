@@ -2,6 +2,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/account_balance.dart';
 import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
@@ -278,7 +279,7 @@ class _TransactionsState extends State<Transactions> {
       firstDate: DateTime(2020),
       lastDate: now,
       initialDatePickerMode: DatePickerMode.year,
-      helpText: 'Select Month',
+      helpText: context.l10n.selectMonth,
     );
 
     if (picked != null) {
@@ -293,18 +294,18 @@ class _TransactionsState extends State<Transactions> {
   String _getDateFilterLabel(DateFilter filter) {
     switch (filter) {
       case DateFilter.all:
-        return 'All';
+        return context.l10n.periodAll;
       case DateFilter.today:
-        return 'Today';
+        return context.l10n.today;
       case DateFilter.lastWeek:
-        return 'Last 7 days';
+        return context.l10n.periodLast7;
       case DateFilter.lastMonth:
-        return 'Last 30 days';
+        return context.l10n.periodLast30;
       case DateFilter.customMonth:
         if (_selectedMonth != null) {
           return DateFormat('MMM yyyy').format(_selectedMonth!);
         }
-        return 'Month';
+        return context.l10n.month;
     }
   }
 
@@ -312,8 +313,8 @@ class _TransactionsState extends State<Transactions> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: widget.showBack
-          ? const VestaAppBar(title: 'Transactions')
-          : const VestaAppBar.large(title: 'Transactions'),
+          ? VestaAppBar(title: context.l10n.transactionsTitle)
+          : VestaAppBar.large(title: context.l10n.transactionsTitle),
       body: VestaBackground(
         child: Column(
           children: [
@@ -334,11 +335,12 @@ class _TransactionsState extends State<Transactions> {
   Future<void> _removeTransaction(TransactionModel transaction) async {
     final sure = await confirmDialog(
       context,
-      title: 'Delete this transaction?',
+      title: context.l10n.deleteTransactionTitle,
       message:
-          'It will be removed and ${formatMoney(transaction.amount)} '
-          '${transaction.isDebit ? 'returned to' : 'taken off'} the account balance.',
-      confirmLabel: 'Delete',
+          transaction.isDebit
+          ? context.l10n.deleteTxnReturned(formatMoney(transaction.amount))
+          : context.l10n.deleteTxnTakenOff(formatMoney(transaction.amount)),
+      confirmLabel: context.l10n.delete,
     );
     if (!sure) return;
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -356,7 +358,7 @@ class _TransactionsState extends State<Transactions> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Couldn't delete the transaction: $e")),
+        SnackBar(content: Text(context.l10n.transactionDeleteFailed('$e'))),
       );
     }
   }
@@ -401,10 +403,10 @@ class _TransactionsState extends State<Transactions> {
                 ),
               AddRemoveButtons(
                 onAdd: _addTransaction,
-                addTooltip: 'Add transaction',
+                addTooltip: context.l10n.addTransaction,
                 removing: _removing,
                 canRemove: _filteredTransactions.isNotEmpty,
-                removeTooltip: 'Remove a transaction',
+                removeTooltip: context.l10n.removeATransaction,
                 onToggleRemove: () => setState(() => _removing = !_removing),
               ),
             ],
@@ -459,7 +461,7 @@ class _TransactionsState extends State<Transactions> {
     return ChoiceTag(
       label: isSelected && _selectedMonth != null
           ? DateFormat('MMM yyyy').format(_selectedMonth!)
-          : 'Month',
+          : context.l10n.month,
       icon: PhosphorIconsRegular.calendarBlank,
       selected: isSelected,
       onTap: () => _onDateFilterChanged(DateFilter.customMonth),
@@ -520,9 +522,7 @@ class _TransactionsState extends State<Transactions> {
             child: Padding(
               padding: const EdgeInsets.only(top: 12, bottom: 4),
               child: Text(
-                count == 1
-                    ? '1 transaction · Most recent'
-                    : '$count transactions · Most recent',
+                context.l10n.transactionCountRecent(count),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),

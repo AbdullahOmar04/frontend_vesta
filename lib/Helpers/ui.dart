@@ -284,7 +284,7 @@ class AddRemoveButtons extends StatelessWidget {
       children: [
         OutlineIconButton(
           icon: PhosphorIconsRegular.plus,
-          tooltip: addTooltip,
+          tooltip: _shared(context, addTooltip),
           onPressed: onAdd,
         ),
         if (canRemove || removing)
@@ -293,7 +293,7 @@ class AddRemoveButtons extends StatelessWidget {
                 ? PhosphorIconsRegular.check
                 : PhosphorIconsRegular.minus,
             color: removing ? null : context.vesta.neg,
-            tooltip: removing ? 'Done' : removeTooltip,
+            tooltip: removing ? context.l10n.done : _shared(context, removeTooltip),
             onPressed: onToggleRemove,
           ),
       ],
@@ -360,6 +360,35 @@ class HeaderButton extends StatelessWidget {
 
 final NumberFormat _money = NumberFormat('#,##0.00', 'en_US');
 
+/// The shared widgets' English defaults ('Cancel', 'Yes'…) in the app's
+/// language. Screens pass their own labels already translated.
+String _shared(BuildContext context, String text) {
+  final l10n = context.l10n;
+  return switch (text) {
+    'Cancel' => l10n.cancel,
+    'Yes' => l10n.yes,
+    'Add' => l10n.add,
+    'Remove' => l10n.remove,
+    'Coming soon' => l10n.comingSoon,
+    _ => text,
+  };
+}
+
+/// An account type or bank name as stored ('Current account', 'Cash'),
+/// shown in the app's language. Bank names and unknown values pass through.
+String accountTypeLabel(String name) {
+  final l10n = l10nNow;
+  return switch (name) {
+    'Current account' => l10n.typeCurrent,
+    'Savings account' => l10n.typeSavings,
+    'Credit card' => l10n.typeCreditCard,
+    'Loan' => l10n.typeLoan,
+    'Investment account' => l10n.typeInvestment,
+    'Cash' => l10n.typeCash,
+    _ => name,
+  };
+}
+
 /// The currency as shown: "JOD", or "د.أ" in Arabic.
 String currencyLabel(String currency) =>
     isArabic && currency == 'JOD' ? 'د.أ' : currency;
@@ -371,7 +400,7 @@ String formatMoney(num amount, {String currency = 'JOD', bool showPlus = false})
   final sign = amount < 0 ? '-' : (showPlus && amount > 0 ? '+' : '');
   final number = _money.format(amount.abs());
   return isArabic
-      ? '$sign$number ${currencyLabel(currency)}'
+      ? '\u2066$sign$number\u2069 ${currencyLabel(currency)}'
       : '$sign$currency $number';
 }
 
@@ -419,7 +448,7 @@ class MoneyText extends StatelessWidget {
     );
     final numberText = Text(
       // In Arabic the sign stays with the number
-      '${isArabic ? sign : ''}${_money.format(amount.abs())}',
+      '${isArabic ? '\u2066$sign' : ''}${_money.format(amount.abs())}${isArabic ? '\u2069' : ''}',
       style: amountStyle(size, color: color).copyWith(
         height: 1.05,
         letterSpacing: -size * 0.025,
@@ -891,22 +920,36 @@ IconData categoryIcon(String? name) {
 ({String label, Color color}) bucketStyle(String bucket, VestaColors v) {
   switch (bucket) {
     case 'essential':
-      return (label: 'Necessity', color: v.bucketEssential);
+      return (label: l10nNow.bucketNecessity, color: v.bucketEssential);
     case 'luxury':
-      return (label: 'Luxury', color: v.bucketLuxury);
+      return (label: l10nNow.bucketLuxury, color: v.bucketLuxury);
     case 'savings':
-      return (label: 'Savings', color: v.bucketSavings);
+      return (label: l10nNow.bucketSavings, color: v.bucketSavings);
     case 'income':
-      return (label: 'Income', color: v.pos);
+      return (label: l10nNow.income, color: v.pos);
     default:
-      return (label: bucket.isEmpty ? 'Other' : bucket, color: v.muted);
+      return (label: bucket.isEmpty ? l10nNow.other : bucket, color: v.muted);
   }
 }
 
-const _monthAbbr = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-];
+/// A category's name as shown: the default categories, stored in English,
+/// in the app's language. Names the user made pass through.
+String categoryLabel(String name) {
+  final l10n = l10nNow;
+  return switch (name) {
+    'Food And Drinks' => l10n.catFoodDrinks,
+    'Groceries' => l10n.catGroceries,
+    'Entertainment' => l10n.catEntertainment,
+    'Others' => l10n.catOthers,
+    'Rent' => l10n.catRent,
+    'Shopping' => l10n.catShopping,
+    'Transport' => l10n.catTransport,
+    'Health' => l10n.catHealth,
+    'Bills & Utilities' => l10n.catBills,
+    'Savings' => l10n.catSavings,
+    _ => name,
+  };
+}
 
 /// "Today", "Yesterday", "Oct 19", or "Oct 19, 2025" outside this year.
 String shortDateLabel(DateTime dt) {
@@ -915,10 +958,9 @@ String shortDateLabel(DateTime dt) {
   final day = DateTime(dt.year, dt.month, dt.day);
   final today = DateTime(now.year, now.month, now.day);
   final diff = today.difference(day).inDays;
-  if (diff == 0) return 'Today';
-  if (diff == 1) return 'Yesterday';
-  final base = '${_monthAbbr[dt.month - 1]} ${dt.day}';
-  return dt.year == now.year ? base : '$base, ${dt.year}';
+  if (diff == 0) return l10nNow.today;
+  if (diff == 1) return l10nNow.yesterday;
+  return DateFormat(dt.year == now.year ? 'MMM d' : 'MMM d, y').format(dt);
 }
 
 /// Rounds a chart's top value up to a tidy number with a tidy midpoint.
@@ -1048,7 +1090,7 @@ class CurrencyPrefix extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(left: left, right: 6),
       child: Text(
-        'JOD',
+        currencyLabel('JOD'),
         style: TextStyle(fontSize: size, color: context.vesta.muted),
       ),
     );
@@ -1156,7 +1198,7 @@ class ComingSoonPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final v = context.vesta;
     return Scaffold(
-      appBar: VestaAppBar(title: title),
+      appBar: VestaAppBar(title: _shared(context, title)),
       body: VestaBackground(
         child: Padding(
           padding: const EdgeInsets.only(top: 64),
@@ -1168,7 +1210,7 @@ class ComingSoonPage extends StatelessWidget {
                 Icon(PhosphorIconsRegular.hammer, size: 30, color: v.accentInk),
                 const SizedBox(height: VestaSpace.md),
                 Text(
-                  "This is coming in a later update.",
+                  context.l10n.comingLater,
                   style: TextStyle(fontSize: 13, color: v.muted),
                 ),
               ],
@@ -1309,7 +1351,7 @@ class VestaDialog extends StatelessWidget {
                   Expanded(child: Text(title, style: headingStyle(18))),
                   if (cancelLabel != null)
                     IconButton(
-                      tooltip: 'Close',
+                      tooltip: context.l10n.close,
                       onPressed: cancel,
                       icon: Icon(PhosphorIconsRegular.x, color: v.muted),
                     ),
@@ -1334,7 +1376,10 @@ class VestaDialog extends StatelessWidget {
                 children: [
                   if (cancelLabel != null && cancelButton)
                     Expanded(
-                      child: OutlineButton(label: cancelLabel!, onPressed: cancel),
+                      child: OutlineButton(
+                        label: _shared(context, cancelLabel!),
+                        onPressed: cancel,
+                      ),
                     ),
                   if (cancelLabel != null && cancelButton && confirmLabel != null)
                     const SizedBox(width: 10),
@@ -1342,12 +1387,12 @@ class VestaDialog extends StatelessWidget {
                     Expanded(
                       child: destructive
                           ? DangerButton(
-                              label: confirmLabel!,
+                              label: _shared(context, confirmLabel!),
                               onPressed: onConfirm,
                               loading: loading,
                             )
                           : PrimaryButton(
-                              label: confirmLabel!,
+                              label: _shared(context, confirmLabel!),
                               onPressed: onConfirm,
                               loading: loading,
                             ),

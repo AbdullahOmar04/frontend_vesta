@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
@@ -24,16 +25,15 @@ class ReferralsPage extends StatelessWidget {
   void _howItWorks(BuildContext context) {
     showDialog<void>(
       context: context,
-      builder: (_) => const VestaDialog(
+      builder: (_) => VestaDialog(
         icon: PhosphorIconsRegular.gift,
-        title: 'How referrals work',
-        message:
-            'Share your code. When a friend enters it while signing up, you '
-            'get $referralReward points and they get $referralWelcome. 1,000 '
-            'points get you a free month of Plus, and 1,500 a free month of '
-            'Premium.',
+        title: context.l10n.howReferralsWork,
+        message: context.l10n.referralsHowBody(
+          '$referralReward',
+          '$referralWelcome',
+        ),
         cancelLabel: null,
-        confirmLabel: 'Got it',
+        confirmLabel: context.l10n.gotIt,
       ),
     );
   }
@@ -57,7 +57,7 @@ class ReferralsPage extends StatelessWidget {
     final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
 
     return Scaffold(
-      appBar: const VestaAppBar(title: 'Referrals'),
+      appBar: VestaAppBar(title: context.l10n.profileReferrals),
       body: VestaBackground(
         child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           stream: userRef.snapshots(),
@@ -92,13 +92,14 @@ class ReferralsPage extends StatelessWidget {
     final v = context.vesta;
     final goal = points >= _plusPoints ? _premiumPoints : _plusPoints;
     final note = points >= _premiumPoints
-        ? 'Enough for a free month of Premium'
+        ? context.l10n.enoughPremium
         : points >= _plusPoints
-        ? 'Enough for a free month of Plus · '
-              '${NumberFormat.decimalPattern().format(_premiumPoints - points)} '
-              'more for Premium'
-        : '${NumberFormat.decimalPattern().format(_plusPoints - points)} more '
-              'for a free month of Plus';
+        ? context.l10n.enoughPlusMore(
+            NumberFormat.decimalPattern().format(_premiumPoints - points),
+          )
+        : context.l10n.moreForPlus(
+            NumberFormat.decimalPattern().format(_plusPoints - points),
+          );
     return VestaCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -111,11 +112,13 @@ class ReferralsPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Your points',
+                      context.l10n.yourPoints,
                       style: TextStyle(fontSize: 12, color: v.muted),
                     ),
                     Text(
-                      '${NumberFormat.decimalPattern().format(points)} pts',
+                      context.l10n.pointsShort(
+                        NumberFormat.decimalPattern().format(points),
+                      ),
                       style: amountStyle(28),
                     ),
                   ],
@@ -134,7 +137,7 @@ class ReferralsPage extends StatelessWidget {
                   minimumSize: Size.zero,
                 ),
                 icon: const Icon(PhosphorIconsRegular.question, size: 14),
-                label: const Text('How it works'),
+                label: Text(context.l10n.howItWorks),
               ),
             ],
           ),
@@ -144,7 +147,7 @@ class ReferralsPage extends StatelessWidget {
           Text(note, style: TextStyle(fontSize: 12, color: v.muted)),
           const SizedBox(height: VestaSpace.md),
           PrimaryButton(
-            label: 'Use points',
+            label: context.l10n.usePoints,
             onPressed: points >= _plusPoints
                 ? () => showPlansComingSoon(context)
                 : null,
@@ -163,12 +166,12 @@ class ReferralsPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Your referral code',
+            context.l10n.yourReferralCode,
             style: TextStyle(fontSize: 12, color: v.muted),
           ),
           const SizedBox(height: VestaSpace.sm),
           Container(
-            padding: const EdgeInsets.fromLTRB(14, 4, 4, 4),
+            padding: const EdgeInsetsDirectional.fromSTEB(14, 4, 4, 4),
             decoration: BoxDecoration(
               border: Border.all(color: v.divider),
               borderRadius: BorderRadius.circular(VestaRadius.md),
@@ -185,10 +188,10 @@ class ReferralsPage extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Copy code',
+                  tooltip: context.l10n.copyCode,
                   onPressed: code == null
                       ? null
-                      : () => _copy(context, code, 'Code copied'),
+                      : () => _copy(context, code, context.l10n.codeCopied),
                   icon: Icon(
                     PhosphorIconsRegular.copy,
                     size: 18,
@@ -203,23 +206,21 @@ class ReferralsPage extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlineButton(
-                  label: 'Copy link',
+                  label: context.l10n.copyLink,
                   onPressed: code == null
                       ? null
-                      : () => _copy(context, link, 'Link copied'),
+                      : () => _copy(context, link, context.l10n.linkCopied),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: PrimaryButton(
-                  label: 'Share',
+                  label: context.l10n.share,
                   onPressed: code == null
                       ? null
                       : () => SharePlus.instance.share(
                           ShareParams(
-                            text:
-                                'I use Vesta to plan my money. Join with my '
-                                'code $code: $link',
+                            text: context.l10n.referralShareText(code, link),
                           ),
                         ),
                 ),
@@ -256,15 +257,13 @@ class ReferralsPage extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      "People you've invited",
+                      context.l10n.peopleInvited,
                       style: headingStyle(16),
                     ),
                   ),
                   if (people.isNotEmpty)
                     Text(
-                      people.length == 1
-                          ? '1 person'
-                          : '${people.length} people',
+                      context.l10n.peopleCount(people.length),
                       style: TextStyle(fontSize: 12, color: v.muted),
                     ),
                 ],
@@ -274,8 +273,7 @@ class ReferralsPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: VestaSpace.md),
                   child: Text(
-                    'No one yet. Share your code, and the friends who join '
-                    'show up here.',
+                    context.l10n.noOneInvitedYet,
                     style: TextStyle(fontSize: 13, color: v.muted),
                   ),
                 )
@@ -295,11 +293,9 @@ class ReferralsPage extends StatelessWidget {
 
   Widget _person(BuildContext context, Map<String, dynamic> p, Color color) {
     final v = context.vesta;
-    final name = (p['name'] ?? 'Friend').toString();
+    final name = (p['name'] ?? context.l10n.friend).toString();
     final joined = p['joinedAt'] is Timestamp
-        ? DateFormat(
-            'MMM d, yyyy',
-          ).format((p['joinedAt'] as Timestamp).toDate())
+        ? DateFormat.yMMMd().format((p['joinedAt'] as Timestamp).toDate())
         : null;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -321,14 +317,16 @@ class ReferralsPage extends StatelessWidget {
                 Text(name),
                 if (joined != null)
                   Text(
-                    'Joined $joined',
+                    context.l10n.joinedOn(joined),
                     style: TextStyle(fontSize: 12, color: v.muted),
                   ),
               ],
             ),
           ),
           Text(
-            '+${(p['points'] as num?)?.toInt() ?? referralReward} pts',
+            context.l10n.pointsShort(
+              '\u2066+${(p['points'] as num?)?.toInt() ?? referralReward}\u2069',
+            ),
             style: TextStyle(fontSize: 13, color: v.pos),
           ),
         ],

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 
@@ -32,25 +33,22 @@ Future<bool> _confirm(
   required String title,
   required String message,
   required String action,
+  required IconData icon,
 }) async {
   return confirmDialog(
     context,
     title: title,
     message: message,
     confirmLabel: action,
-    icon: switch (action) {
-      'Leave' => PhosphorIconsRegular.signOut,
-      'Remove' => PhosphorIconsRegular.userMinus,
-      _ => PhosphorIconsRegular.trash,
-    },
+    icon: icon,
   );
 }
 
-void _fail(BuildContext context, String what, Object e) {
+void _fail(BuildContext context, String message) {
   if (!context.mounted) return;
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      content: Text("Couldn't $what: $e"),
+      content: Text(message),
       backgroundColor: Theme.of(context).colorScheme.error,
     ),
   );
@@ -67,11 +65,10 @@ Future<bool> deleteHousehold(
   if (uid == null) return false;
   if (!await _confirm(
     context,
-    title: 'Delete $name?',
-    message:
-        'The household and its shared budget are removed for every member. '
-        'This cannot be undone.',
-    action: 'Delete',
+    title: context.l10n.deleteNameTitle(name),
+    message: context.l10n.deleteHouseholdMessage,
+    action: context.l10n.delete,
+    icon: PhosphorIconsRegular.trash,
   )) {
     return false;
   }
@@ -92,7 +89,9 @@ Future<bool> deleteHousehold(
     });
     return true;
   } catch (e) {
-    if (context.mounted) _fail(context, 'delete the household', e);
+    if (context.mounted) {
+      _fail(context, context.l10n.householdDeleteFailed('$e'));
+    }
     return false;
   }
 }
@@ -107,11 +106,10 @@ Future<bool> leaveHousehold(
   if (uid == null) return false;
   if (!await _confirm(
     context,
-    title: 'Leave $name?',
-    message:
-        "You'll stop seeing its budget and transactions. The owner can invite "
-        'you again.',
-    action: 'Leave',
+    title: context.l10n.leaveNameTitle(name),
+    message: context.l10n.leaveHouseholdMessage,
+    action: context.l10n.leave,
+    icon: PhosphorIconsRegular.signOut,
   )) {
     return false;
   }
@@ -126,7 +124,9 @@ Future<bool> leaveHousehold(
     await batch.commit();
     return true;
   } catch (e) {
-    if (context.mounted) _fail(context, 'leave the household', e);
+    if (context.mounted) {
+      _fail(context, context.l10n.householdLeaveFailed('$e'));
+    }
     return false;
   }
 }
@@ -140,11 +140,10 @@ Future<bool> removeHouseholdMember(
 }) async {
   if (!await _confirm(
     context,
-    title: 'Remove $memberName?',
-    message:
-        "They'll lose access to this household. You can invite them again "
-        'later.',
-    action: 'Remove',
+    title: context.l10n.removeNameTitle(memberName),
+    message: context.l10n.removeMemberMessage,
+    action: context.l10n.removeMember,
+    icon: PhosphorIconsRegular.userMinus,
   )) {
     return false;
   }
@@ -162,7 +161,9 @@ Future<bool> removeHouseholdMember(
     }
     return true;
   } catch (e) {
-    if (context.mounted) _fail(context, 'remove $memberName', e);
+    if (context.mounted) {
+      _fail(context, context.l10n.memberRemoveFailed(memberName, '$e'));
+    }
     return false;
   }
 }

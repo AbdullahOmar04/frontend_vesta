@@ -1,3 +1,5 @@
+import 'package:frontend_vesta/Helpers/ui.dart';
+
 // lib/models/transaction_model.dart
 
 enum TransactionType { debit, credit }
@@ -240,7 +242,9 @@ class AccountInfo {
 
   /// "Arab Bank · Savings", so two accounts at the same bank can be told apart.
   String get label =>
-      type != null && type!.isNotEmpty ? '$name · $type' : name;
+      type != null && type!.isNotEmpty
+      ? '$name · ${accountTypeLabel(type!)}'
+      : name;
 }
 
 // ---------- Household Transactions ----------

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/account_balance.dart';
 import 'package:frontend_vesta/Helpers/bank_sms.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
@@ -158,14 +159,14 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
 
     if (amount == null || amount <= 0) {
       messenger.showSnackBar(
-        const SnackBar(content: Text("Enter a valid amount.")),
+        SnackBar(content: Text(context.l10n.enterValidAmount)),
       );
       return;
     }
 
     if (_selectedAccountId == null) {
       messenger.showSnackBar(
-        const SnackBar(content: Text("Select an account.")),
+        SnackBar(content: Text(context.l10n.selectAnAccount)),
       );
       return;
     }
@@ -210,7 +211,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
       if (mounted) {
         Navigator.pop(context);
         messenger.showSnackBar(
-          const SnackBar(content: Text("Transaction added.")),
+          SnackBar(content: Text(context.l10n.transactionAdded)),
         );
       }
     } catch (e) {
@@ -218,7 +219,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
       if (mounted) {
         messenger.showSnackBar(
           SnackBar(
-            content: Text("Error: $e"),
+            content: Text(context.l10n.errorWith('$e')),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -260,8 +261,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
       // The phone couldn't read it and Gemini couldn't be reached
       debugPrint("⚠️ Couldn't read the SMS: $e");
       error =
-          "We couldn't read this message. Check your connection, or try the "
-          'Manual tab.';
+          context.l10n.smsCouldntRead;
     }
     if (!mounted) return;
     setState(() {
@@ -318,10 +318,10 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
             Row(
               children: [
                 Expanded(
-                  child: Text('Add a transaction', style: headingStyle(20)),
+                  child: Text(context.l10n.addATransaction, style: headingStyle(20)),
                 ),
                 IconButton(
-                  tooltip: 'Close',
+                  tooltip: context.l10n.close,
                   onPressed: () => Navigator.pop(context),
                   icon: Icon(PhosphorIconsRegular.x, color: v.muted),
                 ),
@@ -354,7 +354,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Paste your bank SMS, in English or Arabic',
+          context.l10n.pasteBankSmsAnyLanguage,
           style: TextStyle(fontSize: 12, color: v.muted),
         ),
         const SizedBox(height: 6),
@@ -378,7 +378,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
               _smsError = null;
             }),
             child: Text(
-              'Try a sample message',
+              context.l10n.trySample,
               style: TextStyle(fontSize: 12, color: v.accentInk),
             ),
           ),
@@ -401,15 +401,13 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
         ],
         const SizedBox(height: VestaSpace.md),
         PrimaryButton(
-          label: 'Read message',
+          label: context.l10n.readMessage,
           loading: _reading,
           onPressed: _smsCtrl.text.trim().isEmpty ? null : _readSms,
         ),
         const SizedBox(height: VestaSpace.md),
         Text(
-          "Vesta reads the message on your phone, and asks Google's Gemini "
-          "only when it can't. Check the details before saving; only they "
-          'are kept, never the message.',
+          context.l10n.smsPrivacyNote,
           style: TextStyle(fontSize: 12, color: v.muted),
         ),
       ],
@@ -445,10 +443,11 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
                     // Saved in the account's currency, so another one needs
                     // converting
                     _smsCurrency != null && _smsCurrency != _currency
-                        ? 'Filled from your SMS. The amount is in '
-                              '$_smsCurrency, so change it to $_currency '
-                              'before saving.'
-                        : 'Filled from your SMS. Check the details below.',
+                        ? context.l10n.smsFilledConvert(
+                            currencyLabel(_smsCurrency!),
+                            currencyLabel(_currency),
+                          )
+                        : context.l10n.filledFromSms,
                     style: TextStyle(fontSize: 12, color: v.tintText),
                   ),
                 ),
@@ -463,14 +462,14 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
           DropdownButtonFormField<String>(
             initialValue: _selectedAccountId,
             style: bodyLarge,
-            decoration: const InputDecoration(labelText: "Account"),
+            decoration: InputDecoration(labelText: context.l10n.account),
             items: _accounts
                 .map(
                   (a) => DropdownMenuItem(
                     value: a['id'] as String,
                     child: Text(
                       a['type'] is String && (a['type'] as String).isNotEmpty
-                          ? "${a['name']} · ${a['type']}"
+                          ? "${a['name']} · ${accountTypeLabel(a['type'] as String)}"
                           : a['name'] as String,
                     ),
                   ),
@@ -482,7 +481,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
           )
         else
           Text(
-            "No accounts yet. Add one in Wallet first.",
+            context.l10n.noAccountsAddInWallet,
             style: TextStyle(color: v.neg),
           ),
         gap,
@@ -491,7 +490,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
         TextField(
           controller: _amountCtrl,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: InputDecoration(labelText: "Amount ($_currency)"),
+          decoration: InputDecoration(labelText: context.l10n.amountIn(currencyLabel(_currency))),
         ),
         gap,
 
@@ -499,7 +498,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
         Row(
           children: [
             ChoiceTag(
-              label: "Expense",
+              label: context.l10n.expense,
               icon: PhosphorIconsRegular.arrowUpRight,
               selected: _type == TransactionType.debit,
               onTap: () {
@@ -508,7 +507,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
             ),
             const SizedBox(width: VestaSpace.sm),
             ChoiceTag(
-              label: "Income",
+              label: context.l10n.income,
               icon: PhosphorIconsRegular.arrowDownLeft,
               selected: _type == TransactionType.credit,
               onTap: () {
@@ -546,7 +545,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
           },
           child: InputDecorator(
             decoration: InputDecoration(
-              labelText: "Date",
+              labelText: context.l10n.date,
               suffixIcon: Icon(
                 PhosphorIconsRegular.calendarBlank,
                 color: v.accentInk,
@@ -563,7 +562,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
         // Merchant
         TextField(
           controller: _merchantCtrl,
-          decoration: const InputDecoration(labelText: "Merchant / From"),
+          decoration: InputDecoration(labelText: context.l10n.merchantFrom),
         ),
         gap,
 
@@ -572,9 +571,11 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
           DropdownButtonFormField<String>(
             initialValue: _selectedCategory,
             style: bodyLarge,
-            decoration: const InputDecoration(labelText: "Category"),
+            decoration: InputDecoration(labelText: context.l10n.category),
             items: _categories
-                .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                .map(
+                  (c) => DropdownMenuItem(value: c, child: Text(categoryLabel(c))),
+                )
                 .toList(),
             onChanged: (val) {
               setState(() => _selectedCategory = val);
@@ -587,12 +588,12 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
           controller: _noteCtrl,
           minLines: 1,
           maxLines: 3,
-          decoration: const InputDecoration(labelText: "Note (optional)"),
+          decoration: InputDecoration(labelText: context.l10n.noteOptional),
         ),
         const SizedBox(height: VestaSpace.xl),
 
         PrimaryButton(
-          label: 'Add transaction',
+          label: context.l10n.addTransaction,
           loading: _saving,
           onPressed: () {
             if (!_saving) {
@@ -628,7 +629,7 @@ class _TabSwitch extends StatelessWidget {
             if (i > 0) const SizedBox(width: 3),
             Expanded(
               child: Tooltip(
-                message: _tabs[i].$1,
+                message: i == 0 ? context.l10n.sourceSms : context.l10n.sourceManual,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(9),
                   onTap: () => onSelect(i),

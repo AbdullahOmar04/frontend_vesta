@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 
 // Household features beyond the shared budget live on the household doc
 // itself, next to `budget`, which every member can already update:
@@ -321,21 +322,21 @@ Future<String> inviteToHousehold(
   required String query,
 }) async {
   final me = FirebaseAuth.instance.currentUser;
-  if (me == null) throw StateError('Log in again to invite someone.');
+  if (me == null) throw StateError(l10nNow.logInToInvite);
   final q = query.trim().replaceFirst(RegExp(r'^@'), '').toLowerCase();
-  if (q.isEmpty) throw StateError('Enter a username or email.');
+  if (q.isEmpty) throw StateError(l10nNow.enterUsernameOrEmail);
 
   final lookup = await _db
       .collection(q.contains('@') ? 'emails' : 'usernames')
       .doc(q)
       .get();
   final uid = lookup.data()?['uid'] as String?;
-  if (uid == null) throw StateError('No Vesta user goes by "$query".');
-  if (uid == me.uid) throw StateError("That's you.");
+  if (uid == null) throw StateError(l10nNow.noUserGoesBy(query));
+  if (uid == me.uid) throw StateError(l10nNow.thatsYou);
 
   final household = await _ref(householdId).get();
   if (List<String>.from(household.data()?['members'] ?? []).contains(uid)) {
-    throw StateError("They're already in this household.");
+    throw StateError(l10nNow.alreadyInHousehold);
   }
 
   await _db.collection('invites').add({

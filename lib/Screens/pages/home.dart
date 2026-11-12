@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
@@ -77,7 +78,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final userId = user?.uid;
-    String greeting = homePageGreeting();
+    String greeting = homePageGreeting(context);
 
     return Scaffold(
       body: VestaBackground(
@@ -118,7 +119,7 @@ class _HomePageState extends State<HomePage> {
               ),
               Expanded(
                 child: userId == null
-                    ? const Center(child: Text("Not logged in"))
+                    ? Center(child: Text(context.l10n.notLoggedIn))
                     : StreamBuilder<DocumentSnapshot>(
                         stream: FirebaseFirestore.instance
                             .collection("users")
@@ -133,8 +134,8 @@ class _HomePageState extends State<HomePage> {
                           }
 
                           if (!snapshot.hasData || !snapshot.data!.exists) {
-                            return const Center(
-                              child: Text("No data available"),
+                            return Center(
+                              child: Text(context.l10n.noData),
                             );
                           }
 
@@ -208,7 +209,7 @@ class _HomePageState extends State<HomePage> {
     final v = context.vesta;
     return Column(
       children: [
-        Text('Total balance', style: TextStyle(fontSize: 13, color: v.muted)),
+        Text(context.l10n.totalBalance, style: TextStyle(fontSize: 13, color: v.muted)),
         const SizedBox(height: 6),
         MoneyText.hero(totalBalance, currency: currency),
         const SizedBox(height: 10),
@@ -220,14 +221,16 @@ class _HomePageState extends State<HomePage> {
           children: [
             _stat(
               PhosphorIconsRegular.arrowUpRight,
-              '${formatMoney(_asNum(totalExpense), currency: currency)} spent',
+              context.l10n.amountSpent(
+                formatMoney(_asNum(totalExpense), currency: currency),
+              ),
               v.neg,
             ),
             // Money that came in this cycle, as in the prototype
             if (summary != null)
               _stat(
                 PhosphorIconsRegular.arrowDownLeft,
-                '${formatMoney(summary.earned, currency: currency)} earned',
+                context.l10n.amountEarned(formatMoney(summary.earned, currency: currency)),
                 v.pos,
               ),
           ],
@@ -240,10 +243,8 @@ class _HomePageState extends State<HomePage> {
           child: _stat(
             PhosphorIconsRegular.caretRight,
             summary == null
-                ? 'Accounts'
-                : summary.accountCount == 1
-                ? '1 account'
-                : '${summary.accountCount} accounts',
+                ? context.l10n.accountsLabel
+                : context.l10n.accountCount(summary.accountCount),
             v.accentInk,
             iconAfter: true,
           ),
@@ -273,22 +274,22 @@ class _HomePageState extends State<HomePage> {
     final tiles = [
       _HomeTile(
         art: PixelArt.budget,
-        label: 'Budgeting',
+        label: context.l10n.tileBudgeting,
         onTap: () => _open(const PersonalBudgetScreen()),
       ),
       _HomeTile(
         art: PixelArt.spend,
-        label: 'Spendings',
+        label: context.l10n.tileSpendings,
         onTap: () => _open(const NewSpendingAnalysis()),
       ),
       _HomeTile(
         art: PixelArt.save,
-        label: 'Savings',
+        label: context.l10n.tileSavings,
         onTap: () => _open(const SavingsPage()),
       ),
       _HomeTile(
         art: PixelArt.shared,
-        label: 'Shared finances',
+        label: context.l10n.tileShared,
         onTap: () => _open(const HouseholdPage()),
       ),
     ];

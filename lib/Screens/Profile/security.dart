@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/biometric_service.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
@@ -44,13 +45,13 @@ class _SecurityPageState extends State<SecurityPage> {
     if (user == null) return;
     if (value) {
       final ok = await _biometrics.authenticate(
-        reason: 'Authenticate to turn on fingerprint unlock',
+        reason: context.l10n.fingerprintReason,
       );
       if (!ok) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text("Couldn't confirm your fingerprint"),
+              content: Text(context.l10n.fingerprintFailed),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
@@ -67,7 +68,7 @@ class _SecurityPageState extends State<SecurityPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const VestaAppBar(title: 'Password and security'),
+      appBar: VestaAppBar(title: context.l10n.profileSecurity),
       body: VestaBackground(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
@@ -80,8 +81,8 @@ class _SecurityPageState extends State<SecurityPage> {
             MenuCard([
               MenuRow(
                 icon: PhosphorIconsRegular.password,
-                title: 'Password',
-                subtitle: 'Change or reset your password',
+                title: context.l10n.password,
+                subtitle: context.l10n.changeOrResetPassword,
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const PasswordPage()),
@@ -95,24 +96,24 @@ class _SecurityPageState extends State<SecurityPage> {
               else
                 ToggleRow(
                   icon: PhosphorIconsRegular.fingerprint,
-                  title: 'Fingerprint unlock',
+                  title: context.l10n.fingerprintUnlock,
                   subtitle: !_available
-                      ? 'Not available on this phone'
+                      ? context.l10n.notAvailableOnPhone
                       : _enabled
-                      ? 'Unlock Vesta with your fingerprint or face'
-                      : 'Unlock quickly instead of typing your password',
+                      ? context.l10n.unlockWithBiometrics
+                      : context.l10n.unlockQuickly,
                   value: _available && _enabled,
                   onChanged: _available ? _toggleBiometrics : null,
                 ),
-              const MenuRow(
+              MenuRow(
                 icon: PhosphorIconsRegular.database,
-                title: 'Data consent',
-                subtitle: 'What we read from your bank accounts',
-                tag: 'Coming soon',
+                title: context.l10n.dataConsent,
+                subtitle: context.l10n.dataConsentSubtitle,
+                tag: context.l10n.comingSoon,
               ),
               MenuRow(
                 icon: PhosphorIconsRegular.shieldCheck,
-                title: 'Privacy policy',
+                title: context.l10n.privacyPolicy,
                 onTap: () => openWebPage(context, privacyPolicyUrl),
               ),
             ]),
@@ -130,8 +131,7 @@ String? passwordProblem(String password) {
       !password.contains(RegExp(r'[A-Z]')) ||
       !password.contains(RegExp(r'[a-z]')) ||
       !password.contains(RegExp(r'[0-9]'))) {
-    return 'Use 6 or more characters with an uppercase letter, a lowercase '
-        'letter, and a number.';
+    return l10nNow.passwordRule;
   }
   return null;
 }
@@ -163,12 +163,12 @@ class _PasswordPageState extends State<PasswordPage> {
     final email = user?.email;
     if (user == null || email == null) return;
     final problem = _current.text.isEmpty
-        ? 'Enter your current password.'
+        ? context.l10n.enterCurrentPassword
         : passwordProblem(_next.text) ??
               (_next.text != _confirm.text
-                  ? "The new passwords don't match."
+                  ? context.l10n.newPasswordsDontMatch
                   : _next.text == _current.text
-                  ? 'Pick a password you are not using now.'
+                  ? context.l10n.pickDifferentPassword
                   : null);
     if (problem != null) {
       setState(() => _error = problem);
@@ -186,18 +186,19 @@ class _PasswordPageState extends State<PasswordPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Password updated')));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.passwordUpdated)));
       Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
       setState(() {
         _saving = false;
         _error = e.code == 'wrong-password' || e.code == 'invalid-credential'
-            ? "Your current password isn't right."
+            ? context.l10n.currentPasswordWrong
             : e.code == 'weak-password'
-            ? 'That password is too weak.'
+            ? context.l10n.passwordTooWeak
             : e.code == 'too-many-requests'
-            ? 'Too many tries. Wait a little, then try again.'
-            : 'Something went wrong (${e.code}).';
+            ? context.l10n.tooManyTries
+            : context.l10n.somethingWentWrongCode(e.code);
       });
     }
   }
@@ -206,14 +207,17 @@ class _PasswordPageState extends State<PasswordPage> {
     final email = FirebaseAuth.instance.currentUser?.email;
     if (email == null) return;
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       messenger.showSnackBar(
-        SnackBar(content: Text('We sent a reset link to $email.')),
+        SnackBar(
+          content: Text(l10n.resetLinkSent('\u2066$email\u2069')),
+        ),
       );
     } on FirebaseAuthException catch (e) {
       messenger.showSnackBar(
-        SnackBar(content: Text("Couldn't send the link (${e.code}).")),
+        SnackBar(content: Text(l10n.linkSendFailed(e.code))),
       );
     }
   }
@@ -232,7 +236,7 @@ class _PasswordPageState extends State<PasswordPage> {
     );
 
     return Scaffold(
-      appBar: const VestaAppBar(title: 'Password'),
+      appBar: VestaAppBar(title: context.l10n.password),
       body: VestaBackground(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
@@ -246,20 +250,19 @@ class _PasswordPageState extends State<PasswordPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('Change password', style: headingStyle(16)),
+                  Text(context.l10n.changePassword, style: headingStyle(16)),
                   const SizedBox(height: VestaSpace.md),
-                  label('Current password'),
+                  label(context.l10n.currentPassword),
                   field(_current),
                   const SizedBox(height: VestaSpace.md),
-                  label('New password'),
+                  label(context.l10n.newPassword),
                   field(_next),
                   const SizedBox(height: VestaSpace.md),
-                  label('Confirm new password'),
+                  label(context.l10n.confirmNewPassword),
                   field(_confirm),
                   const SizedBox(height: VestaSpace.sm),
                   Text(
-                    'At least 6 characters, with an uppercase letter, a '
-                    'lowercase letter, and a number.',
+                    context.l10n.passwordHint,
                     style: TextStyle(fontSize: 11, color: v.muted),
                   ),
                   if (_error != null) ...[
@@ -268,7 +271,7 @@ class _PasswordPageState extends State<PasswordPage> {
                   ],
                   const SizedBox(height: VestaSpace.lg),
                   PrimaryButton(
-                    label: 'Update password',
+                    label: context.l10n.updatePassword,
                     loading: _saving,
                     onPressed: _update,
                   ),
@@ -276,7 +279,7 @@ class _PasswordPageState extends State<PasswordPage> {
                   Center(
                     child: TextButton(
                       onPressed: _forgot,
-                      child: const Text('Forgot my password'),
+                      child: Text(context.l10n.forgotMyPassword),
                     ),
                   ),
                 ],
@@ -287,8 +290,8 @@ class _PasswordPageState extends State<PasswordPage> {
               padding: EdgeInsets.zero,
               child: ToggleRow(
                 icon: PhosphorIconsRegular.shieldCheck,
-                title: 'Two-factor authentication',
-                subtitle: 'Coming soon: a code by SMS when you sign in',
+                title: context.l10n.twoFactor,
+                subtitle: context.l10n.twoFactorSoon,
                 value: false,
                 onChanged: null,
               ),

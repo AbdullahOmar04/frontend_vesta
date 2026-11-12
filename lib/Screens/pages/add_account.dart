@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
@@ -65,7 +66,7 @@ class _AddAccountSheetState extends State<_AddAccountSheet> {
         ? '0'
         : _balanceCtrl.text.trim());
     if (amount == null) {
-      setState(() => _error = 'Enter the balance as a number');
+      setState(() => _error = context.l10n.enterBalanceNumber);
       return;
     }
 
@@ -112,13 +113,13 @@ class _AddAccountSheetState extends State<_AddAccountSheet> {
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
       Navigator.pop(context);
-      messenger.showSnackBar(const SnackBar(content: Text('Account added')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.accountAdded)));
     } catch (e) {
       debugPrint('⚠️ Error adding account: $e');
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = "Couldn't add the account: $e";
+          _error = context.l10n.accountAddFailed('$e');
         });
       }
     }
@@ -142,10 +143,10 @@ class _AddAccountSheetState extends State<_AddAccountSheet> {
             Row(
               children: [
                 Expanded(
-                  child: Text('Add account manually', style: headingStyle(20)),
+                  child: Text(context.l10n.addAccountManually, style: headingStyle(20)),
                 ),
                 IconButton(
-                  tooltip: 'Close',
+                  tooltip: context.l10n.close,
                   onPressed: () => Navigator.pop(context),
                   icon: Icon(PhosphorIconsRegular.x, color: v.muted),
                 ),
@@ -156,7 +157,7 @@ class _AddAccountSheetState extends State<_AddAccountSheet> {
               DropdownButtonFormField<String>(
                 initialValue: _bank,
                 isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Bank'),
+                decoration: InputDecoration(labelText: context.l10n.bank),
                 items: [
                   for (final b in jordanBanks)
                     DropdownMenuItem(
@@ -170,10 +171,10 @@ class _AddAccountSheetState extends State<_AddAccountSheet> {
             ],
             DropdownButtonFormField<int>(
               initialValue: _type,
-              decoration: const InputDecoration(labelText: 'Account type'),
+              decoration: InputDecoration(labelText: context.l10n.accountType),
               items: [
                 for (var i = 0; i < _accountTypes.length; i++)
-                  DropdownMenuItem(value: i, child: Text(_accountTypes[i].$1)),
+                  DropdownMenuItem(value: i, child: Text(accountTypeLabel(_accountTypes[i].$1))),
               ],
               onChanged: (i) => setState(() => _type = i ?? _type),
             ),
@@ -182,9 +183,9 @@ class _AddAccountSheetState extends State<_AddAccountSheet> {
               controller: _nameCtrl,
               maxLength: 30,
               textCapitalization: TextCapitalization.sentences,
-              decoration: const InputDecoration(
-                labelText: 'Account name',
-                hintText: 'e.g. Salary account',
+              decoration: InputDecoration(
+                labelText: context.l10n.accountName,
+                hintText: context.l10n.accountNameHint,
                 counterText: '',
               ),
             ),
@@ -200,9 +201,9 @@ class _AddAccountSheetState extends State<_AddAccountSheet> {
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(4),
                     ],
-                    decoration: const InputDecoration(
-                      labelText: 'Last 4 digits',
-                      hintText: 'Optional',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.last4Digits,
+                      hintText: context.l10n.optional,
                     ),
                   ),
                 ),
@@ -219,8 +220,8 @@ class _AddAccountSheetState extends State<_AddAccountSheet> {
                       ),
                     ],
                     decoration: InputDecoration(
-                      labelText: _isDebt ? 'Amount owed' : 'Current balance',
-                      prefixText: 'JOD ',
+                      labelText: _isDebt ? context.l10n.amountOwed : context.l10n.currentBalance,
+                      prefixText: '${currencyLabel('JOD')} ',
                       hintText: '0.00',
                     ),
                   ),
@@ -241,8 +242,7 @@ class _AddAccountSheetState extends State<_AddAccountSheet> {
                   const SizedBox(width: VestaSpace.sm),
                   Expanded(
                     child: Text(
-                      "Manual accounts don't sync. You'll add transactions and "
-                      'update the balance yourself.',
+                      context.l10n.manualAccountsNote,
                       style: TextStyle(fontSize: 12, color: v.muted),
                     ),
                   ),
@@ -258,14 +258,14 @@ class _AddAccountSheetState extends State<_AddAccountSheet> {
               children: [
                 Expanded(
                   child: OutlineButton(
-                    label: 'Cancel',
+                    label: context.l10n.cancel,
                     onPressed: _saving ? null : () => Navigator.pop(context),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: PrimaryButton(
-                    label: 'Add account',
+                    label: context.l10n.addAccount,
                     loading: _saving,
                     onPressed: _saving ? null : _save,
                   ),

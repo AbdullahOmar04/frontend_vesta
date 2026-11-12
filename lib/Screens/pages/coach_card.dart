@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
+import 'package:frontend_vesta/l10n/app_localizations.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/Budgeting/budgeting_screen.dart';
@@ -51,21 +53,24 @@ class _CoachCardState extends State<CoachCard> {
   Future<void> _load() async {
     if (widget.summary != null) return;
     try {
-      final note = _noteFor(await loadBudgetSummary());
+      final l10n = context.l10n;
+      final note = _noteFor(await loadBudgetSummary(), l10n);
       if (mounted) setState(() => _note = note);
     } catch (e) {
       debugPrint('Error loading coach: $e');
     }
   }
 
-  static _CoachNote? _noteFor(BudgetSummary? summary) {
+  static _CoachNote? _noteFor(
+    BudgetSummary? summary,
+    AppLocalizations l10n,
+  ) {
     if (summary == null) return null;
 
     if (!summary.hasPlan) {
-      return const _CoachNote(
-        "Let's plan this month.",
-        'Set your income and split it into savings, necessities and '
-            "luxuries. I'll tell you how your spending is pacing against it.",
+      return _CoachNote(
+        l10n.coachPlanTitle,
+        l10n.coachPlanBody,
         needsPlan: true,
       );
     }
@@ -85,10 +90,12 @@ class _CoachCardState extends State<CoachCard> {
 
     final over = [
       if (essentialBudget > 0 && essentialSpent > essentialBudget)
-        ('Necessities', essentialSpent - essentialBudget, 'luxuries',
+        (l10n.bucketNecessities, essentialSpent - essentialBudget,
+            l10n.bucketLuxuriesLower,
             luxuryBudget - luxurySpent),
       if (luxuryBudget > 0 && luxurySpent > luxuryBudget)
-        ('Luxuries', luxurySpent - luxuryBudget, 'necessities',
+        (l10n.bucketLuxuries, luxurySpent - luxuryBudget,
+            l10n.bucketNecessitiesLower,
             essentialBudget - essentialSpent),
     ]..sort((a, b) => b.$2.compareTo(a.$2));
 
@@ -96,36 +103,41 @@ class _CoachCardState extends State<CoachCard> {
       final (name, by, otherName, otherLeft) = over.first;
       return _CoachNote(
         ratio <= progress + 0.05
-            ? "You're mostly on pace."
-            : 'Spending is running a little hot.',
+            ? l10n.coachMostlyOnPace
+            : l10n.coachRunningHot,
         otherLeft > 0
-            ? '$name is ${money(by)} over its limit. You still have '
-                  '${money(otherLeft)} for $otherName, about '
-                  '${money(otherLeft / daysLeft)} a day until $until.'
-            : '$name is ${money(by)} over its limit, and your spending '
-                  'budget is used up until $until.',
+            ? l10n.coachOverWithOther(
+                name,
+                money(by),
+                money(otherLeft),
+                otherName,
+                money(otherLeft / daysLeft),
+                until,
+              )
+            : l10n.coachOverUsedUp(name, money(by), until),
       );
     }
 
     final left = flexBudget - flexSpent;
     if (ratio > progress + 0.08) {
       return _CoachNote(
-        'Spending is running ahead.',
-        "You've used ${(ratio * 100).round()}% of your spending budget with "
-            '${((1 - progress) * 100).round()}% of the cycle left. '
-            '${money(left / daysLeft)} a day keeps you on track.',
+        l10n.coachAheadTitle,
+        l10n.coachAheadBody(
+          '${(ratio * 100).round()}',
+          '${((1 - progress) * 100).round()}',
+          money(left / daysLeft),
+        ),
       );
     }
     return _CoachNote(
-      "You're on pace this cycle.",
-      '${money(left)} left to spend, about ${money(left / daysLeft)} a day '
-          'for the next $daysLeft ${daysLeft == 1 ? 'day' : 'days'}.',
+      l10n.coachOnPaceTitle,
+      l10n.coachOnPaceBody(money(left), money(left / daysLeft), daysLeft),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final note = widget.summary != null ? _noteFor(widget.summary) : _note;
+    final note = widget.summary != null ? _noteFor(widget.summary, context.l10n) : _note;
     if (note == null) return const SizedBox.shrink();
     final v = context.vesta;
     final accent = Theme.of(context).colorScheme.primary;
@@ -181,7 +193,7 @@ class _CoachCardState extends State<CoachCard> {
                       ),
                       const SizedBox(width: VestaSpace.sm),
                       Text(
-                        'YOUR COACH',
+                        context.l10n.coachLabel,
                         style: TextStyle(
                           fontSize: 11,
                           letterSpacing: 0.8,
@@ -200,7 +212,9 @@ class _CoachCardState extends State<CoachCard> {
                   if (widget.showLink) ...[
                     const SizedBox(height: VestaSpace.md),
                     Text(
-                      note.needsPlan ? 'Plan your budget →' : 'See insights →',
+                      note.needsPlan
+                          ? context.l10n.coachPlanLink
+                          : context.l10n.coachInsightsLink,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,

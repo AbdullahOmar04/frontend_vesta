@@ -79,6 +79,11 @@ class MainApp extends StatelessWidget {
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         home: const AuthGate(),
+        // Flutter has loaded its date data by the time this runs
+        builder: (context, child) {
+          useLevantineMonthNames();
+          return child!;
+        },
         debugShowCheckedModeBanner: false,
       ),
     );

@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
@@ -23,7 +24,7 @@ Future<void> pickAndUploadProfilePhoto(
   final source = await showDialog<ImageSource>(
     context: context,
     builder: (dialogContext) => VestaDialog(
-      title: 'Profile picture',
+      title: context.l10n.profilePicture,
       cancelButton: false,
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -31,13 +32,13 @@ Future<void> pickAndUploadProfilePhoto(
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(PhosphorIconsRegular.image),
-            title: const Text('Choose from gallery'),
+            title: Text(context.l10n.chooseFromGallery),
             onTap: () => Navigator.pop(dialogContext, ImageSource.gallery),
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(PhosphorIconsRegular.camera),
-            title: const Text('Take a photo'),
+            title: Text(context.l10n.takeAPhoto),
             onTap: () => Navigator.pop(dialogContext, ImageSource.camera),
           ),
         ],
@@ -73,7 +74,7 @@ Future<void> pickAndUploadProfilePhoto(
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to upload image: $e'),
+          content: Text(context.l10n.imageUploadFailed('$e')),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -134,10 +135,10 @@ class _ReauthDialogState extends State<_ReauthDialog> {
       setState(() {
         _busy = false;
         _error = e.code == 'wrong-password' || e.code == 'invalid-credential'
-            ? "That password isn't right."
+            ? context.l10n.passwordWrong
             : e.code == 'too-many-requests'
-            ? 'Too many tries. Wait a little, then try again.'
-            : 'Something went wrong (${e.code}).';
+            ? context.l10n.tooManyTries
+            : context.l10n.somethingWentWrongCode(e.code);
       });
     }
   }
@@ -145,8 +146,8 @@ class _ReauthDialogState extends State<_ReauthDialog> {
   @override
   Widget build(BuildContext context) {
     return VestaDialog(
-      title: "Confirm it's you",
-      message: 'Enter your Vesta password to continue.',
+      title: context.l10n.confirmItsYou,
+      message: context.l10n.enterPasswordToContinue,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -154,7 +155,7 @@ class _ReauthDialogState extends State<_ReauthDialog> {
             controller: _password,
             obscureText: true,
             autofocus: true,
-            decoration: const InputDecoration(labelText: 'Password'),
+            decoration: InputDecoration(labelText: context.l10n.password),
             onChanged: (_) => setState(() => _error = null),
           ),
           if (_error != null) ...[
@@ -166,7 +167,7 @@ class _ReauthDialogState extends State<_ReauthDialog> {
           ],
         ],
       ),
-      confirmLabel: 'Continue',
+      confirmLabel: context.l10n.continueLabel,
       loading: _busy,
       onConfirm: _confirm,
     );

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icon_picker.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
@@ -123,7 +124,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final v = context.vesta;
-    final name = _user?.displayName ?? _user?.email ?? 'there';
+    final name = _user?.displayName ?? _user?.email ?? context.l10n.greetingFallbackName;
 
     return Scaffold(
       body: VestaBackground(
@@ -153,7 +154,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        '${homePageGreeting()} $name',
+                        '${homePageGreeting(context)} $name',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: v.muted),
@@ -207,10 +208,10 @@ class _DashboardPageState extends State<DashboardPage> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Total balance', style: TextStyle(fontSize: 13, color: v.muted)),
+            Text(context.l10n.totalBalance, style: TextStyle(fontSize: 13, color: v.muted)),
             FittedBox(
               fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: MoneyText(total, currency: currency, size: 36),
             ),
             const SizedBox(height: VestaSpace.xs),
@@ -218,7 +219,9 @@ class _DashboardPageState extends State<DashboardPage> {
               children: [
                 if (!_loading) ...[
                   Text(
-                    '${formatMoney(_monthChange, currency: currency, showPlus: true)} this month',
+                    context.l10n.amountThisMonth(
+                      formatMoney(_monthChange, currency: currency, showPlus: true),
+                    ),
                     style: TextStyle(
                       fontSize: 13,
                       color: _monthChange < 0 ? v.neg : v.pos,
@@ -229,7 +232,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 GestureDetector(
                   onTap: widget.onOpenWallet,
                   child: Text(
-                    _accountCount == 1 ? '1 account ›' : '$_accountCount accounts ›',
+                    '${context.l10n.accountCount(_accountCount)} ${isArabic ? '‹' : '›'}',
                     style: TextStyle(fontSize: 13, color: v.accentInk),
                   ),
                 ),
@@ -250,15 +253,15 @@ class _DashboardPageState extends State<DashboardPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionHeader(
-          title: '$month budget',
-          actionLabel: 'See all',
+          title: context.l10n.monthBudget(month),
+          actionLabel: context.l10n.seeAll,
           onAction: () => _open(const PersonalBudgetScreen()),
         ),
         const SizedBox(height: VestaSpace.md),
         if (b == null || !b.hasPlan)
           _emptyLine(
-            'No budget plan for this month yet.',
-            'Plan your budget',
+            context.l10n.noBudgetPlan,
+            context.l10n.planYourBudget,
             () => _open(const PersonalBudgetScreen()),
           )
         else ...[
@@ -275,33 +278,36 @@ class _DashboardPageState extends State<DashboardPage> {
             children: [
               Expanded(
                 child: Text(
-                  '${formatMoney(b.flexSpent)} of ${formatMoney(b.flexBudget)} to spend',
+                  context.l10n.spentOfBudget(
+                    formatMoney(b.flexSpent),
+                    formatMoney(b.flexBudget),
+                  ),
                   style: TextStyle(fontSize: 12, color: v.muted),
                 ),
               ),
               Text(
-                b.daysLeft == 1 ? '1 day left' : '${b.daysLeft} days left',
+                context.l10n.daysLeft(b.daysLeft),
                 style: TextStyle(fontSize: 12, color: v.muted),
               ),
             ],
           ),
           const SizedBox(height: VestaSpace.md),
           _bucketRow(
-            'Necessities',
+            context.l10n.bucketNecessities,
             PhosphorIconsRegular.houseLine,
             v.bucketEssential,
             b.essentialSpent,
             b.essentialBudget,
           ),
           _bucketRow(
-            'Luxuries',
+            context.l10n.bucketLuxuries,
             PhosphorIconsRegular.sparkle,
             v.bucketLuxury,
             b.luxurySpent,
             b.luxuryBudget,
           ),
           _bucketRow(
-            'Savings',
+            context.l10n.bucketSavings,
             PhosphorIconsRegular.piggyBank,
             v.bucketSavings,
             b.savingsMoved,
@@ -327,15 +333,15 @@ class _DashboardPageState extends State<DashboardPage> {
     final over = !saving && used > planned;
     final String note;
     if (planned <= 0) {
-      note = 'Not in the plan';
+      note = context.l10n.notInPlan;
     } else if (saving) {
       note = used >= planned
-          ? 'Target reached'
-          : '${formatMoney(planned - used)} to go';
+          ? context.l10n.targetReached
+          : context.l10n.amountToGo(formatMoney(planned - used));
     } else {
       note = over
-          ? '${formatMoney(used - planned)} over'
-          : '${formatMoney(planned - used)} left';
+          ? context.l10n.amountOver(formatMoney(used - planned))
+          : context.l10n.amountLeft(formatMoney(planned - used));
     }
 
     return Padding(
@@ -389,15 +395,15 @@ class _DashboardPageState extends State<DashboardPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionHeader(
-          title: 'Coming up',
-          actionLabel: 'All bills',
+          title: context.l10n.comingUp,
+          actionLabel: context.l10n.allBills,
           onAction: () => _open(const BillsScreen()),
         ),
         const SizedBox(height: VestaSpace.md),
         if (next.isEmpty)
           _emptyLine(
-            'Nothing due soon.',
-            'Add your bills',
+            context.l10n.nothingDue,
+            context.l10n.addYourBills,
             () => _open(const BillsScreen()),
           )
         else
@@ -459,15 +465,15 @@ class _DashboardPageState extends State<DashboardPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionHeader(
-          title: 'Goals',
-          actionLabel: 'See all',
+          title: context.l10n.goals,
+          actionLabel: context.l10n.seeAll,
           onAction: () => _open(const SavingsPage()),
         ),
         const SizedBox(height: VestaSpace.sm),
         if (_goals.isEmpty)
           _emptyLine(
-            'No saving goals yet.',
-            'Create a goal',
+            context.l10n.noGoals,
+            context.l10n.createGoal,
             () => _open(const SavingsPage()),
           )
         else
@@ -497,7 +503,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      (g['goalTitle'] ?? 'Goal').toString(),
+                                      (g['goalTitle'] ?? context.l10n.goalFallback).toString(),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -535,15 +541,15 @@ class _DashboardPageState extends State<DashboardPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionHeader(
-          title: 'Recent',
-          actionLabel: 'See all',
+          title: context.l10n.recent,
+          actionLabel: context.l10n.seeAll,
           onAction: () => _open(const Transactions(showBack: true)),
         ),
         const SizedBox(height: VestaSpace.xs),
         if (_recent.isEmpty)
           _emptyLine(
-            'No transactions yet.',
-            'Add one',
+            context.l10n.noTransactions,
+            context.l10n.addOne,
             () => _open(const Transactions(showBack: true)),
           )
         else

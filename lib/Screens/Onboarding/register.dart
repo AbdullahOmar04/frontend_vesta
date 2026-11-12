@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
@@ -111,7 +112,7 @@ class _RegisterState extends State<Register> {
     if (username.isEmpty || email.isEmpty || pass.isEmpty || pass2.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Please fill all fields"),
+          content: Text(context.l10n.fillAllFields),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -120,7 +121,7 @@ class _RegisterState extends State<Register> {
     if (pass != pass2) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Passwords do not match"),
+          content: Text(context.l10n.passwordsDontMatch),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -131,7 +132,7 @@ class _RegisterState extends State<Register> {
     if (!_isPasswordValid) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Please ensure your password meets all requirements"),
+          content: Text(context.l10n.passwordRequirementsNotMet),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -143,7 +144,7 @@ class _RegisterState extends State<Register> {
     if (!usernameRegex.hasMatch(username)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Username can only contain letters, numbers, and underscores"),
+          content: Text(context.l10n.usernameRules),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -155,7 +156,7 @@ class _RegisterState extends State<Register> {
     if (!emailRegex.hasMatch(email)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Please enter a valid email address"),
+          content: Text(context.l10n.enterValidEmail),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -175,7 +176,7 @@ class _RegisterState extends State<Register> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Username already taken. Please choose another one."),
+            content: Text(context.l10n.usernameTaken),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -196,7 +197,7 @@ class _RegisterState extends State<Register> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Email already registered. Please use another email or login."),
+            content: Text(context.l10n.emailRegistered),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -213,9 +214,8 @@ class _RegisterState extends State<Register> {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text(
-                "We couldn't find that referral code. Check it, or leave it "
-                'empty.',
+              content: Text(
+                context.l10n.referralNotFound,
               ),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
@@ -244,7 +244,7 @@ class _RegisterState extends State<Register> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Error checking username/email: $e"),
+          content: Text(context.l10n.checkUsernameError('$e')),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -266,7 +266,7 @@ class _RegisterState extends State<Register> {
     );
 
     return Scaffold(
-      appBar: const VestaAppBar(title: 'Sign up'),
+      appBar: VestaAppBar(title: context.l10n.signUp),
       body: VestaBackground(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
@@ -276,34 +276,32 @@ class _RegisterState extends State<Register> {
             VestaSpace.xl,
           ),
           children: [
-            Text('Create your account', style: headingStyle(24)),
+            Text(context.l10n.createAccountTitle, style: headingStyle(24)),
             const SizedBox(height: VestaSpace.xs),
             Text(
               _showUsername
-                  ? 'Next we will verify your phone number.'
-                  : "You'll use these to log in as "
-                        '${_username.text.trim()}. Next we will verify your phone number.',
+                  ? context.l10n.nextVerifyPhone : context.l10n.useTheseToLogIn(_username.text.trim()),
               style: TextStyle(fontSize: 14, color: v.muted),
             ),
             const SizedBox(height: VestaSpace.xl),
             if (_showUsername) ...[
               TextField(
                 controller: _username,
-                decoration: const InputDecoration(labelText: 'Username'),
+                decoration: InputDecoration(labelText: context.l10n.username),
               ),
               const SizedBox(height: 14),
             ],
             TextField(
               controller: _email,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(labelText: 'Email'),
+              decoration: InputDecoration(labelText: context.l10n.email),
             ),
             const SizedBox(height: 14),
             TextField(
               controller: _password,
               obscureText: _obscurePassword,
               decoration: InputDecoration(
-                labelText: 'Password',
+                labelText: context.l10n.password,
                 suffixIcon: eye(_obscurePassword, () {
                   setState(() {
                     _obscurePassword = !_obscurePassword;
@@ -326,24 +324,24 @@ class _RegisterState extends State<Register> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Password needs',
+                    context.l10n.passwordNeeds,
                     style: TextStyle(fontSize: 12, color: v.muted),
                   ),
                   const SizedBox(height: VestaSpace.xs),
                   _buildPasswordRequirement(
-                    'At least 6 characters',
+                    context.l10n.pwMinLength,
                     _hasMinLength,
                   ),
                   _buildPasswordRequirement(
-                    'At least one uppercase letter (A-Z)',
+                    context.l10n.pwUppercase,
                     _hasUppercase,
                   ),
                   _buildPasswordRequirement(
-                    'At least one lowercase letter (a-z)',
+                    context.l10n.pwLowercase,
                     _hasLowercase,
                   ),
                   _buildPasswordRequirement(
-                    'At least one number (0-9)',
+                    context.l10n.pwNumber,
                     _hasNumber,
                   ),
                 ],
@@ -354,7 +352,7 @@ class _RegisterState extends State<Register> {
               controller: _repeatPassword,
               obscureText: _obscureRepeatPassword,
               decoration: InputDecoration(
-                labelText: 'Repeat password',
+                labelText: context.l10n.repeatPassword,
                 suffixIcon: eye(_obscureRepeatPassword, () {
                   setState(() {
                     _obscureRepeatPassword = !_obscureRepeatPassword;
@@ -366,14 +364,14 @@ class _RegisterState extends State<Register> {
             TextField(
               controller: _referral,
               textCapitalization: TextCapitalization.characters,
-              decoration: const InputDecoration(
-                labelText: 'Referral code',
-                hintText: 'Optional, e.g. MAYA-25K9',
+              decoration: InputDecoration(
+                labelText: context.l10n.referralCode,
+                hintText: context.l10n.referralHint,
               ),
             ),
             const SizedBox(height: VestaSpace.xl),
             PrimaryButton(
-              label: 'Continue',
+              label: context.l10n.continueLabel,
               loading: _loading,
               onPressed: _goToPhoneStep,
             ),

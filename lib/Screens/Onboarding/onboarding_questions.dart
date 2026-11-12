@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
@@ -22,6 +23,32 @@ const _split = [
   ('Luxuries', 'Dining, fun, shopping', 30.0),
   ('Savings', 'Goals and extra payments', 20.0),
 ];
+
+/// The [_focusOptions] label for [id], in the app's language.
+String _focusLabel(BuildContext context, String id) {
+  final l10n = context.l10n;
+  return switch (id) {
+    'spend' => l10n.focusSpend,
+    'goals' => l10n.focusGoals,
+    'bills' => l10n.focusBills,
+    'shared' => l10n.focusShared,
+    'budget' => l10n.focusBudget,
+    _ => l10n.focusClarity,
+  };
+}
+
+/// The name and examples of [_split] bucket [i], in the app's language.
+String _splitName(BuildContext context, int i) => [
+  context.l10n.bucketNecessities,
+  context.l10n.bucketLuxuries,
+  context.l10n.bucketSavings,
+][i];
+
+String _splitExamples(BuildContext context, int i) => [
+  context.l10n.bucketNecessitiesExamples,
+  context.l10n.bucketLuxuriesExamples,
+  context.l10n.bucketSavingsExamples,
+][i];
 
 /// What a new user answered before creating their account. Nothing is
 /// saved until the account exists: the OTP step writes it together with
@@ -109,7 +136,7 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
     final username = _username;
     if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(username)) {
       setState(() => _usernameError =
-          'Use only letters, numbers and underscores');
+          context.l10n.usernameCharsShort);
       return false;
     }
     setState(() {
@@ -123,11 +150,11 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
           .get();
       final taken = doc.exists;
       if (!mounted) return false;
-      setState(() => _usernameError = taken ? 'That username is taken' : null);
+      setState(() => _usernameError = taken ? context.l10n.usernameTakenShort : null);
       return !taken;
     } catch (e) {
       if (mounted) {
-        setState(() => _usernameError = "Couldn't check the username: $e");
+        setState(() => _usernameError = context.l10n.usernameCheckFailed('$e'));
       }
       return false;
     } finally {
@@ -208,7 +235,9 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
                     VestaSpace.lg,
                   ),
                   child: PrimaryButton(
-                    label: _step == _steps - 1 ? 'Create your account' : 'Continue',
+                    label: _step == _steps - 1
+                        ? context.l10n.createAccountTitle
+                        : context.l10n.continueLabel,
                     loading: _checkingUsername,
                     onPressed: _canContinue ? _next : null,
                   ),
@@ -241,7 +270,7 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
                   ? Navigator.of(context).maybePop()
                   : setState(() => _step--),
               icon: const Icon(PhosphorIconsRegular.arrowLeft),
-              tooltip: 'Back',
+              tooltip: context.l10n.back,
             ),
           ),
           Expanded(
@@ -262,7 +291,7 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
               ],
             ),
           ),
-          TextButton(onPressed: _skip, child: const Text('Skip')),
+          TextButton(onPressed: _skip, child: Text(context.l10n.skip)),
         ],
       ),
     );
@@ -284,13 +313,12 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
         ),
         const SizedBox(height: VestaSpace.xl),
         Text(
-          "Let's get your money into one calm view.",
+          context.l10n.onbWelcomeTitle,
           style: headingStyle(26),
         ),
         const SizedBox(height: VestaSpace.md),
         Text(
-          "A few questions and you'll have a starting budget, your accounts "
-          'in one place, and a coach that keeps an eye on your spending.',
+          context.l10n.onbWelcomeBody,
           style: TextStyle(fontSize: 15, color: v.muted),
         ),
         const SizedBox(height: VestaSpace.xl),
@@ -299,7 +327,7 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
           autocorrect: false,
           textInputAction: TextInputAction.next,
           decoration: InputDecoration(
-            labelText: 'Choose a username',
+            labelText: context.l10n.chooseUsername,
             prefixIcon: const Icon(PhosphorIconsRegular.userCircle),
             errorText: _usernameError,
           ),
@@ -319,14 +347,12 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Nice to meet you, $_username. '
-          'What lands in your account each month?',
+          context.l10n.incomeTitle(_username),
           style: headingStyle(22),
         ),
         const SizedBox(height: VestaSpace.sm),
         Text(
-          "Your take-home pay after taxes. We'll suggest a split you can "
-          'change anytime.',
+          context.l10n.incomeBody,
           style: TextStyle(fontSize: 14, color: v.muted),
         ),
         const SizedBox(height: VestaSpace.xl),
@@ -338,9 +364,9 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
           ],
           style: amountStyle(26),
-          decoration: const InputDecoration(
-            prefixText: 'JOD  ',
-            suffixText: '/ month',
+          decoration: InputDecoration(
+            prefixText: '${currencyLabel('JOD')}  ',
+            suffixText: context.l10n.perMonth,
             hintText: '0',
           ),
           onChanged: (_) => setState(() {}),
@@ -352,7 +378,7 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                'Stays on your phone until you create your account.',
+                context.l10n.incomePrivate,
                 style: TextStyle(fontSize: 12, color: v.muted),
               ),
             ),
@@ -364,7 +390,7 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'SUGGESTED STARTING SPLIT',
+                context.l10n.suggestedSplit,
                 style: TextStyle(
                   fontSize: 11,
                   letterSpacing: 0.8,
@@ -407,11 +433,11 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${_split[i].$1} · ${_split[i].$3.round()}%',
+                              '${_splitName(context, i)} · ${_split[i].$3.round()}%',
                               style: const TextStyle(fontWeight: FontWeight.w500),
                             ),
                             Text(
-                              _split[i].$2,
+                              _splitExamples(context, i),
                               style: TextStyle(fontSize: 12, color: v.muted),
                             ),
                           ],
@@ -424,9 +450,9 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
               const Divider(height: VestaSpace.xl),
               Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Use this as my starting budget',
+                      context.l10n.useAsBudget,
                       style: TextStyle(fontSize: 14),
                     ),
                   ),
@@ -448,16 +474,16 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('What do you want to work on first?', style: headingStyle(22)),
+        Text(context.l10n.focusTitle, style: headingStyle(22)),
         const SizedBox(height: VestaSpace.sm),
         Text(
-          'Pick up to three. Your coach will focus here.',
+          context.l10n.focusBody,
           style: TextStyle(fontSize: 14, color: v.muted),
         ),
         const SizedBox(height: VestaSpace.xl),
-        for (final (id, label, icon) in _focusOptions) ...[
+        for (final (id, _, icon) in _focusOptions) ...[
           _ChoiceRow(
-            label: label,
+            label: _focusLabel(context, id),
             leading: Icon(icon, size: 20),
             selected: _focus.contains(id),
             onTap: () => setState(() {
@@ -479,11 +505,10 @@ class _OnboardingQuestionsState extends State<OnboardingQuestions> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Which banks do you use?', style: headingStyle(22)),
+        Text(context.l10n.banksTitle, style: headingStyle(22)),
         const SizedBox(height: VestaSpace.sm),
         Text(
-          'Pick any that apply. Nothing gets connected; it helps us set '
-          'Vesta up around your accounts.',
+          context.l10n.banksBody,
           style: TextStyle(fontSize: 14, color: v.muted),
         ),
         const SizedBox(height: VestaSpace.xl),
