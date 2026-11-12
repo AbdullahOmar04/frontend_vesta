@@ -713,5 +713,110 @@
         "type": "int"
       }
     }
+  },
+  "spendingsTitle": "Spendings",
+  "categories": "Categories",
+  "latestTransactions": "Latest transactions",
+  "spentInMonthSoFar": "Spent in {month} so far",
+  "@spentInMonthSoFar": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "percentUsed": "{percent}% used",
+  "@percentUsed": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "ofAmount": "of {amount}",
+  "@ofAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "noBudgetThisCycle": "No budget plan for this cycle yet",
+  "daysToGo": "{count, plural, =1{1 day to go} other{{count} days to go}}",
+  "@daysToGo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noCategorizedSpending": "No categorized spending yet.\nAssign categories to transactions to see them here.",
+  "loadBudgetError": "Error loading budget: {error}",
+  "@loadBudgetError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "insightsTitle": "Insights",
+  "vsMonth": "{amount} vs {month}",
+  "@vsMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryDown": "{name} is down {amount}",
+  "@categoryDown": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryUp": "{name} is up {amount}",
+  "@categoryUp": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "comparedWithMonth": "Compared with this point in {month}.",
+  "@comparedWithMonth": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "biggestDrop": "Compared with this point in {month}. That's the biggest drop of any category.",
+  "@biggestDrop": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "byCategory": "By category",
+  "noSpendingTwoMonths": "No spending yet this month or last.",
+  "onePurchase": "Most of it came from one purchase on {date}. Worth a look before the month closes.",
+  "@onePurchase": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   }
 }

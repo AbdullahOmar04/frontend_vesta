@@ -1288,4 +1288,93 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get spendingsTitle => 'المصاريف';
+
+  @override
+  String get categories => 'الفئات';
+
+  @override
+  String get latestTransactions => 'آخر المعاملات';
+
+  @override
+  String spentInMonthSoFar(String month) {
+    return 'المصروف في $month حتى الآن';
+  }
+
+  @override
+  String percentUsed(String percent) {
+    return 'استُخدم $percent%';
+  }
+
+  @override
+  String ofAmount(String amount) {
+    return 'من $amount';
+  }
+
+  @override
+  String get noBudgetThisCycle => 'لا خطة ميزانية لهذه الدورة بعد';
+
+  @override
+  String daysToGo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'بقي $count يوم',
+      many: 'بقي $count يوماً',
+      few: 'بقي $count أيام',
+      two: 'بقي يومان',
+      one: 'بقي يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get noCategorizedSpending =>
+      'لا مصاريف مصنّفة بعد.\nأضف فئات لمعاملاتك لتظهر هنا.';
+
+  @override
+  String loadBudgetError(String error) {
+    return 'تعذّر تحميل الميزانية: $error';
+  }
+
+  @override
+  String get insightsTitle => 'التحليلات';
+
+  @override
+  String vsMonth(String amount, String month) {
+    return '$amount مقارنة بـ$month';
+  }
+
+  @override
+  String categoryDown(String name, String amount) {
+    return 'انخفضت $name بـ $amount';
+  }
+
+  @override
+  String categoryUp(String name, String amount) {
+    return 'ارتفعت $name بـ $amount';
+  }
+
+  @override
+  String comparedWithMonth(String month) {
+    return 'مقارنة بالفترة نفسها من $month.';
+  }
+
+  @override
+  String biggestDrop(String month) {
+    return 'مقارنة بالفترة نفسها من $month. هذا أكبر انخفاض بين الفئات.';
+  }
+
+  @override
+  String get byCategory => 'حسب الفئة';
+
+  @override
+  String get noSpendingTwoMonths => 'لا مصاريف هذا الشهر ولا الشهر الماضي.';
+
+  @override
+  String onePurchase(String date) {
+    return 'معظمها من عملية شراء واحدة في $date. تستحق نظرة قبل نهاية الشهر.';
+  }
 }

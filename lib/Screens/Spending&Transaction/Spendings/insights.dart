@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
@@ -76,7 +77,7 @@ class _InsightsPageState extends State<InsightsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const VestaAppBar(title: 'Insights'),
+      appBar: VestaAppBar(title: context.l10n.insightsTitle),
       body: VestaBackground(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
@@ -153,7 +154,7 @@ class _InsightsPageState extends State<InsightsPage> {
       ),
       children: [
         Text(
-          'Spent in $monthName so far',
+          context.l10n.spentInMonthSoFar(monthName),
           style: TextStyle(fontSize: 13, color: v.muted),
         ),
         const SizedBox(height: VestaSpace.xs),
@@ -162,7 +163,7 @@ class _InsightsPageState extends State<InsightsPage> {
           children: [
             Expanded(
               child: Align(
-                alignment: Alignment.centerLeft,
+                alignment: AlignmentDirectional.centerStart,
                 child: MoneyText.hero(spent, size: 36),
               ),
             ),
@@ -170,7 +171,7 @@ class _InsightsPageState extends State<InsightsPage> {
               Padding(
                 padding: const EdgeInsets.only(left: VestaSpace.sm, bottom: 6),
                 child: Text(
-                  '${formatMoney(diff, showPlus: true)} vs $prevShort',
+                  context.l10n.vsMonth(formatMoney(diff, showPlus: true), prevShort),
                   style: TextStyle(fontSize: 12, color: diff > 0 ? v.neg : v.pos),
                 ),
               ),
@@ -186,11 +187,13 @@ class _InsightsPageState extends State<InsightsPage> {
           _InsightCard(
             icon: PhosphorIconsRegular.trendDown,
             title:
-                '${drops.first.name} is down ${formatMoney(-drops.first.change)}',
+                context.l10n.categoryDown(
+                  _shown(drops.first.name),
+                  formatMoney(-drops.first.change),
+                ),
             message: rows.length > 1 && drops.length > 1
-                ? 'Compared with this point in $prevLong. '
-                      "That's the biggest drop of any category."
-                : 'Compared with this point in $prevLong.',
+                ? context.l10n.biggestDrop(prevLong)
+                : context.l10n.comparedWithMonth(prevLong),
           ),
           const SizedBox(height: VestaSpace.md),
         ],
@@ -198,19 +201,22 @@ class _InsightsPageState extends State<InsightsPage> {
           _InsightCard(
             icon: PhosphorIconsRegular.trendUp,
             title:
-                '${rises.first.name} is up ${formatMoney(rises.first.change)}',
+                context.l10n.categoryUp(
+                  _shown(rises.first.name),
+                  formatMoney(rises.first.change),
+                ),
             message: _riseMessage(rises.first.name, current, prevLong),
           ),
           const SizedBox(height: VestaSpace.md),
         ],
         const SizedBox(height: VestaSpace.md),
-        const SectionHeader(title: 'By category'),
+        SectionHeader(title: context.l10n.byCategory),
         const SizedBox(height: VestaSpace.sm),
         if (rows.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: VestaSpace.xl),
             child: Text(
-              'No spending yet this month or last.',
+              context.l10n.noSpendingTwoMonths,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13, color: v.muted),
             ),
@@ -231,12 +237,10 @@ class _InsightsPageState extends State<InsightsPage> {
       txns.sort((a, b) => b.amount.abs().compareTo(a.amount.abs()));
       final top = txns.first;
       if (top.amount.abs() >= _sum(txns) / 2) {
-        return 'Most of it came from one purchase on '
-            '${DateFormat('MMM d').format(top.date)}. '
-            'Worth a look before the month closes.';
+        return l10nNow.onePurchase(DateFormat('MMM d').format(top.date));
       }
     }
-    return 'Compared with this point in $prevLong.';
+    return l10nNow.comparedWithMonth(prevLong);
   }
 }
 
@@ -277,8 +281,12 @@ class _MonthBars extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: VestaSpace.sm),
+                // One line: Arabic month names are longer than "Aug"
                 Text(
                   labels[i],
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.visible,
                   style: TextStyle(
                     fontSize: 12,
                     color: i == totals.length - 1 ? null : v.muted,
@@ -338,6 +346,11 @@ class _InsightCard extends StatelessWidget {
   }
 }
 
+/// A category as shown: "Uncategorized" (the grouping key here) and the
+/// default categories in the app's language.
+String _shown(String name) =>
+    name == 'Uncategorized' ? l10nNow.uncategorized : categoryLabel(name);
+
 class _CategoryRow extends StatelessWidget {
   const _CategoryRow({
     required this.name,
@@ -359,7 +372,11 @@ class _CategoryRow extends StatelessWidget {
           Icon(categoryIcon(name), size: 20),
           const SizedBox(width: VestaSpace.md),
           Expanded(
-            child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
+            child: Text(
+              _shown(name),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           Text(
             change == 0 ? '—' : formatMoney(change, showPlus: true),

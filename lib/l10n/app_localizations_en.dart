@@ -1280,4 +1280,90 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get spendingsTitle => 'Spendings';
+
+  @override
+  String get categories => 'Categories';
+
+  @override
+  String get latestTransactions => 'Latest transactions';
+
+  @override
+  String spentInMonthSoFar(String month) {
+    return 'Spent in $month so far';
+  }
+
+  @override
+  String percentUsed(String percent) {
+    return '$percent% used';
+  }
+
+  @override
+  String ofAmount(String amount) {
+    return 'of $amount';
+  }
+
+  @override
+  String get noBudgetThisCycle => 'No budget plan for this cycle yet';
+
+  @override
+  String daysToGo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days to go',
+      one: '1 day to go',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get noCategorizedSpending =>
+      'No categorized spending yet.\nAssign categories to transactions to see them here.';
+
+  @override
+  String loadBudgetError(String error) {
+    return 'Error loading budget: $error';
+  }
+
+  @override
+  String get insightsTitle => 'Insights';
+
+  @override
+  String vsMonth(String amount, String month) {
+    return '$amount vs $month';
+  }
+
+  @override
+  String categoryDown(String name, String amount) {
+    return '$name is down $amount';
+  }
+
+  @override
+  String categoryUp(String name, String amount) {
+    return '$name is up $amount';
+  }
+
+  @override
+  String comparedWithMonth(String month) {
+    return 'Compared with this point in $month.';
+  }
+
+  @override
+  String biggestDrop(String month) {
+    return 'Compared with this point in $month. That\'s the biggest drop of any category.';
+  }
+
+  @override
+  String get byCategory => 'By category';
+
+  @override
+  String get noSpendingTwoMonths => 'No spending yet this month or last.';
+
+  @override
+  String onePurchase(String date) {
+    return 'Most of it came from one purchase on $date. Worth a look before the month closes.';
+  }
 }

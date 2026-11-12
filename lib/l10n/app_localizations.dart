@@ -2306,6 +2306,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 transaction · Most recent} other{{count} transactions · Most recent}}'**
   String transactionCountRecent(int count);
+
+  /// No description provided for @spendingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Spendings'**
+  String get spendingsTitle;
+
+  /// No description provided for @categories.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get categories;
+
+  /// No description provided for @latestTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest transactions'**
+  String get latestTransactions;
+
+  /// No description provided for @spentInMonthSoFar.
+  ///
+  /// In en, this message translates to:
+  /// **'Spent in {month} so far'**
+  String spentInMonthSoFar(String month);
+
+  /// No description provided for @percentUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% used'**
+  String percentUsed(String percent);
+
+  /// No description provided for @ofAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'of {amount}'**
+  String ofAmount(String amount);
+
+  /// No description provided for @noBudgetThisCycle.
+  ///
+  /// In en, this message translates to:
+  /// **'No budget plan for this cycle yet'**
+  String get noBudgetThisCycle;
+
+  /// No description provided for @daysToGo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day to go} other{{count} days to go}}'**
+  String daysToGo(int count);
+
+  /// No description provided for @noCategorizedSpending.
+  ///
+  /// In en, this message translates to:
+  /// **'No categorized spending yet.\nAssign categories to transactions to see them here.'**
+  String get noCategorizedSpending;
+
+  /// No description provided for @loadBudgetError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading budget: {error}'**
+  String loadBudgetError(String error);
+
+  /// No description provided for @insightsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Insights'**
+  String get insightsTitle;
+
+  /// No description provided for @vsMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} vs {month}'**
+  String vsMonth(String amount, String month);
+
+  /// No description provided for @categoryDown.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is down {amount}'**
+  String categoryDown(String name, String amount);
+
+  /// No description provided for @categoryUp.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is up {amount}'**
+  String categoryUp(String name, String amount);
+
+  /// No description provided for @comparedWithMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Compared with this point in {month}.'**
+  String comparedWithMonth(String month);
+
+  /// No description provided for @biggestDrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Compared with this point in {month}. That\'s the biggest drop of any category.'**
+  String biggestDrop(String month);
+
+  /// No description provided for @byCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'By category'**
+  String get byCategory;
+
+  /// No description provided for @noSpendingTwoMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'No spending yet this month or last.'**
+  String get noSpendingTwoMonths;
+
+  /// No description provided for @onePurchase.
+  ///
+  /// In en, this message translates to:
+  /// **'Most of it came from one purchase on {date}. Worth a look before the month closes.'**
+  String onePurchase(String date);
 }
 
 class _AppLocalizationsDelegate

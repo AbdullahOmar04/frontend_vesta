@@ -1,6 +1,8 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
+import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:frontend_vesta/Helpers/account_balance.dart';
@@ -200,7 +202,7 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const VestaAppBar(title: "Spendings"),
+      appBar: VestaAppBar(title: context.l10n.spendingsTitle),
       body: VestaBackground(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
@@ -243,8 +245,8 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SectionHeader(
-            title: "Categories",
-            actionLabel: "See all",
+            title: context.l10n.categories,
+            actionLabel: context.l10n.seeAll,
             onAction: () {
               Navigator.push(
                 context,
@@ -279,7 +281,7 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
         .length;
 
     return ListRow(
-      title: categoryData?.name ?? entry.key,
+      title: categoryLabel(categoryData?.name ?? entry.key),
       padding: const EdgeInsets.symmetric(vertical: 6),
       leading: IconBadge(
         categoryIcon(categoryData?.name ?? entry.key),
@@ -338,8 +340,8 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SectionHeader(
-            title: "Latest transactions",
-            actionLabel: "See all",
+            title: context.l10n.latestTransactions,
+            actionLabel: context.l10n.seeAll,
             onAction: () {
               Navigator.push(
                 context,
@@ -407,22 +409,7 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
         : Theme.of(context).colorScheme.primary;
     final leftColor = used > 1 ? v.neg : v.muted;
 
-    final monthNames = [
-      '',
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    String cycleMonthName = monthNames[now.month];
+    final cycleMonthName = DateFormat('MMMM').format(now);
     final small = TextStyle(fontSize: 12, color: v.muted);
 
     // The card opens Insights, as in the prototype
@@ -437,11 +424,11 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
           Row(
             children: [
               Expanded(
-                child: Text("Spent in $cycleMonthName so far", style: small),
+                child: Text(context.l10n.spentInMonthSoFar(cycleMonthName), style: small),
               ),
               if (hasBudget)
                 Text(
-                  "${(used * 100).round()}% used",
+                  context.l10n.percentUsed('${(used * 100).round()}'),
                   style: small.copyWith(color: leftColor),
                 ),
             ],
@@ -456,7 +443,7 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 3),
                   child: Text(
-                    "of ${formatMoney(_currentCycleBudget)}",
+                    context.l10n.ofAmount(formatMoney(_currentCycleBudget)),
                     style: TextStyle(fontSize: 13, color: v.muted),
                   ),
                 ),
@@ -475,15 +462,15 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
               Expanded(
                 child: Text(
                   !hasBudget
-                      ? "No budget plan for this cycle yet"
+                      ? context.l10n.noBudgetThisCycle
                       : left >= 0
-                      ? "${formatMoney(left)} left"
-                      : "${formatMoney(-left)} over",
+                      ? context.l10n.amountLeft(formatMoney(left))
+                      : context.l10n.amountOver(formatMoney(-left)),
                   style: small.copyWith(color: leftColor),
                 ),
               ),
               Text(
-                daysLeft == 1 ? "1 day to go" : "$daysLeft days to go",
+                context.l10n.daysToGo(daysLeft),
                 style: small,
               ),
             ],
@@ -498,7 +485,7 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20),
       child: Text(
-        "No categorized spending yet.\nAssign categories to transactions to see them here.",
+        context.l10n.noCategorizedSpending,
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 13, color: context.vesta.muted),
       ),
@@ -546,7 +533,7 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error loading budget: $e')));
+        ).showSnackBar(SnackBar(content: Text(context.l10n.loadBudgetError('$e'))));
       }
     }
   }
@@ -659,7 +646,7 @@ class _SpendingAnalysisState extends State<NewSpendingAnalysis> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20),
       child: Text(
-        "No transactions yet.",
+        context.l10n.noTransactions,
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 13, color: context.vesta.muted),
       ),
