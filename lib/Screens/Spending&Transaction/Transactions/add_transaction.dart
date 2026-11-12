@@ -54,6 +54,15 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
 
   String? _selectedAccountId;
   String? _selectedCategory;
+
+  /// The chosen account's currency: a transaction is in its account's money.
+  String get _currency =>
+      (_accounts.firstWhere(
+                (a) => a['id'] == _selectedAccountId,
+                orElse: () => const {},
+              )['currency'] ??
+              'JOD')
+          .toString();
   TransactionType _type = TransactionType.debit;
   DateTime _date = DateTime.now();
 
@@ -97,6 +106,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
         final data = d.data();
         return {
           'id': d.id,
+          'currency': data['currency'] ?? 'JOD',
           'name': data['accountName'] ?? d.id,
           'type': data['accountTypeName'],
         };
@@ -170,7 +180,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
         firestoreAccountId: _selectedAccountId!,
         id: newDoc.id,
         amount: amount,
-        currency: "JOD",
+        currency: _currency,
         type: _type,
         date: _date,
         merchantName: _merchantCtrl.text.trim().isEmpty
@@ -486,7 +496,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
         TextField(
           controller: _amountCtrl,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(labelText: "Amount"),
+          decoration: InputDecoration(labelText: "Amount ($_currency)"),
         ),
         gap,
 
