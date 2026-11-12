@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icon_picker.dart';
@@ -34,9 +35,9 @@ class _HouseholdBillsCardState extends State<HouseholdBillsCard> {
   Future<void> _remove(HouseholdBill bill) async {
     final sure = await confirmDialog(
       context,
-      title: 'Delete this bill?',
-      message: '"${bill.name}" will be removed for everyone.',
-      confirmLabel: 'Delete',
+      title: context.l10n.deleteBillTitle,
+      message: context.l10n.willBeRemovedForEveryone(bill.name),
+      confirmLabel: context.l10n.delete,
     );
     if (!sure) return;
     try {
@@ -45,7 +46,9 @@ class _HouseholdBillsCardState extends State<HouseholdBillsCard> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text("Couldn't delete the bill: $e")));
+        ).showSnackBar(
+          SnackBar(content: Text(context.l10n.billDeleteFailed('$e'))),
+        );
       }
     }
   }
@@ -68,7 +71,7 @@ class _HouseholdBillsCardState extends State<HouseholdBillsCard> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SectionHeader(
-            title: 'Upcoming payments',
+            title: context.l10n.upcomingPayments,
             trailing: [
               AddRemoveButtons(
                 onAdd: () => showHouseholdBillSheet(
@@ -76,10 +79,10 @@ class _HouseholdBillsCardState extends State<HouseholdBillsCard> {
                   householdId: widget.householdId,
                   members: widget.members,
                 ),
-                addTooltip: 'Add a shared bill',
+                addTooltip: context.l10n.addSharedBill,
                 removing: _removing,
                 canRemove: widget.bills.isNotEmpty,
-                removeTooltip: 'Remove a bill',
+                removeTooltip: context.l10n.removeABill,
                 onToggleRemove: () => setState(() => _removing = !_removing),
               ),
             ],
@@ -89,8 +92,7 @@ class _HouseholdBillsCardState extends State<HouseholdBillsCard> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: VestaSpace.lg),
               child: Text(
-                'No shared bills yet. Add rent, utilities, or subscriptions '
-                'you split.',
+                context.l10n.noSharedBills,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: v.muted),
               ),
@@ -108,10 +110,10 @@ class _HouseholdBillsCardState extends State<HouseholdBillsCard> {
     final due = UpcomingPayment.nextDueDate(bill.dueDay, today);
     final days = due.difference(today).inDays;
     final when = days == 0
-        ? 'today'
+        ? context.l10n.whenToday
         : days == 1
-        ? 'tomorrow'
-        : 'in $days days';
+        ? context.l10n.whenTomorrow
+        : context.l10n.whenInDays(days);
     final payers = [
       for (var i = 0; i < widget.members.length; i++)
         if ((bill.split[widget.members[i].uid] ?? 0) > 0)
@@ -157,8 +159,10 @@ class _HouseholdBillsCardState extends State<HouseholdBillsCard> {
                           children: [
                             Text(bill.name),
                             Text(
-                              'Due ${DateFormat('MMM d').format(due)} · $when · '
-                              'Monthly',
+                              context.l10n.billDueLine(
+                                DateFormat('MMM d').format(due),
+                                when,
+                              ),
                               style: TextStyle(fontSize: 12, color: v.muted),
                             ),
                           ],
@@ -175,7 +179,7 @@ class _HouseholdBillsCardState extends State<HouseholdBillsCard> {
                       children: [
                         for (final (m, color) in payers)
                           Container(
-                            padding: const EdgeInsets.fromLTRB(3, 3, 10, 3),
+                            padding: const EdgeInsetsDirectional.fromSTEB(3, 3, 10, 3),
                             decoration: BoxDecoration(
                               color: v.raised,
                               borderRadius: BorderRadius.circular(999),
@@ -308,14 +312,16 @@ class _BillSheetState extends State<_BillSheet> {
     final split = _split();
     final splitTotal = split.values.fold(0.0, (s, a) => s + a);
     final String? problem = name.isEmpty
-        ? 'Give the bill a name.'
+        ? context.l10n.giveBillName
         : amount <= 0
-        ? 'Enter the amount.'
+        ? context.l10n.enterTheAmount
         : day < 1 || day > 31
-        ? 'Pick a due day from 1 to 31.'
+        ? context.l10n.pickDueDay
         : (splitTotal - amount).abs() > 0.01
-        ? 'The shares add up to ${formatMoney(splitTotal)}, not '
-              '${formatMoney(amount)}.'
+        ? context.l10n.sharesDontAddUp(
+            formatMoney(splitTotal),
+            formatMoney(amount),
+          )
         : null;
     if (problem != null) {
       setState(() => _error = problem);
@@ -339,7 +345,7 @@ class _BillSheetState extends State<_BillSheet> {
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = "Couldn't save the bill: $e";
+          _error = context.l10n.billSaveFailed('$e');
         });
       }
     }
@@ -372,12 +378,14 @@ class _BillSheetState extends State<_BillSheet> {
               children: [
                 Expanded(
                   child: Text(
-                    widget.bill == null ? 'New shared bill' : 'Edit bill',
+                    widget.bill == null
+                        ? context.l10n.newSharedBill
+                        : context.l10n.editBill,
                     style: headingStyle(20),
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Close',
+                  tooltip: context.l10n.close,
                   onPressed: () => Navigator.pop(context),
                   icon: Icon(PhosphorIconsRegular.x, color: v.muted),
                 ),
@@ -402,9 +410,9 @@ class _BillSheetState extends State<_BillSheet> {
                     maxLength: 30,
                     textCapitalization: TextCapitalization.sentences,
                     onChanged: (_) => setState(() => _error = null),
-                    decoration: const InputDecoration(
-                      labelText: 'Name',
-                      hintText: 'e.g. Rent',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.name,
+                      hintText: context.l10n.egRent,
                       counterText: '',
                     ),
                   ),
@@ -422,9 +430,9 @@ class _BillSheetState extends State<_BillSheet> {
                     ),
                     inputFormatters: [amountFormat],
                     onChanged: (_) => setState(() => _error = null),
-                    decoration: const InputDecoration(
-                      labelText: 'Amount',
-                      prefixText: 'JOD ',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.amount,
+                      prefixText: '${currencyLabel('JOD')} ',
                     ),
                   ),
                 ),
@@ -439,8 +447,8 @@ class _BillSheetState extends State<_BillSheet> {
                       LengthLimitingTextInputFormatter(2),
                     ],
                     onChanged: (_) => setState(() => _error = null),
-                    decoration: const InputDecoration(
-                      labelText: 'Due day',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.dueDay,
                       hintText: '1-31',
                     ),
                   ),
@@ -452,10 +460,12 @@ class _BillSheetState extends State<_BillSheet> {
               padding: EdgeInsets.zero,
               child: ToggleRow(
                 icon: PhosphorIconsRegular.usersThree,
-                title: 'Split evenly',
+                title: context.l10n.splitEvenly,
                 subtitle: _even && widget.members.isNotEmpty && _amountValue > 0
-                    ? '${formatMoney(_amountValue / widget.members.length)} each'
-                    : 'Or set what each member pays',
+                    ? context.l10n.amountEach(
+                        formatMoney(_amountValue / widget.members.length),
+                      )
+                    : context.l10n.setEachPays,
                 value: _even,
                 onChanged: (x) => setState(() {
                   _even = x;
@@ -479,7 +489,7 @@ class _BillSheetState extends State<_BillSheet> {
                       Expanded(
                         child: Text(
                           widget.members[i].uid == me
-                              ? '${widget.members[i].name} (you)'
+                              ? context.l10n.nameYou(widget.members[i].name)
                               : widget.members[i].name,
                         ),
                       ),
@@ -492,9 +502,9 @@ class _BillSheetState extends State<_BillSheet> {
                           ),
                           inputFormatters: [amountFormat],
                           onChanged: (_) => setState(() => _error = null),
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             isDense: true,
-                            prefixText: 'JOD ',
+                            prefixText: '${currencyLabel('JOD')} ',
                             hintText: '0',
                           ),
                         ),
@@ -512,14 +522,14 @@ class _BillSheetState extends State<_BillSheet> {
               children: [
                 Expanded(
                   child: OutlineButton(
-                    label: 'Cancel',
+                    label: context.l10n.cancel,
                     onPressed: _saving ? null : () => Navigator.pop(context),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: PrimaryButton(
-                    label: widget.bill == null ? 'Add bill' : 'Save',
+                    label: widget.bill == null ? context.l10n.addBill : context.l10n.save,
                     loading: _saving,
                     onPressed: _save,
                   ),

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icon_picker.dart';
@@ -135,11 +136,11 @@ class _NewGoalDialogState extends State<_NewGoalDialog> {
     final target = _targetValue;
     final months = _monthsValue;
     final String? problem = name.isEmpty
-        ? 'Give the goal a name.'
+        ? context.l10n.giveGoalName
         : target <= 0
-        ? 'Enter how much you want to save.'
+        ? context.l10n.enterSaveAmount
         : months < 1
-        ? 'Enter how many months, or pick a target date.'
+        ? context.l10n.enterMonthsOrDate
         : null;
     if (problem != null) {
       setState(() => _error = problem);
@@ -183,7 +184,7 @@ class _NewGoalDialogState extends State<_NewGoalDialog> {
       if (!mounted) return;
       setState(() {
         _saving = false;
-        _error = "Couldn't add the goal: $e";
+        _error = context.l10n.goalAddFailed('$e');
       });
     }
   }
@@ -201,9 +202,9 @@ class _NewGoalDialogState extends State<_NewGoalDialog> {
     String two(int n) => n.toString().padLeft(2, '0');
 
     return VestaDialog(
-      title: 'New savings goal',
+      title: context.l10n.newSavingsGoal,
       cancelButton: false,
-      confirmLabel: 'Add goal',
+      confirmLabel: context.l10n.addGoal,
       onConfirm: _save,
       loading: _saving,
       content: Column(
@@ -219,8 +220,8 @@ class _NewGoalDialogState extends State<_NewGoalDialog> {
                   maxLength: 32,
                   textCapitalization: TextCapitalization.sentences,
                   onChanged: (_) => setState(() => _error = null),
-                  decoration: const InputDecoration(
-                    hintText: 'Goal name',
+                  decoration: InputDecoration(
+                    hintText: context.l10n.goalName,
                     counterText: '',
                   ),
                 ),
@@ -228,7 +229,7 @@ class _NewGoalDialogState extends State<_NewGoalDialog> {
             ],
           ),
           const SizedBox(height: VestaSpace.lg),
-          label('Total target amount'),
+          label(context.l10n.totalTargetAmount),
           TextField(
             controller: _target,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -241,7 +242,7 @@ class _NewGoalDialogState extends State<_NewGoalDialog> {
             ),
           ),
           const SizedBox(height: VestaSpace.md),
-          label('Target amount per month'),
+          label(context.l10n.targetPerMonth),
           TextField(
             controller: _monthly,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -262,7 +263,7 @@ class _NewGoalDialogState extends State<_NewGoalDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    label('Months'),
+                    label(context.l10n.months),
                     TextField(
                       controller: _months,
                       keyboardType: TextInputType.number,
@@ -281,7 +282,7 @@ class _NewGoalDialogState extends State<_NewGoalDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    label('Target date'),
+                    label(context.l10n.targetDate),
                     InkWell(
                       borderRadius: BorderRadius.circular(VestaRadius.md),
                       onTap: _pickDate,
@@ -294,7 +295,7 @@ class _NewGoalDialogState extends State<_NewGoalDialog> {
                           ),
                         ),
                         child: Text(
-                          '${two(_date.day)} / ${two(_date.month)} / ${_date.year}',
+                          '\u2066${two(_date.day)} / ${two(_date.month)} / ${_date.year}\u2069',
                         ),
                       ),
                     ),

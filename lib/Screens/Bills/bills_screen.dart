@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
@@ -8,7 +9,10 @@ import 'package:frontend_vesta/Screens/Bills/bills_data.dart';
 import 'package:intl/intl.dart';
 
 /// Opens the add/edit bill sheet; true when something was saved or deleted.
-Future<bool> showBillSheet(BuildContext context, [UpcomingPayment? bill]) async {
+Future<bool> showBillSheet(
+  BuildContext context, [
+  UpcomingPayment? bill,
+]) async {
   final changed = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
@@ -22,9 +26,9 @@ Future<bool> showBillSheet(BuildContext context, [UpcomingPayment? bill]) async 
 Future<bool> confirmDeleteBill(BuildContext context, String title) {
   return confirmDialog(
     context,
-    title: 'Delete this bill?',
-    message: '"$title" will be removed.',
-    confirmLabel: 'Delete',
+    title: context.l10n.deleteBillTitle,
+    message: context.l10n.willBeRemoved(title),
+    confirmLabel: context.l10n.delete,
   );
 }
 
@@ -77,7 +81,7 @@ class _BillsScreenState extends State<BillsScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Couldn't delete the bill: $e")),
+        SnackBar(content: Text(context.l10n.billDeleteFailed('$e'))),
       );
     }
   }
@@ -89,7 +93,7 @@ class _BillsScreenState extends State<BillsScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Couldn't update the bill: $e")),
+        SnackBar(content: Text(context.l10n.billUpdateFailed('$e'))),
       );
     }
   }
@@ -97,7 +101,7 @@ class _BillsScreenState extends State<BillsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const VestaAppBar(title: 'Bills & subscriptions'),
+      appBar: VestaAppBar(title: context.l10n.billsTitle),
       body: VestaBackground(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
@@ -115,16 +119,21 @@ class _BillsScreenState extends State<BillsScreen> {
     // A bill whose day has gone this month counts as done for the month
     bool doneThisMonth(UpcomingPayment p) =>
         p.isBill &&
-        UpcomingPayment.dueDateIn(now.year, now.month, p.dueDay!)
-            .isBefore(today);
+        UpcomingPayment.dueDateIn(
+          now.year,
+          now.month,
+          p.dueDay!,
+        ).isBefore(today);
 
     final dueThisMonth = _payments
-        .where((p) =>
-            !p.incoming &&
-            !doneThisMonth(p) &&
-            p.nextDate != null &&
-            !p.nextDate!.isBefore(today) &&
-            !p.nextDate!.isAfter(monthEnd))
+        .where(
+          (p) =>
+              !p.incoming &&
+              !doneThisMonth(p) &&
+              p.nextDate != null &&
+              !p.nextDate!.isBefore(today) &&
+              !p.nextDate!.isAfter(monthEnd),
+        )
         .fold(0.0, (s, p) => s + p.amount);
     final subscriptions = _payments
         .where((p) => p.subscription)
@@ -148,16 +157,16 @@ class _BillsScreenState extends State<BillsScreen> {
           children: [
             Expanded(
               child: _SummaryCard(
-                label: 'Still due this month',
+                label: context.l10n.stillDueThisMonth,
                 amount: dueThisMonth,
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: _SummaryCard(
-                label: 'Subscriptions',
+                label: context.l10n.profileSubscriptions,
                 amount: subscriptions,
-                suffix: '/mo',
+                suffix: context.l10n.perMo,
               ),
             ),
           ],
@@ -171,17 +180,18 @@ class _BillsScreenState extends State<BillsScreen> {
                 children: [
                   Icon(PhosphorIconsRegular.receipt, size: 40, color: v.muted),
                   const SizedBox(height: VestaSpace.md),
-                  Text('No bills yet', style: headingStyle(17)),
+                  Text(context.l10n.noBillsYet, style: headingStyle(17)),
                   const SizedBox(height: VestaSpace.xs),
                   Text(
-                    'Add rent, phone, subscriptions and anything else you '
-                    'pay each month. Standing orders from your bank show '
-                    'up here too.',
+                    context.l10n.billsEmptyBody,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 13, color: v.muted),
                   ),
                   const SizedBox(height: VestaSpace.lg),
-                  PrimaryButton(label: 'Add a bill', onPressed: () => _edit()),
+                  PrimaryButton(
+                    label: context.l10n.addABill,
+                    onPressed: () => _edit(),
+                  ),
                 ],
               ),
             ),
@@ -192,16 +202,21 @@ class _BillsScreenState extends State<BillsScreen> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(VestaSpace.lg, 12, 10, 4),
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                    VestaSpace.lg,
+                    12,
+                    10,
+                    4,
+                  ),
                   child: SectionHeader(
-                    title: 'Bills',
+                    title: context.l10n.bills,
                     trailing: [
                       AddRemoveButtons(
                         onAdd: () => _edit(),
-                        addTooltip: 'Add a bill',
+                        addTooltip: context.l10n.addABill,
                         removing: _removing,
                         canRemove: rows.any((p) => p.isBill),
-                        removeTooltip: 'Remove a bill',
+                        removeTooltip: context.l10n.removeABill,
                         onToggleRemove: () =>
                             setState(() => _removing = !_removing),
                       ),
@@ -228,8 +243,7 @@ class _BillsScreenState extends State<BillsScreen> {
           ),
         const SizedBox(height: VestaSpace.md),
         Text(
-          'Toggle on to mark a bill as autopay. Standing orders are set up '
-          'at your bank.',
+          context.l10n.billsFootnote,
           style: TextStyle(fontSize: 12, color: v.muted),
         ),
       ],
@@ -261,7 +275,10 @@ class _SummaryCard extends StatelessWidget {
               MoneyText(amount, size: 19),
               if (suffix != null)
                 Padding(
-                  padding: const EdgeInsets.only(left: 4, bottom: 2),
+                  padding: const EdgeInsetsDirectional.only(
+                    start: 4,
+                    bottom: 2,
+                  ),
                   child: Text(
                     suffix!,
                     style: TextStyle(fontSize: 12, color: v.muted),
@@ -296,30 +313,37 @@ class _PaymentRow extends StatelessWidget {
   final VoidCallback? onRemove;
   final ValueChanged<bool>? onAutopay;
 
-  String _status() {
+  String _status(BuildContext context) {
+    final l10n = context.l10n;
     final p = payment;
     if (done) {
       return p.autopay
-          ? 'Paid'
-          : 'Was due ${DateFormat('MMM d').format(UpcomingPayment.dueDateIn(today.year, today.month, p.dueDay!))}';
+          ? l10n.paid
+          : l10n.wasDue(
+              DateFormat('MMM d').format(
+                UpcomingPayment.dueDateIn(today.year, today.month, p.dueDay!),
+              ),
+            );
     }
     final parts = <String>[];
     if (p.nextDate == null) {
-      parts.add('No date set');
+      parts.add(l10n.noDateSet);
     } else {
       final next = p.nextDate!;
-      final days = DateTime(next.year, next.month, next.day)
-          .difference(today)
-          .inDays;
+      final days = DateTime(
+        next.year,
+        next.month,
+        next.day,
+      ).difference(today).inDays;
       parts.add(switch (days) {
-        < 0 => 'Was due ${DateFormat('MMM d').format(next)}',
-        0 => 'Due today',
-        1 => 'Due tomorrow',
-        _ => 'Due in $days days',
+        < 0 => l10n.wasDue(DateFormat('MMM d').format(next)),
+        0 => l10n.dueToday,
+        1 => l10n.dueTomorrow,
+        _ => l10n.dueInDays(days),
       });
     }
-    if (p.incoming) parts.add('incoming');
-    if (p.autopay && p.isBill) parts.add('autopay');
+    if (p.incoming) parts.add(l10n.incoming);
+    if (p.autopay && p.isBill) parts.add(l10n.autopayLower);
     if (!p.isBill && p.frequency != null) parts.add(p.frequency!);
     return parts.join(' · ');
   }
@@ -332,7 +356,8 @@ class _PaymentRow extends StatelessWidget {
     final date = done
         ? UpcomingPayment.dueDateIn(today.year, today.month, p.dueDay!)
         : p.nextDate;
-    final dueSoon = !done &&
+    final dueSoon =
+        !done &&
         !p.autopay &&
         p.nextDate != null &&
         p.nextDate!.difference(today).inDays <= 5;
@@ -342,7 +367,12 @@ class _PaymentRow extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(VestaSpace.lg, 12, 10, 12),
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            VestaSpace.lg,
+            12,
+            10,
+            12,
+          ),
           child: Row(
             children: [
               if (onRemove != null) ...[
@@ -354,7 +384,9 @@ class _PaymentRow extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      date == null ? '—' : DateFormat('MMM').format(date).toUpperCase(),
+                      date == null
+                          ? '—'
+                          : DateFormat('MMM').format(date).toUpperCase(),
                       style: TextStyle(fontSize: 10, color: v.muted),
                     ),
                     Text(
@@ -376,7 +408,7 @@ class _PaymentRow extends StatelessWidget {
                       style: const TextStyle(fontWeight: FontWeight.w500),
                     ),
                     Text(
-                      _status(),
+                      _status(context),
                       style: TextStyle(
                         fontSize: 12,
                         color: dueSoon ? v.accentInk : v.muted,
@@ -405,7 +437,10 @@ class _PaymentRow extends StatelessWidget {
                 child: Center(
                   child: p.isBill
                       ? Switch(value: p.autopay, onChanged: onAutopay)
-                      : TagChip.pill('Bank', icon: PhosphorIconsRegular.bank),
+                      : TagChip.pill(
+                          context.l10n.sourceBank,
+                          icon: PhosphorIconsRegular.bank,
+                        ),
                 ),
               ),
             ],
@@ -476,7 +511,7 @@ class _BillSheetState extends State<_BillSheet> {
       if (!mounted) return;
       setState(() => _saving = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Couldn't save the bill: $e")),
+        SnackBar(content: Text(context.l10n.billSaveFailed('$e'))),
       );
     }
   }
@@ -491,7 +526,7 @@ class _BillSheetState extends State<_BillSheet> {
       if (!mounted) return;
       setState(() => _saving = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Couldn't delete the bill: $e")),
+        SnackBar(content: Text(context.l10n.billDeleteFailed('$e'))),
       );
     }
   }
@@ -515,16 +550,18 @@ class _BillSheetState extends State<_BillSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              widget.bill == null ? 'Add a bill' : 'Edit bill',
+              widget.bill == null
+                  ? context.l10n.addABill
+                  : context.l10n.editBill,
               style: headingStyle(20),
             ),
             const SizedBox(height: VestaSpace.lg),
             TextField(
               controller: _name,
               textCapitalization: TextCapitalization.sentences,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                hintText: 'Rent, phone, Netflix...',
+              decoration: InputDecoration(
+                labelText: context.l10n.name,
+                hintText: context.l10n.billNameHint,
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -542,9 +579,9 @@ class _BillSheetState extends State<_BillSheet> {
                         RegExp(r'^\d*\.?\d{0,2}'),
                       ),
                     ],
-                    decoration: const InputDecoration(
-                      labelText: 'Amount',
-                      prefixText: 'JOD ',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.amount,
+                      prefixText: '${currencyLabel('JOD')} ',
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
@@ -553,10 +590,15 @@ class _BillSheetState extends State<_BillSheet> {
                 Expanded(
                   child: DropdownButtonFormField<int>(
                     initialValue: _dueDay,
-                    decoration: const InputDecoration(labelText: 'Due every month on'),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.dueEveryMonthOn,
+                    ),
                     items: [
                       for (var d = 1; d <= 31; d++)
-                        DropdownMenuItem(value: d, child: Text('Day $d')),
+                        DropdownMenuItem(
+                          value: d,
+                          child: Text(context.l10n.dayN(d)),
+                        ),
                     ],
                     onChanged: (d) => setState(() => _dueDay = d ?? _dueDay),
                   ),
@@ -567,7 +609,7 @@ class _BillSheetState extends State<_BillSheet> {
               Padding(
                 padding: const EdgeInsets.only(top: 6),
                 child: Text(
-                  'In shorter months it falls on the last day.',
+                  context.l10n.shorterMonthsNote,
                   style: TextStyle(fontSize: 12, color: v.muted),
                 ),
               ),
@@ -580,9 +622,9 @@ class _BillSheetState extends State<_BillSheet> {
                   ? _accountId
                   : null,
               isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Paid from'),
+              decoration: InputDecoration(labelText: context.l10n.paidFrom),
               items: [
-                const DropdownMenuItem(value: null, child: Text('Not set')),
+                DropdownMenuItem(value: null, child: Text(context.l10n.notSet)),
                 for (final (id, label) in _accounts)
                   DropdownMenuItem(value: id, child: Text(label)),
               ],
@@ -592,11 +634,11 @@ class _BillSheetState extends State<_BillSheet> {
             DropdownButtonFormField<String?>(
               initialValue: categories.contains(_category) ? _category : null,
               isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Category'),
+              decoration: InputDecoration(labelText: context.l10n.category),
               items: [
-                const DropdownMenuItem(value: null, child: Text('Not set')),
+                DropdownMenuItem(value: null, child: Text(context.l10n.notSet)),
                 for (final c in categories)
-                  DropdownMenuItem(value: c, child: Text(c)),
+                  DropdownMenuItem(value: c, child: Text(categoryLabel(c))),
               ],
               onChanged: (c) => setState(() => _category = c),
             ),
@@ -606,16 +648,16 @@ class _BillSheetState extends State<_BillSheet> {
               child: Column(
                 children: [
                   ToggleRow(
-                    title: 'Subscription',
-                    subtitle: 'Counted in your monthly subscriptions',
+                    title: context.l10n.subscription,
+                    subtitle: context.l10n.subscriptionSubtitle,
                     icon: PhosphorIconsRegular.arrowsClockwise,
                     value: _subscription,
                     onChanged: (on) => setState(() => _subscription = on),
                   ),
                   Divider(height: 1, color: v.divider),
                   ToggleRow(
-                    title: 'Autopay',
-                    subtitle: 'Comes out automatically',
+                    title: context.l10n.autopay,
+                    subtitle: context.l10n.autopaySubtitle,
                     icon: PhosphorIconsRegular.calendarCheck,
                     value: _autopay,
                     onChanged: (on) => setState(() => _autopay = on),
@@ -625,7 +667,9 @@ class _BillSheetState extends State<_BillSheet> {
             ),
             const SizedBox(height: VestaSpace.lg),
             PrimaryButton(
-              label: widget.bill == null ? 'Add bill' : 'Save',
+              label: widget.bill == null
+                  ? context.l10n.addBill
+                  : context.l10n.save,
               loading: _saving,
               onPressed: _valid && !_saving ? _save : null,
             ),
@@ -634,7 +678,7 @@ class _BillSheetState extends State<_BillSheet> {
               TextButton(
                 onPressed: _saving ? null : _delete,
                 style: TextButton.styleFrom(foregroundColor: v.neg),
-                child: const Text('Delete bill'),
+                child: Text(context.l10n.deleteBill),
               ),
             ],
           ],

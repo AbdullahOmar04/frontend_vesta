@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icon_picker.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
@@ -24,9 +25,9 @@ class _SavingsPageState extends State<SavingsPage> {
   void _navigateToCreateSavings() async {
     if (await showNewGoalDialog(context) && mounted) {
       ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Savings goal added')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.savingsGoalAdded)));
     }
   }
 
@@ -51,7 +52,7 @@ class _SavingsPageState extends State<SavingsPage> {
     Map<String, dynamic> goal,
   ) async {
     final amountController = TextEditingController();
-    final goalTitle = goal['goalTitle'] ?? 'Goal';
+    final goalTitle = goal['goalTitle'] ?? context.l10n.goalFallback;
     final currentAmount = (goal['currentAmount'] ?? 0).toDouble();
     final targetAmount = (goal['targetAmount'] ?? 0).toDouble();
     final remaining = (targetAmount - currentAmount) > 0
@@ -91,13 +92,13 @@ class _SavingsPageState extends State<SavingsPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => VestaDialog(
-        title: 'Allocate to $goalTitle',
+        title: context.l10n.allocateToGoal('$goalTitle'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             _infoPanel([
               Text(
-                'Available: ${formatMoney(available)}',
+                context.l10n.availableAmount(formatMoney(available)),
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
                   color: v.tintText,
@@ -105,11 +106,11 @@ class _SavingsPageState extends State<SavingsPage> {
               ),
               const SizedBox(height: VestaSpace.xs),
               Text(
-                'In this goal: ${formatMoney(currentAmount)}',
+                context.l10n.inThisGoal(formatMoney(currentAmount)),
                 style: TextStyle(fontSize: 12, color: v.muted),
               ),
               Text(
-                'Still needed: ${formatMoney(remaining)}',
+                context.l10n.stillNeeded(formatMoney(remaining)),
                 style: TextStyle(fontSize: 12, color: v.muted),
               ),
             ]),
@@ -119,15 +120,15 @@ class _SavingsPageState extends State<SavingsPage> {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
-              decoration: const InputDecoration(
-                labelText: 'Amount to allocate',
-                prefixText: 'JOD ',
+              decoration: InputDecoration(
+                labelText: context.l10n.amountToAllocate,
+                prefixText: '${currencyLabel('JOD')} ',
               ),
               autofocus: true,
             ),
             const SizedBox(height: VestaSpace.sm),
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: TextButton(
                 onPressed: currentAmount > 0
                     ? () {
@@ -136,19 +137,19 @@ class _SavingsPageState extends State<SavingsPage> {
                       }
                     : null,
                 style: TextButton.styleFrom(foregroundColor: v.neg),
-                child: const Text('Remove from goal'),
+                child: Text(context.l10n.removeFromGoal),
               ),
             ),
           ],
         ),
-        confirmLabel: 'Allocate',
+        confirmLabel: context.l10n.allocate,
         onConfirm: () {
           final amount = double.tryParse(amountController.text);
           if (amount == null || amount <= 0) {
             parentScaffoldMessenger.clearSnackBars();
             parentScaffoldMessenger.showSnackBar(
               SnackBar(
-                content: const Text('Please enter a valid amount'),
+                content: Text(context.l10n.enterValidAmount),
                 backgroundColor: errorColor,
               ),
             );
@@ -159,7 +160,7 @@ class _SavingsPageState extends State<SavingsPage> {
             parentScaffoldMessenger.clearSnackBars();
             parentScaffoldMessenger.showSnackBar(
               SnackBar(
-                content: const Text('Insufficient available balance'),
+                content: Text(context.l10n.insufficientBalance),
                 backgroundColor: errorColor,
               ),
             );
@@ -169,9 +170,7 @@ class _SavingsPageState extends State<SavingsPage> {
           if (remaining <= 0) {
             parentScaffoldMessenger.clearSnackBars();
             parentScaffoldMessenger.showSnackBar(
-              const SnackBar(
-                content: Text('This goal is already fully funded'),
-              ),
+              SnackBar(content: Text(context.l10n.goalFullyFunded)),
             );
             return;
           }
@@ -184,7 +183,7 @@ class _SavingsPageState extends State<SavingsPage> {
             parentScaffoldMessenger.showSnackBar(
               SnackBar(
                 content: Text(
-                  'Allocating JOD ${actualAmount.toStringAsFixed(2)} (capped to remaining goal amount)',
+                  context.l10n.allocatingCapped(formatMoney(actualAmount)),
                 ),
               ),
             );
@@ -205,11 +204,10 @@ class _SavingsPageState extends State<SavingsPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => VestaDialog(
-        title: 'Delete this goal?',
+        title: context.l10n.deleteGoalTitle,
         icon: PhosphorIconsRegular.trash,
-        message:
-            'The goal and its progress will be removed. It cannot be undone.',
-        confirmLabel: 'Delete',
+        message: context.l10n.deleteGoalMessage,
+        confirmLabel: context.l10n.delete,
         onConfirm: () async {
           final userId = user?.uid;
           if (userId == null) return;
@@ -226,9 +224,7 @@ class _SavingsPageState extends State<SavingsPage> {
               Navigator.pop(dialogContext);
               parentScaffoldMessenger.clearSnackBars();
               parentScaffoldMessenger.showSnackBar(
-                const SnackBar(
-                  content: Text('Savings goal deleted successfully'),
-                ),
+                SnackBar(content: Text(context.l10n.goalDeleted)),
               );
             }
           } catch (e) {
@@ -236,7 +232,7 @@ class _SavingsPageState extends State<SavingsPage> {
               parentScaffoldMessenger.clearSnackBars();
               parentScaffoldMessenger.showSnackBar(
                 SnackBar(
-                  content: Text('Error deleting goal: $e'),
+                  content: Text(context.l10n.goalDeleteError('$e')),
                   backgroundColor: errorColor,
                 ),
               );
@@ -250,7 +246,7 @@ class _SavingsPageState extends State<SavingsPage> {
 
   void _showDeallocateDialog(String goalId, Map<String, dynamic> goal) {
     final amountController = TextEditingController();
-    final goalTitle = goal['goalTitle'] ?? 'Goal';
+    final goalTitle = goal['goalTitle'] ?? context.l10n.goalFallback;
     final currentAmount = (goal['currentAmount'] ?? 0).toDouble();
 
     // Store parent scaffold messenger before showing dialog
@@ -261,14 +257,14 @@ class _SavingsPageState extends State<SavingsPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => VestaDialog(
-        title: 'Remove from $goalTitle',
+        title: context.l10n.removeFromGoalTitle('$goalTitle'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _infoPanel([
               Text(
-                'In this goal: ${formatMoney(currentAmount)}',
+                context.l10n.inThisGoal(formatMoney(currentAmount)),
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
                   color: v.tintText,
@@ -281,9 +277,9 @@ class _SavingsPageState extends State<SavingsPage> {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
-              decoration: const InputDecoration(
-                labelText: 'Amount to remove',
-                prefixText: 'JOD ',
+              decoration: InputDecoration(
+                labelText: context.l10n.amountToRemove,
+                prefixText: '${currencyLabel('JOD')} ',
               ),
               autofocus: true,
             ),
@@ -292,18 +288,18 @@ class _SavingsPageState extends State<SavingsPage> {
               onPressed: () {
                 amountController.text = currentAmount.toString();
               },
-              child: const Text('Remove all'),
+              child: Text(context.l10n.removeAll),
             ),
           ],
         ),
-        confirmLabel: 'Remove',
+        confirmLabel: context.l10n.remove,
         onConfirm: () {
           final amount = double.tryParse(amountController.text);
           if (amount == null || amount <= 0) {
             parentScaffoldMessenger.clearSnackBars();
             parentScaffoldMessenger.showSnackBar(
               SnackBar(
-                content: const Text('Please enter a valid amount'),
+                content: Text(context.l10n.enterValidAmount),
                 backgroundColor: errorColor,
               ),
             );
@@ -314,7 +310,7 @@ class _SavingsPageState extends State<SavingsPage> {
             parentScaffoldMessenger.clearSnackBars();
             parentScaffoldMessenger.showSnackBar(
               SnackBar(
-                content: const Text('Amount exceeds current allocation'),
+                content: Text(context.l10n.amountExceedsAllocation),
                 backgroundColor: errorColor,
               ),
             );
@@ -358,9 +354,7 @@ class _SavingsPageState extends State<SavingsPage> {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'JOD ${amount.toStringAsFixed(2)} allocated successfully!',
-            ),
+            content: Text(context.l10n.amountAllocated(formatMoney(amount))),
           ),
         );
       }
@@ -369,7 +363,7 @@ class _SavingsPageState extends State<SavingsPage> {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text(context.l10n.errorWith('$e')),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -407,7 +401,7 @@ class _SavingsPageState extends State<SavingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'JOD ${amount.toStringAsFixed(2)} removed successfully!',
+              context.l10n.amountRemovedFromGoal(formatMoney(amount)),
             ),
           ),
         );
@@ -417,7 +411,7 @@ class _SavingsPageState extends State<SavingsPage> {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text(context.l10n.errorWith('$e')),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -432,16 +426,16 @@ class _SavingsPageState extends State<SavingsPage> {
         children: [
           const PixelIcon(PixelArt.save, size: 72),
           const SizedBox(height: 14),
-          Text("No savings goals yet", style: headingStyle(22)),
+          Text(context.l10n.noSavingsGoalsYet, style: headingStyle(22)),
           const SizedBox(height: VestaSpace.sm),
           Text(
-            "Create a goal and move money from your savings into it as you go.",
+            context.l10n.savingsEmptyBody,
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 14, color: context.vesta.muted),
           ),
           const SizedBox(height: VestaSpace.xl),
           PrimaryButton(
-            label: "Create a savings goal",
+            label: context.l10n.createSavingsGoal,
             onPressed: _navigateToCreateSavings,
           ),
         ],
@@ -450,16 +444,15 @@ class _SavingsPageState extends State<SavingsPage> {
   }
 
   String _convertMonthsToYearsAndMonths(int totalMonths) {
-    if (totalMonths < 12) {
-      return '$totalMonths ${totalMonths == 1 ? 'month' : 'months'}';
-    }
+    final l10n = context.l10n;
+    if (totalMonths < 12) return l10n.monthsCount(totalMonths);
     final years = totalMonths ~/ 12;
     final months = totalMonths % 12;
-
-    if (months == 0) {
-      return '$years ${years == 1 ? 'year' : 'years'}';
-    }
-    return '$years ${years == 1 ? 'year' : 'years'} and $months ${months == 1 ? 'month' : 'months'}';
+    if (months == 0) return l10n.yearsCount(years);
+    return l10n.yearsAndMonths(
+      l10n.yearsCount(years),
+      l10n.monthsCount(months),
+    );
   }
 
   @override
@@ -467,10 +460,10 @@ class _SavingsPageState extends State<SavingsPage> {
     final userId = user?.uid;
 
     return Scaffold(
-      appBar: const VestaAppBar(title: 'Savings'),
+      appBar: VestaAppBar(title: context.l10n.tileSavings),
       body: VestaBackground(
         child: userId == null
-            ? const Center(child: Text("Not logged in"))
+            ? Center(child: Text(context.l10n.notLoggedIn))
             : StreamBuilder<DocumentSnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection("users")
@@ -552,13 +545,13 @@ class _SavingsPageState extends State<SavingsPage> {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 SectionHeader(
-                                  title: "Saving goals",
+                                  title: context.l10n.savingGoals,
                                   trailing: [
                                     AddRemoveButtons(
                                       onAdd: _navigateToCreateSavings,
-                                      addTooltip: 'New goal',
+                                      addTooltip: context.l10n.newGoal,
                                       removing: _removing,
-                                      removeTooltip: 'Remove a goal',
+                                      removeTooltip: context.l10n.removeAGoal,
                                       onToggleRemove: () => setState(
                                         () => _removing = !_removing,
                                       ),
@@ -596,19 +589,25 @@ class _SavingsPageState extends State<SavingsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text("Total saved", style: TextStyle(fontSize: 12, color: v.muted)),
+          Text(
+            context.l10n.totalSaved,
+            style: TextStyle(fontSize: 12, color: v.muted),
+          ),
           const SizedBox(height: VestaSpace.xs),
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: MoneyText.hero(totalSavings, size: 30),
           ),
           const SizedBox(height: VestaSpace.md),
           const Divider(),
           const SizedBox(height: 10),
-          _buildInfoRow("Allocated to goals", MoneyText(totalAllocated)),
+          _buildInfoRow(
+            context.l10n.allocatedToGoals,
+            MoneyText(totalAllocated),
+          ),
           const SizedBox(height: 6),
           _buildInfoRow(
-            "Left to allocate",
+            context.l10n.leftToAllocate,
             MoneyText(unallocated, color: unallocated > 0 ? v.pos : v.neg),
           ),
         ],
@@ -636,7 +635,7 @@ class _SavingsPageState extends State<SavingsPage> {
     required bool first,
   }) {
     final v = context.vesta;
-    final goalTitle = goal['goalTitle'] ?? 'Unknown';
+    final goalTitle = goal['goalTitle'] ?? context.l10n.goalFallback;
     final targetAmount = (goal['targetAmount'] ?? 0).toDouble();
     final currentAmount = (goal['currentAmount'] ?? 0).toDouble();
     final durationMonths = goal['durationMonths'] ?? 0;
@@ -681,15 +680,12 @@ class _SavingsPageState extends State<SavingsPage> {
                       ),
                       if (isCompleted)
                         TagChip.pill(
-                          'Completed',
+                          context.l10n.completed,
                           icon: PhosphorIconsRegular.check,
                           color: v.pos,
                         )
                       else
-                        Text(
-                          '$progressPercentage%',
-                          style: amountStyle(13),
-                        ),
+                        Text('$progressPercentage%', style: amountStyle(13)),
                     ],
                   ),
                   const SizedBox(height: 6),
@@ -700,13 +696,24 @@ class _SavingsPageState extends State<SavingsPage> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    '${formatMoney(currentAmount)} of ${formatMoney(targetAmount)}',
+                    context.l10n.amountOfAmount(
+                      formatMoney(currentAmount),
+                      formatMoney(targetAmount),
+                    ),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   Text(
                     goal['targetDate'] is Timestamp
-                        ? '${formatMoney(monthlyAmount)} a month · by ${DateFormat('MMM yyyy').format((goal['targetDate'] as Timestamp).toDate())}'
-                        : '${formatMoney(monthlyAmount)} a month · ${_convertMonthsToYearsAndMonths(durationMonths)}',
+                        ? context.l10n.perMonthByDate(
+                            formatMoney(monthlyAmount),
+                            DateFormat('MMM yyyy').format(
+                              (goal['targetDate'] as Timestamp).toDate(),
+                            ),
+                          )
+                        : context.l10n.perMonthFor(
+                            formatMoney(monthlyAmount),
+                            _convertMonthsToYearsAndMonths(durationMonths),
+                          ),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],

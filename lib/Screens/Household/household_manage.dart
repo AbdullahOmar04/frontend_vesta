@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icon_picker.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
@@ -85,7 +86,7 @@ class _NewHouseholdDialogState extends State<_NewHouseholdDialog> {
   Future<void> _create() async {
     final name = _name.text.trim();
     if (name.isEmpty) {
-      setState(() => _error = 'Give the household a name.');
+      setState(() => _error = context.l10n.giveHouseholdName);
       return;
     }
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -112,7 +113,7 @@ class _NewHouseholdDialogState extends State<_NewHouseholdDialog> {
       if (mounted) {
         setState(() {
           _creating = false;
-          _error = "Couldn't create the household: $e";
+          _error = context.l10n.householdCreateFailed('$e');
         });
       }
     }
@@ -121,8 +122,8 @@ class _NewHouseholdDialogState extends State<_NewHouseholdDialog> {
   @override
   Widget build(BuildContext context) {
     return VestaDialog(
-      title: 'New household',
-      confirmLabel: 'Create',
+      title: context.l10n.newHousehold,
+      confirmLabel: context.l10n.create,
       onConfirm: _create,
       loading: _creating,
       content: Column(
@@ -147,8 +148,8 @@ class _NewHouseholdDialogState extends State<_NewHouseholdDialog> {
                   maxLength: 28,
                   textCapitalization: TextCapitalization.words,
                   onChanged: (_) => setState(() => _error = null),
-                  decoration: const InputDecoration(
-                    hintText: 'Household name',
+                  decoration: InputDecoration(
+                    hintText: context.l10n.householdName,
                     counterText: '',
                   ),
                 ),
@@ -241,7 +242,7 @@ class _EditHouseholdDialogState extends State<_EditHouseholdDialog> {
   Future<void> _save() async {
     final name = _name.text.trim();
     if (name.isEmpty) {
-      setState(() => _error = 'Give the household a name.');
+      setState(() => _error = context.l10n.giveHouseholdName);
       return;
     }
     if (name == widget.name && _icon == widget.icon) {
@@ -256,7 +257,7 @@ class _EditHouseholdDialogState extends State<_EditHouseholdDialog> {
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = "Couldn't save: $e";
+          _error = context.l10n.saveFailed('$e');
         });
       }
     }
@@ -275,10 +276,10 @@ class _EditHouseholdDialogState extends State<_EditHouseholdDialog> {
         query: _invite.text,
       );
       _invite.clear();
+      if (!mounted) return;
       setState(() {
         _inviteFailed = false;
-        _inviteNote =
-            'Invite sent to $who. They can accept it in Shared finances.';
+        _inviteNote = context.l10n.inviteSentTo(who);
       });
     } on StateError catch (e) {
       setState(() {
@@ -286,9 +287,10 @@ class _EditHouseholdDialogState extends State<_EditHouseholdDialog> {
         _inviteNote = e.message;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _inviteFailed = true;
-        _inviteNote = "Couldn't send the invite: $e";
+        _inviteNote = context.l10n.inviteSendFailed('$e');
       });
     } finally {
       if (mounted) setState(() => _inviting = false);
@@ -353,8 +355,8 @@ class _EditHouseholdDialogState extends State<_EditHouseholdDialog> {
         .firstOrNull;
 
     return VestaDialog(
-      title: 'Edit household',
-      confirmLabel: 'Save',
+      title: context.l10n.editHousehold,
+      confirmLabel: context.l10n.save,
       onConfirm: _save,
       loading: _saving,
       content: Column(
@@ -378,8 +380,8 @@ class _EditHouseholdDialogState extends State<_EditHouseholdDialog> {
                   maxLength: 28,
                   textCapitalization: TextCapitalization.words,
                   onChanged: (_) => setState(() => _error = null),
-                  decoration: const InputDecoration(
-                    hintText: 'Household name',
+                  decoration: InputDecoration(
+                    hintText: context.l10n.householdName,
                     counterText: '',
                   ),
                 ),
@@ -387,7 +389,10 @@ class _EditHouseholdDialogState extends State<_EditHouseholdDialog> {
             ],
           ),
           const SizedBox(height: VestaSpace.lg),
-          Text('Members', style: TextStyle(fontSize: 12, color: v.muted)),
+          Text(
+            context.l10n.members,
+            style: TextStyle(fontSize: 12, color: v.muted),
+          ),
           const SizedBox(height: VestaSpace.sm),
           Container(
             decoration: BoxDecoration(
@@ -426,7 +431,7 @@ class _EditHouseholdDialogState extends State<_EditHouseholdDialog> {
                                   children: [
                                     if (_members[i].uid == _me)
                                       TextSpan(
-                                        text: ' (you)',
+                                        text: ' ${context.l10n.youParen}',
                                         style: TextStyle(color: v.muted),
                                       ),
                                   ],
@@ -436,7 +441,7 @@ class _EditHouseholdDialogState extends State<_EditHouseholdDialog> {
                               ),
                               if (_members[i].uid == widget.ownerUid)
                                 Text(
-                                  'Admin',
+                                  context.l10n.admin,
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: v.accentInk,
@@ -447,9 +452,12 @@ class _EditHouseholdDialogState extends State<_EditHouseholdDialog> {
                         ),
                         // The admin deletes rather than leaves
                         if (_members[i].uid == _me && !_isAdmin)
-                          _redButton('Leave', _leave)
+                          _redButton(context.l10n.leave, _leave)
                         else if (_isAdmin && _members[i].uid != _me)
-                          _redButton('Remove', () => _remove(_members[i])),
+                          _redButton(
+                            context.l10n.removeMember,
+                            () => _remove(_members[i]),
+                          ),
                       ],
                     ),
                   ),
@@ -465,8 +473,8 @@ class _EditHouseholdDialogState extends State<_EditHouseholdDialog> {
                     controller: _invite,
                     keyboardType: TextInputType.emailAddress,
                     onChanged: (_) => setState(() => _inviteNote = null),
-                    decoration: const InputDecoration(
-                      hintText: 'Username or email',
+                    decoration: InputDecoration(
+                      hintText: context.l10n.usernameOrEmail,
                     ),
                   ),
                 ),
@@ -474,7 +482,7 @@ class _EditHouseholdDialogState extends State<_EditHouseholdDialog> {
                 SizedBox(
                   width: 84,
                   child: PrimaryButton(
-                    label: 'Invite',
+                    label: context.l10n.invite,
                     loading: _inviting,
                     onPressed: _invite.text.trim().isEmpty ? null : _sendInvite,
                   ),
@@ -500,21 +508,21 @@ class _EditHouseholdDialogState extends State<_EditHouseholdDialog> {
                 minimumSize: const Size.fromHeight(44),
               ),
               icon: const Icon(PhosphorIconsRegular.link, size: 16),
-              label: const Text('Share invite link'),
+              label: Text(context.l10n.shareInviteLink),
             ),
           ],
           const SizedBox(height: VestaSpace.md),
           Text(
             _isAdmin
-                ? "You're the admin because you created this household. Only "
-                      'the admin can add or remove members.'
-                : 'Only the admin${ownerName != null ? ' ($ownerName)' : ''} '
-                      'can add or remove members.',
+                ? context.l10n.youAreAdmin
+                : ownerName != null
+                ? context.l10n.onlyAdminNamed(ownerName)
+                : context.l10n.onlyAdmin,
             style: TextStyle(fontSize: 12, color: v.muted),
           ),
           if (_isAdmin)
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: TextButton.icon(
                 style: TextButton.styleFrom(
                   foregroundColor: v.neg,
@@ -522,7 +530,7 @@ class _EditHouseholdDialogState extends State<_EditHouseholdDialog> {
                 ),
                 onPressed: _delete,
                 icon: const Icon(PhosphorIconsRegular.trash, size: 16),
-                label: const Text('Delete household'),
+                label: Text(context.l10n.deleteHousehold),
               ),
             ),
           if (_error != null) ...[

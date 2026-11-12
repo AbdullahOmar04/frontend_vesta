@@ -2810,6 +2810,1920 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Amount'**
   String get amount;
+
+  /// No description provided for @savingsGoalAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings goal added'**
+  String get savingsGoalAdded;
+
+  /// No description provided for @allocateToGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Allocate to {goal}'**
+  String allocateToGoal(String goal);
+
+  /// No description provided for @availableAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Available: {amount}'**
+  String availableAmount(String amount);
+
+  /// No description provided for @inThisGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'In this goal: {amount}'**
+  String inThisGoal(String amount);
+
+  /// No description provided for @stillNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Still needed: {amount}'**
+  String stillNeeded(String amount);
+
+  /// No description provided for @amountToAllocate.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount to allocate'**
+  String get amountToAllocate;
+
+  /// No description provided for @removeFromGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from goal'**
+  String get removeFromGoal;
+
+  /// No description provided for @allocate.
+  ///
+  /// In en, this message translates to:
+  /// **'Allocate'**
+  String get allocate;
+
+  /// No description provided for @insufficientBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insufficient available balance'**
+  String get insufficientBalance;
+
+  /// No description provided for @goalFullyFunded.
+  ///
+  /// In en, this message translates to:
+  /// **'This goal is already fully funded'**
+  String get goalFullyFunded;
+
+  /// No description provided for @allocatingCapped.
+  ///
+  /// In en, this message translates to:
+  /// **'Allocating {amount} (capped to remaining goal amount)'**
+  String allocatingCapped(String amount);
+
+  /// No description provided for @deleteGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this goal?'**
+  String get deleteGoalTitle;
+
+  /// No description provided for @deleteGoalMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The goal and its progress will be removed. It cannot be undone.'**
+  String get deleteGoalMessage;
+
+  /// No description provided for @goalDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings goal deleted successfully'**
+  String get goalDeleted;
+
+  /// No description provided for @goalDeleteError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error deleting goal: {error}'**
+  String goalDeleteError(String error);
+
+  /// No description provided for @removeFromGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from {goal}'**
+  String removeFromGoalTitle(String goal);
+
+  /// No description provided for @amountToRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount to remove'**
+  String get amountToRemove;
+
+  /// No description provided for @removeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove all'**
+  String get removeAll;
+
+  /// No description provided for @amountExceedsAllocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount exceeds current allocation'**
+  String get amountExceedsAllocation;
+
+  /// No description provided for @amountAllocated.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} allocated successfully!'**
+  String amountAllocated(String amount);
+
+  /// No description provided for @amountRemovedFromGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} removed successfully!'**
+  String amountRemovedFromGoal(String amount);
+
+  /// No description provided for @noSavingsGoalsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No savings goals yet'**
+  String get noSavingsGoalsYet;
+
+  /// No description provided for @savingsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a goal and move money from your savings into it as you go.'**
+  String get savingsEmptyBody;
+
+  /// No description provided for @createSavingsGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a savings goal'**
+  String get createSavingsGoal;
+
+  /// No description provided for @savingGoals.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving goals'**
+  String get savingGoals;
+
+  /// No description provided for @newGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'New goal'**
+  String get newGoal;
+
+  /// No description provided for @removeAGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove a goal'**
+  String get removeAGoal;
+
+  /// No description provided for @totalSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Total saved'**
+  String get totalSaved;
+
+  /// No description provided for @allocatedToGoals.
+  ///
+  /// In en, this message translates to:
+  /// **'Allocated to goals'**
+  String get allocatedToGoals;
+
+  /// No description provided for @leftToAllocate.
+  ///
+  /// In en, this message translates to:
+  /// **'Left to allocate'**
+  String get leftToAllocate;
+
+  /// No description provided for @completed.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get completed;
+
+  /// No description provided for @amountOfAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {target}'**
+  String amountOfAmount(String current, String target);
+
+  /// No description provided for @perMonthByDate.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} a month · by {date}'**
+  String perMonthByDate(String amount, String date);
+
+  /// No description provided for @perMonthFor.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} a month · {duration}'**
+  String perMonthFor(String amount, String duration);
+
+  /// No description provided for @monthsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 month} other{{count} months}}'**
+  String monthsCount(int count);
+
+  /// No description provided for @yearsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 year} other{{count} years}}'**
+  String yearsCount(int count);
+
+  /// No description provided for @yearsAndMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'{years} and {months}'**
+  String yearsAndMonths(String years, String months);
+
+  /// No description provided for @giveGoalName.
+  ///
+  /// In en, this message translates to:
+  /// **'Give the goal a name.'**
+  String get giveGoalName;
+
+  /// No description provided for @enterSaveAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter how much you want to save.'**
+  String get enterSaveAmount;
+
+  /// No description provided for @enterMonthsOrDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter how many months, or pick a target date.'**
+  String get enterMonthsOrDate;
+
+  /// No description provided for @goalAddFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add the goal: {error}'**
+  String goalAddFailed(String error);
+
+  /// No description provided for @newSavingsGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'New savings goal'**
+  String get newSavingsGoal;
+
+  /// No description provided for @addGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Add goal'**
+  String get addGoal;
+
+  /// No description provided for @goalName.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal name'**
+  String get goalName;
+
+  /// No description provided for @totalTargetAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Total target amount'**
+  String get totalTargetAmount;
+
+  /// No description provided for @targetPerMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Target amount per month'**
+  String get targetPerMonth;
+
+  /// No description provided for @months.
+  ///
+  /// In en, this message translates to:
+  /// **'Months'**
+  String get months;
+
+  /// No description provided for @targetDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Target date'**
+  String get targetDate;
+
+  /// No description provided for @deleteBillTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this bill?'**
+  String get deleteBillTitle;
+
+  /// No description provided for @willBeRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" will be removed.'**
+  String willBeRemoved(String name);
+
+  /// No description provided for @billUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t update the bill: {error}'**
+  String billUpdateFailed(String error);
+
+  /// No description provided for @billSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the bill: {error}'**
+  String billSaveFailed(String error);
+
+  /// No description provided for @billsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills & subscriptions'**
+  String get billsTitle;
+
+  /// No description provided for @stillDueThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Still due this month'**
+  String get stillDueThisMonth;
+
+  /// No description provided for @perMo.
+  ///
+  /// In en, this message translates to:
+  /// **'/mo'**
+  String get perMo;
+
+  /// No description provided for @noBillsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No bills yet'**
+  String get noBillsYet;
+
+  /// No description provided for @billsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add rent, phone, subscriptions and anything else you pay each month. Standing orders from your bank show up here too.'**
+  String get billsEmptyBody;
+
+  /// No description provided for @bills.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills'**
+  String get bills;
+
+  /// No description provided for @billsFootnote.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle on to mark a bill as autopay. Standing orders are set up at your bank.'**
+  String get billsFootnote;
+
+  /// No description provided for @paid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get paid;
+
+  /// No description provided for @wasDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Was due {date}'**
+  String wasDue(String date);
+
+  /// No description provided for @noDateSet.
+  ///
+  /// In en, this message translates to:
+  /// **'No date set'**
+  String get noDateSet;
+
+  /// No description provided for @dueToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Due today'**
+  String get dueToday;
+
+  /// No description provided for @dueTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Due tomorrow'**
+  String get dueTomorrow;
+
+  /// No description provided for @dueInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Due in 1 day} other{Due in {count} days}}'**
+  String dueInDays(int count);
+
+  /// No description provided for @incoming.
+  ///
+  /// In en, this message translates to:
+  /// **'incoming'**
+  String get incoming;
+
+  /// No description provided for @autopayLower.
+  ///
+  /// In en, this message translates to:
+  /// **'autopay'**
+  String get autopayLower;
+
+  /// No description provided for @editBill.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit bill'**
+  String get editBill;
+
+  /// No description provided for @name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get name;
+
+  /// No description provided for @billNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Rent, phone, Netflix...'**
+  String get billNameHint;
+
+  /// No description provided for @dueEveryMonthOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Due every month on'**
+  String get dueEveryMonthOn;
+
+  /// No description provided for @dayN.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day}'**
+  String dayN(int day);
+
+  /// No description provided for @shorterMonthsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'In shorter months it falls on the last day.'**
+  String get shorterMonthsNote;
+
+  /// No description provided for @paidFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid from'**
+  String get paidFrom;
+
+  /// No description provided for @notSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get notSet;
+
+  /// No description provided for @subscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription'**
+  String get subscription;
+
+  /// No description provided for @subscriptionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted in your monthly subscriptions'**
+  String get subscriptionSubtitle;
+
+  /// No description provided for @autopay.
+  ///
+  /// In en, this message translates to:
+  /// **'Autopay'**
+  String get autopay;
+
+  /// No description provided for @autopaySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Comes out automatically'**
+  String get autopaySubtitle;
+
+  /// No description provided for @addBill.
+  ///
+  /// In en, this message translates to:
+  /// **'Add bill'**
+  String get addBill;
+
+  /// No description provided for @deleteBill.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete bill'**
+  String get deleteBill;
+
+  /// No description provided for @billFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill'**
+  String get billFallback;
+
+  /// No description provided for @scheduledPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled payment'**
+  String get scheduledPayment;
+
+  /// No description provided for @accountFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Account {id}'**
+  String accountFallback(String id);
+
+  /// No description provided for @hhInviteShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Join my household \'{name}\' on Vesta! Click here: {link}'**
+  String hhInviteShare(String name, String link);
+
+  /// No description provided for @hhInviteSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re invited to join my household!'**
+  String get hhInviteSubject;
+
+  /// No description provided for @aHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'a household'**
+  String get aHousehold;
+
+  /// No description provided for @inviteCreateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error creating invite: {error}'**
+  String inviteCreateError(String error);
+
+  /// No description provided for @member.
+  ///
+  /// In en, this message translates to:
+  /// **'Member'**
+  String get member;
+
+  /// No description provided for @manage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get manage;
+
+  /// No description provided for @household.
+  ///
+  /// In en, this message translates to:
+  /// **'Household'**
+  String get household;
+
+  /// No description provided for @noLongerInHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re no longer in this household'**
+  String get noLongerInHousehold;
+
+  /// No description provided for @noLongerInHouseholdBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It was deleted, or its owner removed you.'**
+  String get noLongerInHouseholdBody;
+
+  /// No description provided for @backToShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Shared finances'**
+  String get backToShared;
+
+  /// No description provided for @nameAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (admin)'**
+  String nameAdmin(String name);
+
+  /// No description provided for @nameYou.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (you)'**
+  String nameYou(String name);
+
+  /// No description provided for @noHouseholdBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'No household budget yet'**
+  String get noHouseholdBudget;
+
+  /// No description provided for @good.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get good;
+
+  /// No description provided for @overTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Over'**
+  String get overTag;
+
+  /// No description provided for @overall.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall'**
+  String get overall;
+
+  /// No description provided for @atRisk.
+  ///
+  /// In en, this message translates to:
+  /// **'At risk'**
+  String get atRisk;
+
+  /// No description provided for @financialHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial health'**
+  String get financialHealth;
+
+  /// No description provided for @noSharedSpendingSixMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'No shared spending in the last six months yet'**
+  String get noSharedSpendingSixMonths;
+
+  /// No description provided for @householdBudgetPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Household budget plan'**
+  String get householdBudgetPlan;
+
+  /// No description provided for @totalMonthlyBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Total monthly budget'**
+  String get totalMonthlyBudget;
+
+  /// No description provided for @totalBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Total budget'**
+  String get totalBudget;
+
+  /// No description provided for @noBudgetTapPencil.
+  ///
+  /// In en, this message translates to:
+  /// **'No budget set yet. Tap the pencil to plan one.'**
+  String get noBudgetTapPencil;
+
+  /// No description provided for @overThisCycleSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} over this cycle. Tap the pencil to split the budget into buckets.'**
+  String overThisCycleSplit(String amount);
+
+  /// No description provided for @leftThisCycleSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} left this cycle. Tap the pencil to split the budget into buckets.'**
+  String leftThisCycleSplit(String amount);
+
+  /// No description provided for @householdBudgetLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading household budget: {error}'**
+  String householdBudgetLoadError(String error);
+
+  /// No description provided for @noSharedCategorized.
+  ///
+  /// In en, this message translates to:
+  /// **'No categorized spending yet.\nAssign categories to shared transactions to see them here.'**
+  String get noSharedCategorized;
+
+  /// No description provided for @transactionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 transaction} other{{count} transactions}}'**
+  String transactionCount(int count);
+
+  /// No description provided for @noSharedTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'No shared transactions yet.\nAssign one from a transaction\'s details.'**
+  String get noSharedTransactions;
+
+  /// No description provided for @noHouseholdsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No households yet'**
+  String get noHouseholdsYet;
+
+  /// No description provided for @householdsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a household to run a budget with the people you live with.'**
+  String get householdsEmptyBody;
+
+  /// No description provided for @createHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a household'**
+  String get createHousehold;
+
+  /// No description provided for @sharedHouseholds.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared households'**
+  String get sharedHouseholds;
+
+  /// No description provided for @newHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'New household'**
+  String get newHousehold;
+
+  /// No description provided for @leaveOrDeleteHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave or delete a household'**
+  String get leaveOrDeleteHousehold;
+
+  /// No description provided for @thisHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'this household'**
+  String get thisHousehold;
+
+  /// No description provided for @unnamedHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed household'**
+  String get unnamedHousehold;
+
+  /// No description provided for @memberCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 member} other{{count} members}}'**
+  String memberCount(int count);
+
+  /// No description provided for @noBudgetOpenToSet.
+  ///
+  /// In en, this message translates to:
+  /// **'No budget yet. Open to set one.'**
+  String get noBudgetOpenToSet;
+
+  /// No description provided for @noBudgetSetYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No budget set yet'**
+  String get noBudgetSetYet;
+
+  /// No description provided for @logInToSeeHouseholds.
+  ///
+  /// In en, this message translates to:
+  /// **'Please log in to see your households.'**
+  String get logInToSeeHouseholds;
+
+  /// No description provided for @userDataNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'User data not found.'**
+  String get userDataNotFound;
+
+  /// No description provided for @joiningHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'Joining the household...'**
+  String get joiningHousehold;
+
+  /// No description provided for @inviteDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite declined'**
+  String get inviteDeclined;
+
+  /// No description provided for @inviteAnswerFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t answer the invite: {error}'**
+  String inviteAnswerFailed(String error);
+
+  /// No description provided for @invitedYouToJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'{inviter} invited you to join {household}.'**
+  String invitedYouToJoin(String inviter, String household);
+
+  /// No description provided for @someone.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone'**
+  String get someone;
+
+  /// No description provided for @decline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get decline;
+
+  /// No description provided for @accept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get accept;
+
+  /// No description provided for @deleteHouseholdMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The household and its shared budget are removed for every member. This cannot be undone.'**
+  String get deleteHouseholdMessage;
+
+  /// No description provided for @householdDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t delete the household: {error}'**
+  String householdDeleteFailed(String error);
+
+  /// No description provided for @leaveNameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave {name}?'**
+  String leaveNameTitle(String name);
+
+  /// No description provided for @leaveHouseholdMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll stop seeing its budget and transactions. The owner can invite you again.'**
+  String get leaveHouseholdMessage;
+
+  /// No description provided for @leave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get leave;
+
+  /// No description provided for @householdLeaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t leave the household: {error}'**
+  String householdLeaveFailed(String error);
+
+  /// No description provided for @removeNameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}?'**
+  String removeNameTitle(String name);
+
+  /// No description provided for @removeMemberMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'They\'ll lose access to this household. You can invite them again later.'**
+  String get removeMemberMessage;
+
+  /// No description provided for @removeMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get removeMember;
+
+  /// No description provided for @memberRemoveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t remove {name}: {error}'**
+  String memberRemoveFailed(String name, String error);
+
+  /// No description provided for @logInToInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in again to invite someone.'**
+  String get logInToInvite;
+
+  /// No description provided for @enterUsernameOrEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a username or email.'**
+  String get enterUsernameOrEmail;
+
+  /// No description provided for @noUserGoesBy.
+  ///
+  /// In en, this message translates to:
+  /// **'No Vesta user goes by \"{query}\".'**
+  String noUserGoesBy(String query);
+
+  /// No description provided for @thatsYou.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s you.'**
+  String get thatsYou;
+
+  /// No description provided for @alreadyInHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'They\'re already in this household.'**
+  String get alreadyInHousehold;
+
+  /// No description provided for @giveHouseholdName.
+  ///
+  /// In en, this message translates to:
+  /// **'Give the household a name.'**
+  String get giveHouseholdName;
+
+  /// No description provided for @householdCreateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create the household: {error}'**
+  String householdCreateFailed(String error);
+
+  /// No description provided for @create.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get create;
+
+  /// No description provided for @householdName.
+  ///
+  /// In en, this message translates to:
+  /// **'Household name'**
+  String get householdName;
+
+  /// No description provided for @saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save: {error}'**
+  String saveFailed(String error);
+
+  /// No description provided for @inviteSentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite sent to {name}. They can accept it in Shared finances.'**
+  String inviteSentTo(String name);
+
+  /// No description provided for @inviteSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send the invite: {error}'**
+  String inviteSendFailed(String error);
+
+  /// No description provided for @editHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit household'**
+  String get editHousehold;
+
+  /// No description provided for @members.
+  ///
+  /// In en, this message translates to:
+  /// **'Members'**
+  String get members;
+
+  /// No description provided for @youParen.
+  ///
+  /// In en, this message translates to:
+  /// **'(you)'**
+  String get youParen;
+
+  /// No description provided for @admin.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get admin;
+
+  /// No description provided for @invite.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite'**
+  String get invite;
+
+  /// No description provided for @shareInviteLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Share invite link'**
+  String get shareInviteLink;
+
+  /// No description provided for @youAreAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re the admin because you created this household. Only the admin can add or remove members.'**
+  String get youAreAdmin;
+
+  /// No description provided for @onlyAdminNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the admin ({name}) can add or remove members.'**
+  String onlyAdminNamed(String name);
+
+  /// No description provided for @onlyAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the admin can add or remove members.'**
+  String get onlyAdmin;
+
+  /// No description provided for @deleteHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete household'**
+  String get deleteHousehold;
+
+  /// No description provided for @willBeRemovedForEveryone.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" will be removed for everyone.'**
+  String willBeRemovedForEveryone(String name);
+
+  /// No description provided for @addSharedBill.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a shared bill'**
+  String get addSharedBill;
+
+  /// No description provided for @noSharedBills.
+  ///
+  /// In en, this message translates to:
+  /// **'No shared bills yet. Add rent, utilities, or subscriptions you split.'**
+  String get noSharedBills;
+
+  /// No description provided for @whenToday.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get whenToday;
+
+  /// No description provided for @whenTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'tomorrow'**
+  String get whenTomorrow;
+
+  /// No description provided for @whenInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{in 1 day} other{in {count} days}}'**
+  String whenInDays(int count);
+
+  /// No description provided for @billDueLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date} · {when} · Monthly'**
+  String billDueLine(String date, String when);
+
+  /// No description provided for @giveBillName.
+  ///
+  /// In en, this message translates to:
+  /// **'Give the bill a name.'**
+  String get giveBillName;
+
+  /// No description provided for @enterTheAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the amount.'**
+  String get enterTheAmount;
+
+  /// No description provided for @pickDueDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a due day from 1 to 31.'**
+  String get pickDueDay;
+
+  /// No description provided for @sharesDontAddUp.
+  ///
+  /// In en, this message translates to:
+  /// **'The shares add up to {total}, not {amount}.'**
+  String sharesDontAddUp(String total, String amount);
+
+  /// No description provided for @newSharedBill.
+  ///
+  /// In en, this message translates to:
+  /// **'New shared bill'**
+  String get newSharedBill;
+
+  /// No description provided for @egRent.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Rent'**
+  String get egRent;
+
+  /// No description provided for @dueDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Due day'**
+  String get dueDay;
+
+  /// No description provided for @splitEvenly.
+  ///
+  /// In en, this message translates to:
+  /// **'Split evenly'**
+  String get splitEvenly;
+
+  /// No description provided for @amountEach.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} each'**
+  String amountEach(String amount);
+
+  /// No description provided for @setEachPays.
+  ///
+  /// In en, this message translates to:
+  /// **'Or set what each member pays'**
+  String get setEachPays;
+
+  /// No description provided for @somethingWentWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong: {error}'**
+  String somethingWentWrong(String error);
+
+  /// No description provided for @sharedGoalAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared goal added'**
+  String get sharedGoalAdded;
+
+  /// No description provided for @deleteSharedGoalMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s removed for everyone. What members put in goes back to their free share.'**
+  String get deleteSharedGoalMessage;
+
+  /// No description provided for @sharedByMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared by members'**
+  String get sharedByMembers;
+
+  /// No description provided for @allocatedShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Allocated / shared'**
+  String get allocatedShared;
+
+  /// No description provided for @setHowMuchYouShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Set how much you share'**
+  String get setHowMuchYouShare;
+
+  /// No description provided for @setMonthlyPlanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Set what you plan to add each month to track the household\'s monthly savings.'**
+  String get setMonthlyPlanHint;
+
+  /// No description provided for @monthSavingsGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'{month} savings goal {amount}'**
+  String monthSavingsGoal(String month, String amount);
+
+  /// No description provided for @reached.
+  ///
+  /// In en, this message translates to:
+  /// **'Reached'**
+  String get reached;
+
+  /// No description provided for @notYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet'**
+  String get notYet;
+
+  /// No description provided for @savedThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} saved this month.'**
+  String savedThisMonth(String amount);
+
+  /// No description provided for @savedSoFarToGo.
+  ///
+  /// In en, this message translates to:
+  /// **'{saved} saved so far, {toGo} to go with {days} left.'**
+  String savedSoFarToGo(String saved, String toGo, String days);
+
+  /// No description provided for @plansPerMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Plans {amount} a month'**
+  String plansPerMonth(String amount);
+
+  /// No description provided for @noMonthlyPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'No monthly plan yet'**
+  String get noMonthlyPlan;
+
+  /// No description provided for @amountFree.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} free'**
+  String amountFree(String amount);
+
+  /// No description provided for @newSharedGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'New shared goal'**
+  String get newSharedGoal;
+
+  /// No description provided for @noSharedGoals.
+  ///
+  /// In en, this message translates to:
+  /// **'No shared goals yet. Add one to save for something together.'**
+  String get noSharedGoals;
+
+  /// No description provided for @byDate.
+  ///
+  /// In en, this message translates to:
+  /// **'By {date}'**
+  String byDate(String date);
+
+  /// No description provided for @shareAtLeast.
+  ///
+  /// In en, this message translates to:
+  /// **'You already put {amount} into goals, so share at least that.'**
+  String shareAtLeast(String amount);
+
+  /// No description provided for @yourSavingsShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Your savings share'**
+  String get yourSavingsShare;
+
+  /// No description provided for @savingsShareMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'How much of your savings you share with the household, and what you plan to add each month. Everyone in it sees these.'**
+  String get savingsShareMessage;
+
+  /// No description provided for @amountYouShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount you share'**
+  String get amountYouShare;
+
+  /// No description provided for @planToAddMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'You plan to add each month'**
+  String get planToAddMonthly;
+
+  /// No description provided for @enterAnAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount.'**
+  String get enterAnAmount;
+
+  /// No description provided for @youHaveInGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'You have {amount} in this goal.'**
+  String youHaveInGoal(String amount);
+
+  /// No description provided for @freeShareIs.
+  ///
+  /// In en, this message translates to:
+  /// **'Your free share is {amount}. Share more first with \"Set how much you share\".'**
+  String freeShareIs(String amount);
+
+  /// No description provided for @takeOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Take out'**
+  String get takeOut;
+
+  /// No description provided for @savedOfTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'{saved} of {target} saved'**
+  String savedOfTarget(String saved, String target);
+
+  /// No description provided for @fromYouFreeShare.
+  ///
+  /// In en, this message translates to:
+  /// **'From you: {mine} · Your free share: {free}'**
+  String fromYouFreeShare(String mine, String free);
+
+  /// No description provided for @amountToTakeOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount to take out'**
+  String get amountToTakeOut;
+
+  /// No description provided for @amountToAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount to add'**
+  String get amountToAdd;
+
+  /// No description provided for @emailLinkSent.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a link to {email}. Your email changes once you open it.'**
+  String emailLinkSent(String email);
+
+  /// No description provided for @emailTakenByOther.
+  ///
+  /// In en, this message translates to:
+  /// **'That email already has a Vesta account.'**
+  String get emailTakenByOther;
+
+  /// No description provided for @notAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not added'**
+  String get notAdded;
+
+  /// No description provided for @changeNumberSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'To change your number, contact support.'**
+  String get changeNumberSupport;
+
+  /// No description provided for @userId.
+  ///
+  /// In en, this message translates to:
+  /// **'User ID'**
+  String get userId;
+
+  /// No description provided for @userIdCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'User ID copied'**
+  String get userIdCopied;
+
+  /// No description provided for @copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get copy;
+
+  /// No description provided for @userIdFixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your user ID is given to you and can\'t be changed.'**
+  String get userIdFixed;
+
+  /// No description provided for @deleteVestaAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Vesta account'**
+  String get deleteVestaAccount;
+
+  /// No description provided for @profilePicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile picture'**
+  String get profilePicture;
+
+  /// No description provided for @chooseFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from gallery'**
+  String get chooseFromGallery;
+
+  /// No description provided for @takeAPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get takeAPhoto;
+
+  /// No description provided for @imageUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to upload image: {error}'**
+  String imageUploadFailed(String error);
+
+  /// No description provided for @passwordWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'That password isn\'t right.'**
+  String get passwordWrong;
+
+  /// No description provided for @tooManyTries.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many tries. Wait a little, then try again.'**
+  String get tooManyTries;
+
+  /// No description provided for @somethingWentWrongCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong ({code}).'**
+  String somethingWentWrongCode(String code);
+
+  /// No description provided for @confirmItsYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm it\'s you'**
+  String get confirmItsYou;
+
+  /// No description provided for @enterPasswordToContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your Vesta password to continue.'**
+  String get enterPasswordToContinue;
+
+  /// No description provided for @fingerprintReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Authenticate to turn on fingerprint unlock'**
+  String get fingerprintReason;
+
+  /// No description provided for @fingerprintFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t confirm your fingerprint'**
+  String get fingerprintFailed;
+
+  /// No description provided for @changeOrResetPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change or reset your password'**
+  String get changeOrResetPassword;
+
+  /// No description provided for @fingerprintUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Fingerprint unlock'**
+  String get fingerprintUnlock;
+
+  /// No description provided for @notAvailableOnPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available on this phone'**
+  String get notAvailableOnPhone;
+
+  /// No description provided for @unlockWithBiometrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Vesta with your fingerprint or face'**
+  String get unlockWithBiometrics;
+
+  /// No description provided for @unlockQuickly.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock quickly instead of typing your password'**
+  String get unlockQuickly;
+
+  /// No description provided for @dataConsent.
+  ///
+  /// In en, this message translates to:
+  /// **'Data consent'**
+  String get dataConsent;
+
+  /// No description provided for @dataConsentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What we read from your bank accounts'**
+  String get dataConsentSubtitle;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get privacyPolicy;
+
+  /// No description provided for @passwordRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 6 or more characters with an uppercase letter, a lowercase letter, and a number.'**
+  String get passwordRule;
+
+  /// No description provided for @enterCurrentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your current password.'**
+  String get enterCurrentPassword;
+
+  /// No description provided for @newPasswordsDontMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The new passwords don\'t match.'**
+  String get newPasswordsDontMatch;
+
+  /// No description provided for @pickDifferentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a password you are not using now.'**
+  String get pickDifferentPassword;
+
+  /// No description provided for @passwordUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Password updated'**
+  String get passwordUpdated;
+
+  /// No description provided for @currentPasswordWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Your current password isn\'t right.'**
+  String get currentPasswordWrong;
+
+  /// No description provided for @passwordTooWeak.
+  ///
+  /// In en, this message translates to:
+  /// **'That password is too weak.'**
+  String get passwordTooWeak;
+
+  /// No description provided for @resetLinkSent.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a reset link to {email}.'**
+  String resetLinkSent(String email);
+
+  /// No description provided for @linkSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send the link ({code}).'**
+  String linkSendFailed(String code);
+
+  /// No description provided for @changePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get changePassword;
+
+  /// No description provided for @currentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get currentPassword;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get newPassword;
+
+  /// No description provided for @confirmNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm new password'**
+  String get confirmNewPassword;
+
+  /// No description provided for @passwordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 6 characters, with an uppercase letter, a lowercase letter, and a number.'**
+  String get passwordHint;
+
+  /// No description provided for @updatePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Update password'**
+  String get updatePassword;
+
+  /// No description provided for @forgotMyPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot my password'**
+  String get forgotMyPassword;
+
+  /// No description provided for @twoFactor.
+  ///
+  /// In en, this message translates to:
+  /// **'Two-factor authentication'**
+  String get twoFactor;
+
+  /// No description provided for @twoFactorSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon: a code by SMS when you sign in'**
+  String get twoFactorSoon;
+
+  /// No description provided for @planFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get planFree;
+
+  /// No description provided for @planFeatCore.
+  ///
+  /// In en, this message translates to:
+  /// **'Budgeting, Spendings, and Savings'**
+  String get planFeatCore;
+
+  /// No description provided for @planFeat2Banks.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 2 linked bank accounts'**
+  String get planFeat2Banks;
+
+  /// No description provided for @planFeatHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly financial health score'**
+  String get planFeatHealth;
+
+  /// No description provided for @planFeatAllFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything in Free'**
+  String get planFeatAllFree;
+
+  /// No description provided for @planFeatUnlimitedBanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited bank accounts'**
+  String get planFeatUnlimitedBanks;
+
+  /// No description provided for @planFeatShared1.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared finances with 1 household and up to 3 shared goals'**
+  String get planFeatShared1;
+
+  /// No description provided for @planFeatReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart reminders and alerts'**
+  String get planFeatReminders;
+
+  /// No description provided for @planFeatAllPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything in Plus'**
+  String get planFeatAllPlus;
+
+  /// No description provided for @planFeatShared3.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 3 households with unlimited shared goals'**
+  String get planFeatShared3;
+
+  /// No description provided for @planFeatInsights.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced insights and exports'**
+  String get planFeatInsights;
+
+  /// No description provided for @planFeatPriority.
+  ///
+  /// In en, this message translates to:
+  /// **'Priority customer service'**
+  String get planFeatPriority;
+
+  /// No description provided for @paidPlansSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid plans are coming soon'**
+  String get paidPlansSoon;
+
+  /// No description provided for @paidPlansSoonBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll be able to subscribe here once they launch. Until then, everything in Vesta is free.'**
+  String get paidPlansSoonBody;
+
+  /// No description provided for @noSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have a subscription'**
+  String get noSubscription;
+
+  /// No description provided for @onFreePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re on the Free plan. Pick a plan to unlock more.'**
+  String get onFreePlan;
+
+  /// No description provided for @aMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'a month'**
+  String get aMonth;
+
+  /// No description provided for @getPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Get {plan}'**
+  String getPlan(String plan);
+
+  /// No description provided for @howReferralsWork.
+  ///
+  /// In en, this message translates to:
+  /// **'How referrals work'**
+  String get howReferralsWork;
+
+  /// No description provided for @referralsHowBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your code. When a friend enters it while signing up, you get {reward} points and they get {welcome}. 1,000 points get you a free month of Plus, and 1,500 a free month of Premium.'**
+  String referralsHowBody(String reward, String welcome);
+
+  /// No description provided for @gotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get gotIt;
+
+  /// No description provided for @enoughPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Enough for a free month of Premium'**
+  String get enoughPremium;
+
+  /// No description provided for @enoughPlusMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Enough for a free month of Plus · {points} more for Premium'**
+  String enoughPlusMore(String points);
+
+  /// No description provided for @moreForPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'{points} more for a free month of Plus'**
+  String moreForPlus(String points);
+
+  /// No description provided for @yourPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Your points'**
+  String get yourPoints;
+
+  /// No description provided for @pointsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{points} pts'**
+  String pointsShort(String points);
+
+  /// No description provided for @howItWorks.
+  ///
+  /// In en, this message translates to:
+  /// **'How it works'**
+  String get howItWorks;
+
+  /// No description provided for @usePoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Use points'**
+  String get usePoints;
+
+  /// No description provided for @yourReferralCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Your referral code'**
+  String get yourReferralCode;
+
+  /// No description provided for @copyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy code'**
+  String get copyCode;
+
+  /// No description provided for @codeCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied'**
+  String get codeCopied;
+
+  /// No description provided for @copyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get copyLink;
+
+  /// No description provided for @linkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get linkCopied;
+
+  /// No description provided for @share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// No description provided for @referralShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'I use Vesta to plan my money. Join with my code {code}: {link}'**
+  String referralShareText(String code, String link);
+
+  /// No description provided for @peopleInvited.
+  ///
+  /// In en, this message translates to:
+  /// **'People you\'ve invited'**
+  String get peopleInvited;
+
+  /// No description provided for @peopleCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 person} other{{count} people}}'**
+  String peopleCount(int count);
+
+  /// No description provided for @noOneInvitedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No one yet. Share your code, and the friends who join show up here.'**
+  String get noOneInvitedYet;
+
+  /// No description provided for @friend.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend'**
+  String get friend;
+
+  /// No description provided for @joinedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined {date}'**
+  String joinedOn(String date);
+
+  /// No description provided for @reasonNotEnough.
+  ///
+  /// In en, this message translates to:
+  /// **'I don\'t use it enough'**
+  String get reasonNotEnough;
+
+  /// No description provided for @reasonPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'I have privacy concerns'**
+  String get reasonPrivacy;
+
+  /// No description provided for @reasonMissingFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s missing features I need'**
+  String get reasonMissingFeatures;
+
+  /// No description provided for @reasonSwitching.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m switching to another app'**
+  String get reasonSwitching;
+
+  /// No description provided for @reasonExpensive.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s too expensive'**
+  String get reasonExpensive;
+
+  /// No description provided for @reasonTechnical.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m having technical issues'**
+  String get reasonTechnical;
+
+  /// No description provided for @pickReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick at least one reason.'**
+  String get pickReason;
+
+  /// No description provided for @deleteVestaAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your Vesta account?'**
+  String get deleteVestaAccountTitle;
+
+  /// No description provided for @deleteVestaAccountMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything in it is removed for good. This cannot be undone.'**
+  String get deleteVestaAccountMessage;
+
+  /// No description provided for @vestaAccountDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t delete the account: {error}'**
+  String vestaAccountDeleteFailed(String error);
+
+  /// No description provided for @deleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get deleteAccount;
+
+  /// No description provided for @whyDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Why do you want to delete your account?'**
+  String get whyDelete;
+
+  /// No description provided for @tellUsMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us more (optional)'**
+  String get tellUsMore;
+
+  /// No description provided for @deleteWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'If you delete your account, all of your information will be gone: your budgets, transactions, savings goals, accounts, and shared finances.'**
+  String get deleteWarning;
+
+  /// No description provided for @iconSecFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Food & drink'**
+  String get iconSecFood;
+
+  /// No description provided for @iconSecHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home & bills'**
+  String get iconSecHome;
+
+  /// No description provided for @iconSecTransport.
+  ///
+  /// In en, this message translates to:
+  /// **'Transport & travel'**
+  String get iconSecTransport;
+
+  /// No description provided for @iconSecLifestyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifestyle'**
+  String get iconSecLifestyle;
+
+  /// No description provided for @iconSecPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'People & other'**
+  String get iconSecPeople;
+
+  /// No description provided for @chooseAnIcon.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an icon'**
+  String get chooseAnIcon;
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 
@@ -170,6 +171,19 @@ IconData iconForKey(
   return _icons[key.startsWith('ph-') ? key.substring(3) : key] ?? fallback;
 }
 
+/// A gallery section's name in the app's language.
+String _sectionLabel(BuildContext context, String section) {
+  final l10n = context.l10n;
+  return switch (section) {
+    'Food & drink' => l10n.iconSecFood,
+    'Home & bills' => l10n.iconSecHome,
+    'Transport & travel' => l10n.iconSecTransport,
+    'Lifestyle' => l10n.iconSecLifestyle,
+    'People & other' => l10n.iconSecPeople,
+    _ => section,
+  };
+}
+
 /// The prototype's "Choose an icon" sheet. Returns the chosen key, or null
 /// when it was closed.
 Future<String?> showIconPicker(BuildContext context, {String? selected}) {
@@ -194,10 +208,13 @@ Future<String?> showIconPicker(BuildContext context, {String? selected}) {
               Row(
                 children: [
                   Expanded(
-                    child: Text('Choose an icon', style: headingStyle(20)),
+                    child: Text(
+                      sheetContext.l10n.chooseAnIcon,
+                      style: headingStyle(20),
+                    ),
                   ),
                   IconButton(
-                    tooltip: 'Close',
+                    tooltip: sheetContext.l10n.close,
                     onPressed: () => Navigator.pop(sheetContext),
                     icon: Icon(PhosphorIconsRegular.x, color: v.muted),
                   ),
@@ -205,7 +222,10 @@ Future<String?> showIconPicker(BuildContext context, {String? selected}) {
               ),
               for (final (section, keys) in iconGallery) ...[
                 const SizedBox(height: VestaSpace.md),
-                Text(section, style: TextStyle(fontSize: 12, color: v.muted)),
+                Text(
+                  _sectionLabel(sheetContext, section),
+                  style: TextStyle(fontSize: 12, color: v.muted),
+                ),
                 const SizedBox(height: VestaSpace.sm),
                 GridView.count(
                   crossAxisCount: 6,
@@ -294,8 +314,8 @@ class IconTile extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           tile,
-          Positioned(
-            right: -4,
+          PositionedDirectional(
+            end: -4,
             bottom: -4,
             child: Container(
               width: 20,

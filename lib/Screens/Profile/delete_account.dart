@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/secure_storage.dart';
@@ -41,14 +42,14 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
 
   Future<void> _delete() async {
     if (_picked.isEmpty) {
-      setState(() => _error = 'Pick at least one reason.');
+      setState(() => _error = context.l10n.pickReason);
       return;
     }
     final sure = await confirmDialog(
       context,
-      title: 'Delete your Vesta account?',
-      message: 'Everything in it is removed for good. This cannot be undone.',
-      confirmLabel: 'Delete',
+      title: context.l10n.deleteVestaAccountTitle,
+      message: context.l10n.deleteVestaAccountMessage,
+      confirmLabel: context.l10n.delete,
     );
     if (!sure || !mounted) return;
     // Firebase only deletes an account soon after a sign-in
@@ -69,7 +70,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
       if (mounted) {
         setState(() {
           _deleting = false;
-          _error = "Couldn't delete the account: $e";
+          _error = context.l10n.vestaAccountDeleteFailed('$e');
         });
       }
     }
@@ -78,8 +79,19 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
   @override
   Widget build(BuildContext context) {
     final v = context.vesta;
+    final l10n = context.l10n;
+    // Shown in the app's language; the English reasons are what gets stored
+    final reasonLabels = [
+      l10n.reasonNotEnough,
+      l10n.reasonPrivacy,
+      l10n.reasonMissingFeatures,
+      l10n.reasonSwitching,
+      l10n.reasonExpensive,
+      l10n.reasonTechnical,
+      l10n.other,
+    ];
     return Scaffold(
-      appBar: const VestaAppBar(title: 'Delete account'),
+      appBar: VestaAppBar(title: l10n.deleteAccount),
       body: VestaBackground(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
@@ -94,7 +106,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Why do you want to delete your account?',
+                    l10n.whyDelete,
                     style: headingStyle(16),
                   ),
                   const SizedBox(height: VestaSpace.md),
@@ -117,7 +129,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                               dense: true,
                               controlAffinity: ListTileControlAffinity.leading,
                               value: _picked.contains(_reasons[i]),
-                              title: Text(_reasons[i]),
+                              title: Text(reasonLabels[i]),
                               onChanged: _deleting
                                   ? null
                                   : (on) => setState(() {
@@ -138,9 +150,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                       maxLength: 200,
                       maxLines: 3,
                       minLines: 1,
-                      decoration: const InputDecoration(
-                        hintText: 'Tell us more (optional)',
-                      ),
+                      decoration: InputDecoration(hintText: l10n.tellUsMore),
                     ),
                   ],
                 ],
@@ -158,12 +168,10 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                 children: [
                   Icon(PhosphorIconsRegular.warning, size: 18, color: v.neg),
                   const SizedBox(width: VestaSpace.sm),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'If you delete your account, all of your information '
-                      'will be gone: your budgets, transactions, savings '
-                      'goals, accounts, and shared finances.',
-                      style: TextStyle(fontSize: 13),
+                      l10n.deleteWarning,
+                      style: const TextStyle(fontSize: 13),
                     ),
                   ),
                 ],
@@ -182,14 +190,14 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
               children: [
                 Expanded(
                   child: OutlineButton(
-                    label: 'Cancel',
+                    label: l10n.cancel,
                     onPressed: _deleting ? null : () => Navigator.pop(context),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: DangerButton(
-                    label: 'Delete account',
+                    label: l10n.deleteAccount,
                     loading: _deleting,
                     onPressed: _delete,
                   ),

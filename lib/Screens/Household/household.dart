@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
@@ -35,7 +36,11 @@ typedef _Member = HouseholdMember;
 
 /// The three buckets as the categories store them, in the prototype's order.
 const _buckets = ['savings', 'essential', 'luxury'];
-const _bucketLabels = ['Savings', 'Necessities', 'Luxuries'];
+List<String> get _bucketLabels => [
+  l10nNow.bucketSavings,
+  l10nNow.bucketNecessities,
+  l10nNow.bucketLuxuries,
+];
 
 class HouseholdDetailPage extends StatefulWidget {
   final String householdId;
@@ -209,6 +214,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
   Future<void> _createAndShareInviteLink() async {
     final user = _auth.currentUser;
     if (user == null) return;
+    final l10n = context.l10n;
 
     try {
       final householdDoc = await _db
@@ -216,7 +222,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
           .doc(widget.householdId)
           .get();
       final householdName =
-          householdDoc.data()?['householdName'] ?? 'a household';
+          householdDoc.data()?['householdName'] ?? l10n.aHousehold;
 
       final inviteDoc = await _db.collection('invites').add({
         'householdId': widget.householdId,
@@ -234,14 +240,14 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
       final inviteLink = inviteUri.toString();
 
       await Share.share(
-        "Join my household '$householdName' on Vesta! Click here: $inviteLink",
-        subject: "You're invited to join my household!",
+        l10n.hhInviteShare('$householdName', inviteLink),
+        subject: l10n.hhInviteSubject,
       );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Error creating invite: $e"),
+            content: Text(context.l10n.inviteCreateError('$e')),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -299,7 +305,8 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
               for (final m in ordered)
                 (
                   uid: m,
-                  name: (profiles[m]?['username'] ?? 'Member').toString(),
+                  name: (profiles[m]?['username'] ?? context.l10n.member)
+                      .toString(),
                   photo: profiles[m]?['profileImageUrl'] as String?,
                 ),
             ];
@@ -309,7 +316,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
                 title: householdName,
                 actions: [
                   HeaderButton(
-                    label: 'Manage',
+                    label: context.l10n.manage,
                     onPressed: () =>
                         _manage(data, householdName, members, ownerUid),
                   ),
@@ -363,7 +370,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
   Widget _noLongerMember() {
     final v = context.vesta;
     return Scaffold(
-      appBar: const VestaAppBar(title: 'Household'),
+      appBar: VestaAppBar(title: context.l10n.household),
       body: VestaBackground(
         child: Center(
           child: Padding(
@@ -374,19 +381,19 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
                 Icon(PhosphorIconsRegular.houseLine, size: 44, color: v.muted),
                 const SizedBox(height: VestaSpace.md),
                 Text(
-                  "You're no longer in this household",
+                  context.l10n.noLongerInHousehold,
                   textAlign: TextAlign.center,
                   style: headingStyle(18),
                 ),
                 const SizedBox(height: VestaSpace.sm),
                 Text(
-                  'It was deleted, or its owner removed you.',
+                  context.l10n.noLongerInHouseholdBody,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 13, color: v.muted),
                 ),
                 const SizedBox(height: VestaSpace.xl),
                 PrimaryButton(
-                  label: 'Back to Shared finances',
+                  label: context.l10n.backToShared,
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -438,13 +445,13 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
           child: Stack(
             children: [
               for (var i = 0; i < shown.length; i++)
-                Positioned(
-                  left: i * (size - overlap),
+                PositionedDirectional(
+                  start: i * (size - overlap),
                   child: avatar(i, shown[i]),
                 ),
               if (extra > 0)
-                Positioned(
-                  left: shown.length * (size - overlap),
+                PositionedDirectional(
+                  start: shown.length * (size - overlap),
                   child: CircleAvatar(
                     radius: size / 2,
                     backgroundColor: v.raised,
@@ -458,7 +465,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
         Text(
           [
             for (final m in members)
-              m.uid == ownerUid ? '${m.name} (admin)' : m.name,
+              m.uid == ownerUid ? context.l10n.nameAdmin(m.name) : m.name,
           ].join(' · '),
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 13, color: v.muted),
@@ -471,7 +478,11 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
   Widget _tabSwitcher() {
     final v = context.vesta;
     final accent = Theme.of(context).colorScheme.primary;
-    const labels = ['Budget', 'Spendings', 'Savings'];
+    final labels = [
+      context.l10n.budget,
+      context.l10n.spendingsTitle,
+      context.l10n.tileSavings,
+    ];
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -567,13 +578,13 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
             children: [
               Expanded(
                 child: Text(
-                  'Spent in $monthName so far',
+                  context.l10n.spentInMonthSoFar(monthName),
                   style: TextStyle(fontSize: 12, color: v.muted),
                 ),
               ),
               if (budget > 0)
                 Text(
-                  '${(spent / budget * 100).round()}% used',
+                  context.l10n.percentUsed('${(spent / budget * 100).round()}'),
                   style: TextStyle(fontSize: 12, color: v.muted),
                 ),
             ],
@@ -588,7 +599,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 3),
                   child: Text(
-                    'of ${formatMoney(budget)}',
+                    context.l10n.ofAmount(formatMoney(budget)),
                     style: TextStyle(fontSize: 13, color: v.muted),
                   ),
                 ),
@@ -628,7 +639,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
                             Expanded(
                               child: Text(
                                 members[i].uid == me
-                                    ? '${members[i].name} (you)'
+                                    ? context.l10n.nameYou(members[i].name)
                                     : members[i].name,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -642,7 +653,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
                                 spent > 0
                                     ? '${((perMember[members[i].uid] ?? 0) / spent * 100).round()}%'
                                     : '0%',
-                                textAlign: TextAlign.right,
+                                textAlign: TextAlign.end,
                                 style: TextStyle(fontSize: 12, color: v.muted),
                               ),
                             ),
@@ -668,10 +679,10 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
               Expanded(
                 child: Text(
                   budget <= 0
-                      ? 'No household budget yet'
+                      ? context.l10n.noHouseholdBudget
                       : left >= 0
-                      ? '${formatMoney(left)} left'
-                      : '${formatMoney(-left)} over',
+                      ? context.l10n.amountLeft(formatMoney(left))
+                      : context.l10n.amountOver(formatMoney(-left)),
                   style: TextStyle(
                     fontSize: 12,
                     color: left < 0 && budget > 0 ? v.neg : v.muted,
@@ -679,7 +690,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
                 ),
               ),
               Text(
-                daysLeft == 1 ? '1 day to go' : '$daysLeft days to go',
+                context.l10n.daysToGo(daysLeft),
                 style: TextStyle(fontSize: 12, color: v.muted),
               ),
             ],
@@ -719,16 +730,15 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
     ];
     final hasData = allY.any((y) => y > 0);
     final top = niceChartTop(allY.isEmpty ? 0 : allY.reduce(math.max));
-    const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
+    
     final budget = _manualHouseholdBudget;
     final now = DateTime.now();
 
     Widget? tag(bool? good, String bad) {
       if (good == null) return null;
-      return good ? TagChip('Good', color: v.pos) : TagChip(bad, color: v.bucketLuxury);
+      return good
+          ? TagChip(context.l10n.good, color: v.pos)
+          : TagChip(bad, color: v.bucketLuxury);
     }
 
     final monthGood = budget > 0 && _cycleTotals.isNotEmpty
@@ -743,7 +753,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Financial health',
+            context.l10n.financialHealth,
             style: TextStyle(fontSize: 12, color: v.muted),
           ),
           if (monthGood != null) ...[
@@ -751,15 +761,18 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
             Row(
               children: [
                 Text(
-                  monthNames[now.month - 1],
+                  DateFormat('MMM').format(now),
                   style: TextStyle(fontSize: 12, color: v.muted),
                 ),
                 const SizedBox(width: 6),
-                tag(monthGood, 'Over')!,
+                tag(monthGood, context.l10n.overTag)!,
                 const Spacer(),
-                Text('Overall', style: TextStyle(fontSize: 12, color: v.muted)),
+                Text(
+                  context.l10n.overall,
+                  style: TextStyle(fontSize: 12, color: v.muted),
+                ),
                 const SizedBox(width: 6),
-                tag(overallGood, 'At risk')!,
+                tag(overallGood, context.l10n.atRisk)!,
               ],
             ),
           ],
@@ -769,7 +782,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
             child: !hasData
                 ? Center(
                     child: Text(
-                      "No shared spending in the last six months yet",
+                      context.l10n.noSharedSpendingSixMonths,
                       style: TextStyle(fontSize: 13, color: v.muted),
                     ),
                   )
@@ -820,7 +833,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
                               return Padding(
                                 padding: const EdgeInsets.only(top: 8),
                                 child: Text(
-                                  monthNames[monthDate.month - 1],
+                                  DateFormat('MMM').format(monthDate),
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: current
@@ -1005,8 +1018,8 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
   Future<void> _editBudget(Map<String, dynamic> data) async {
     final saved = await showBudgetSplitDialog(
       context,
-      title: 'Household budget plan',
-      totalLabel: 'Total monthly budget',
+      title: context.l10n.householdBudgetPlan,
+      totalLabel: context.l10n.totalMonthlyBudget,
       load: () async => (
         total: _manualHouseholdBudget,
         percents: householdPlan(data) ?? [20, 50, 30],
@@ -1068,7 +1081,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
               const SizedBox(height: VestaSpace.xs),
               FittedBox(
                 fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
+                alignment: AlignmentDirectional.centerStart,
                 child: MoneyText(amount, size: 20, color: color),
               ),
             ],
@@ -1082,11 +1095,11 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SectionHeader(
-            title: 'Budget plan for $monthName',
+            title: context.l10n.budgetPlanFor(monthName),
             trailing: [
               OutlineIconButton(
                 icon: PhosphorIconsRegular.pencilSimple,
-                tooltip: 'Edit the budget plan',
+                tooltip: context.l10n.editBudgetPlan,
                 onPressed: () => _editBudget(data),
               ),
             ],
@@ -1094,9 +1107,9 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
           const SizedBox(height: VestaSpace.md),
           Row(
             children: [
-              stat('Total budget', budget, v.pos),
+              stat(context.l10n.totalBudget, budget, v.pos),
               const SizedBox(width: 10),
-              stat('Spent so far', spent, over ? v.neg : null),
+              stat(context.l10n.spentSoFar, spent, over ? v.neg : null),
             ],
           ),
           const SizedBox(height: VestaSpace.lg),
@@ -1116,7 +1129,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
                                   .round()
                                   .clamp(1, 1000),
                               child: Padding(
-                                padding: const EdgeInsets.only(right: 2),
+                                padding: const EdgeInsetsDirectional.only(end: 2),
                                 child: ColoredBox(color: colors[i]),
                               ),
                             ),
@@ -1135,16 +1148,14 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
           const SizedBox(height: VestaSpace.md),
           if (!hasBudget)
             Text(
-              'No budget set yet. Tap the pencil to plan one.',
+              context.l10n.noBudgetTapPencil,
               style: TextStyle(fontSize: 12, color: v.muted),
             )
           else if (plan == null)
             Text(
               over
-                  ? '${formatMoney(spent - budget)} over this cycle. Tap the '
-                        'pencil to split the budget into buckets.'
-                  : '${formatMoney(budget - spent)} left this cycle. Tap the '
-                        'pencil to split the budget into buckets.',
+                  ? context.l10n.overThisCycleSplit(formatMoney(spent - budget))
+                  : context.l10n.leftThisCycleSplit(formatMoney(budget - spent)),
               style: TextStyle(fontSize: 12, color: over ? v.neg : v.muted),
             )
           else
@@ -1275,7 +1286,9 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
       debugPrint("⚠️ Error fetching household budget data: $e\n$st");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error loading household budget: $e")),
+          SnackBar(
+            content: Text(context.l10n.householdBudgetLoadError('$e')),
+          ),
         );
       }
       setState(() => _loading = false);
@@ -1294,8 +1307,8 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SectionHeader(
-            title: "Categories",
-            actionLabel: "See all",
+            title: context.l10n.categories,
+            actionLabel: context.l10n.seeAll,
             onAction: () {
               Navigator.push(
                 context,
@@ -1319,7 +1332,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20),
       child: Text(
-        "No categorized spending yet.\nAssign categories to shared transactions to see them here.",
+        context.l10n.noSharedCategorized,
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 13, color: context.vesta.muted),
       ),
@@ -1335,8 +1348,8 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
         .length;
 
     return ListRow(
-      title: name,
-      subtitle: count == 1 ? "1 transaction" : "$count transactions",
+      title: categoryLabel(name),
+      subtitle: context.l10n.transactionCount(count),
       padding: const EdgeInsets.symmetric(vertical: 6),
       leading: IconBadge(
         categoryIcon(name),
@@ -1402,8 +1415,8 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SectionHeader(
-            title: "Latest transactions",
-            actionLabel: "See all",
+            title: context.l10n.latestTransactions,
+            actionLabel: context.l10n.seeAll,
             onAction: () {
               Navigator.push(
                 context,
@@ -1442,7 +1455,7 @@ class _HouseholdDetailPageState extends State<HouseholdDetailPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20),
       child: Text(
-        "No shared transactions yet.\nAssign one from a transaction's details.",
+        context.l10n.noSharedTransactions,
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 13, color: context.vesta.muted),
       ),
@@ -1505,19 +1518,19 @@ class _HouseholdPageState extends State<HouseholdPage> {
         const Center(child: PixelIcon(PixelArt.shared, size: 72)),
         const SizedBox(height: 14),
         Text(
-          "No households yet",
+          context.l10n.noHouseholdsYet,
           textAlign: TextAlign.center,
           style: headingStyle(22),
         ),
         const SizedBox(height: VestaSpace.sm),
         Text(
-          "Create a household to run a budget with the people you live with.",
+          context.l10n.householdsEmptyBody,
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 14, color: context.vesta.muted),
         ),
         const SizedBox(height: VestaSpace.xl),
         PrimaryButton(
-          label: 'Create a household',
+          label: context.l10n.createHousehold,
           onPressed: _openCreateHousehold,
         ),
       ],
@@ -1578,13 +1591,13 @@ class _HouseholdPageState extends State<HouseholdPage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 8, bottom: 4),
                     child: SectionHeader(
-                      title: 'Shared households',
+                      title: context.l10n.sharedHouseholds,
                       trailing: [
                         AddRemoveButtons(
                           onAdd: _openCreateHousehold,
-                          addTooltip: 'New household',
+                          addTooltip: context.l10n.newHousehold,
                           removing: _removing,
-                          removeTooltip: 'Leave or delete a household',
+                          removeTooltip: context.l10n.leaveOrDeleteHousehold,
                           onToggleRemove: () =>
                               setState(() => _removing = !_removing),
                         ),
@@ -1616,7 +1629,8 @@ class _HouseholdPageState extends State<HouseholdPage> {
     String householdId,
     Map<String, dynamic> household,
   ) async {
-    final name = (household['householdName'] ?? 'this household').toString();
+    final name = (household['householdName'] ?? context.l10n.thisHousehold)
+        .toString();
     if (isHouseholdOwner(household)) {
       await deleteHousehold(
         context,
@@ -1680,13 +1694,13 @@ class _HouseholdPageState extends State<HouseholdPage> {
                     children: [
                       Expanded(
                         child: Text(
-                          household['householdName'] ?? 'Unnamed household',
+                          household['householdName'] ?? context.l10n.unnamedHousehold,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Text(
-                        memberCount == 1 ? '1 member' : '$memberCount members',
+                        context.l10n.memberCount(memberCount),
                         style: TextStyle(fontSize: 12, color: v.muted),
                       ),
                     ],
@@ -1702,10 +1716,10 @@ class _HouseholdPageState extends State<HouseholdPage> {
                   const SizedBox(height: 6),
                   Text(
                     budget > 0
-                        ? '${formatMoney(spent)} of ${formatMoney(budget)}'
+                        ? context.l10n.amountOfAmount(formatMoney(spent), formatMoney(budget))
                         : (owner
-                              ? 'No budget yet. Open to set one.'
-                              : 'No budget set yet'),
+                              ? context.l10n.noBudgetOpenToSet
+                              : context.l10n.noBudgetSetYet),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -1725,9 +1739,9 @@ class _HouseholdPageState extends State<HouseholdPage> {
 
     // Handle user not being logged in
     if (currentUser == null) {
-      return const Scaffold(
-        appBar: VestaAppBar(title: "Shared finances"),
-        body: Center(child: Text("Please log in to see your households.")),
+      return Scaffold(
+        appBar: VestaAppBar(title: context.l10n.tileShared),
+        body: Center(child: Text(context.l10n.logInToSeeHouseholds)),
       );
     }
 
@@ -1735,7 +1749,7 @@ class _HouseholdPageState extends State<HouseholdPage> {
     final String uid = currentUser.uid;
 
     return Scaffold(
-      appBar: const VestaAppBar(title: 'Shared finances'),
+      appBar: VestaAppBar(title: context.l10n.tileShared),
       body: VestaBackground(
         child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           stream: _db
@@ -1747,10 +1761,12 @@ class _HouseholdPageState extends State<HouseholdPage> {
               return const Center(child: CircularProgressIndicator());
             }
             if (userSnapshot.hasError) {
-              return Center(child: Text("Error: ${userSnapshot.error}"));
+              return Center(
+                child: Text(context.l10n.errorWith('${userSnapshot.error}')),
+              );
             }
             if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
-              return const Center(child: Text("User data not found."));
+              return Center(child: Text(context.l10n.userDataNotFound));
             }
 
             final userData = userSnapshot.data!.data();
@@ -1792,18 +1808,19 @@ class _PendingInvites extends StatelessWidget {
     bool accept,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     try {
       await answerInvite(inviteId, accept: accept);
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            accept ? 'Joining the household...' : 'Invite declined',
+            accept ? l10n.joiningHousehold : l10n.inviteDeclined,
           ),
         ),
       );
     } catch (e) {
       messenger.showSnackBar(
-        SnackBar(content: Text("Couldn't answer the invite: $e")),
+        SnackBar(content: Text(l10n.inviteAnswerFailed('$e'))),
       );
     }
   }
@@ -1841,9 +1858,10 @@ class _PendingInvites extends StatelessWidget {
                             const SizedBox(width: VestaSpace.md),
                             Expanded(
                               child: Text(
-                                '${invite.data()['inviterName'] ?? 'Someone'} '
-                                'invited you to join '
-                                '${invite.data()['householdName'] ?? 'a household'}.',
+                                context.l10n.invitedYouToJoin(
+                                  '${invite.data()['inviterName'] ?? context.l10n.someone}',
+                                  '${invite.data()['householdName'] ?? context.l10n.aHousehold}',
+                                ),
                               ),
                             ),
                           ],
@@ -1853,7 +1871,7 @@ class _PendingInvites extends StatelessWidget {
                           children: [
                             Expanded(
                               child: OutlineButton(
-                                label: 'Decline',
+                                label: context.l10n.decline,
                                 onPressed: () =>
                                     _answer(context, invite.id, false),
                               ),
@@ -1861,7 +1879,7 @@ class _PendingInvites extends StatelessWidget {
                             const SizedBox(width: 10),
                             Expanded(
                               child: PrimaryButton(
-                                label: 'Accept',
+                                label: context.l10n.accept,
                                 onPressed: () =>
                                     _answer(context, invite.id, true),
                               ),

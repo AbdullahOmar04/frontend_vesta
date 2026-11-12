@@ -1592,4 +1592,1187 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get amount => 'Amount';
+
+  @override
+  String get savingsGoalAdded => 'Savings goal added';
+
+  @override
+  String allocateToGoal(String goal) {
+    return 'Allocate to $goal';
+  }
+
+  @override
+  String availableAmount(String amount) {
+    return 'Available: $amount';
+  }
+
+  @override
+  String inThisGoal(String amount) {
+    return 'In this goal: $amount';
+  }
+
+  @override
+  String stillNeeded(String amount) {
+    return 'Still needed: $amount';
+  }
+
+  @override
+  String get amountToAllocate => 'Amount to allocate';
+
+  @override
+  String get removeFromGoal => 'Remove from goal';
+
+  @override
+  String get allocate => 'Allocate';
+
+  @override
+  String get insufficientBalance => 'Insufficient available balance';
+
+  @override
+  String get goalFullyFunded => 'This goal is already fully funded';
+
+  @override
+  String allocatingCapped(String amount) {
+    return 'Allocating $amount (capped to remaining goal amount)';
+  }
+
+  @override
+  String get deleteGoalTitle => 'Delete this goal?';
+
+  @override
+  String get deleteGoalMessage =>
+      'The goal and its progress will be removed. It cannot be undone.';
+
+  @override
+  String get goalDeleted => 'Savings goal deleted successfully';
+
+  @override
+  String goalDeleteError(String error) {
+    return 'Error deleting goal: $error';
+  }
+
+  @override
+  String removeFromGoalTitle(String goal) {
+    return 'Remove from $goal';
+  }
+
+  @override
+  String get amountToRemove => 'Amount to remove';
+
+  @override
+  String get removeAll => 'Remove all';
+
+  @override
+  String get amountExceedsAllocation => 'Amount exceeds current allocation';
+
+  @override
+  String amountAllocated(String amount) {
+    return '$amount allocated successfully!';
+  }
+
+  @override
+  String amountRemovedFromGoal(String amount) {
+    return '$amount removed successfully!';
+  }
+
+  @override
+  String get noSavingsGoalsYet => 'No savings goals yet';
+
+  @override
+  String get savingsEmptyBody =>
+      'Create a goal and move money from your savings into it as you go.';
+
+  @override
+  String get createSavingsGoal => 'Create a savings goal';
+
+  @override
+  String get savingGoals => 'Saving goals';
+
+  @override
+  String get newGoal => 'New goal';
+
+  @override
+  String get removeAGoal => 'Remove a goal';
+
+  @override
+  String get totalSaved => 'Total saved';
+
+  @override
+  String get allocatedToGoals => 'Allocated to goals';
+
+  @override
+  String get leftToAllocate => 'Left to allocate';
+
+  @override
+  String get completed => 'Completed';
+
+  @override
+  String amountOfAmount(String current, String target) {
+    return '$current of $target';
+  }
+
+  @override
+  String perMonthByDate(String amount, String date) {
+    return '$amount a month · by $date';
+  }
+
+  @override
+  String perMonthFor(String amount, String duration) {
+    return '$amount a month · $duration';
+  }
+
+  @override
+  String monthsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count months',
+      one: '1 month',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String yearsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count years',
+      one: '1 year',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String yearsAndMonths(String years, String months) {
+    return '$years and $months';
+  }
+
+  @override
+  String get giveGoalName => 'Give the goal a name.';
+
+  @override
+  String get enterSaveAmount => 'Enter how much you want to save.';
+
+  @override
+  String get enterMonthsOrDate =>
+      'Enter how many months, or pick a target date.';
+
+  @override
+  String goalAddFailed(String error) {
+    return 'Couldn\'t add the goal: $error';
+  }
+
+  @override
+  String get newSavingsGoal => 'New savings goal';
+
+  @override
+  String get addGoal => 'Add goal';
+
+  @override
+  String get goalName => 'Goal name';
+
+  @override
+  String get totalTargetAmount => 'Total target amount';
+
+  @override
+  String get targetPerMonth => 'Target amount per month';
+
+  @override
+  String get months => 'Months';
+
+  @override
+  String get targetDate => 'Target date';
+
+  @override
+  String get deleteBillTitle => 'Delete this bill?';
+
+  @override
+  String willBeRemoved(String name) {
+    return '\"$name\" will be removed.';
+  }
+
+  @override
+  String billUpdateFailed(String error) {
+    return 'Couldn\'t update the bill: $error';
+  }
+
+  @override
+  String billSaveFailed(String error) {
+    return 'Couldn\'t save the bill: $error';
+  }
+
+  @override
+  String get billsTitle => 'Bills & subscriptions';
+
+  @override
+  String get stillDueThisMonth => 'Still due this month';
+
+  @override
+  String get perMo => '/mo';
+
+  @override
+  String get noBillsYet => 'No bills yet';
+
+  @override
+  String get billsEmptyBody =>
+      'Add rent, phone, subscriptions and anything else you pay each month. Standing orders from your bank show up here too.';
+
+  @override
+  String get bills => 'Bills';
+
+  @override
+  String get billsFootnote =>
+      'Toggle on to mark a bill as autopay. Standing orders are set up at your bank.';
+
+  @override
+  String get paid => 'Paid';
+
+  @override
+  String wasDue(String date) {
+    return 'Was due $date';
+  }
+
+  @override
+  String get noDateSet => 'No date set';
+
+  @override
+  String get dueToday => 'Due today';
+
+  @override
+  String get dueTomorrow => 'Due tomorrow';
+
+  @override
+  String dueInDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Due in $count days',
+      one: 'Due in 1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get incoming => 'incoming';
+
+  @override
+  String get autopayLower => 'autopay';
+
+  @override
+  String get editBill => 'Edit bill';
+
+  @override
+  String get name => 'Name';
+
+  @override
+  String get billNameHint => 'Rent, phone, Netflix...';
+
+  @override
+  String get dueEveryMonthOn => 'Due every month on';
+
+  @override
+  String dayN(int day) {
+    return 'Day $day';
+  }
+
+  @override
+  String get shorterMonthsNote => 'In shorter months it falls on the last day.';
+
+  @override
+  String get paidFrom => 'Paid from';
+
+  @override
+  String get notSet => 'Not set';
+
+  @override
+  String get subscription => 'Subscription';
+
+  @override
+  String get subscriptionSubtitle => 'Counted in your monthly subscriptions';
+
+  @override
+  String get autopay => 'Autopay';
+
+  @override
+  String get autopaySubtitle => 'Comes out automatically';
+
+  @override
+  String get addBill => 'Add bill';
+
+  @override
+  String get deleteBill => 'Delete bill';
+
+  @override
+  String get billFallback => 'Bill';
+
+  @override
+  String get scheduledPayment => 'Scheduled payment';
+
+  @override
+  String accountFallback(String id) {
+    return 'Account $id';
+  }
+
+  @override
+  String hhInviteShare(String name, String link) {
+    return 'Join my household \'$name\' on Vesta! Click here: $link';
+  }
+
+  @override
+  String get hhInviteSubject => 'You\'re invited to join my household!';
+
+  @override
+  String get aHousehold => 'a household';
+
+  @override
+  String inviteCreateError(String error) {
+    return 'Error creating invite: $error';
+  }
+
+  @override
+  String get member => 'Member';
+
+  @override
+  String get manage => 'Manage';
+
+  @override
+  String get household => 'Household';
+
+  @override
+  String get noLongerInHousehold => 'You\'re no longer in this household';
+
+  @override
+  String get noLongerInHouseholdBody =>
+      'It was deleted, or its owner removed you.';
+
+  @override
+  String get backToShared => 'Back to Shared finances';
+
+  @override
+  String nameAdmin(String name) {
+    return '$name (admin)';
+  }
+
+  @override
+  String nameYou(String name) {
+    return '$name (you)';
+  }
+
+  @override
+  String get noHouseholdBudget => 'No household budget yet';
+
+  @override
+  String get good => 'Good';
+
+  @override
+  String get overTag => 'Over';
+
+  @override
+  String get overall => 'Overall';
+
+  @override
+  String get atRisk => 'At risk';
+
+  @override
+  String get financialHealth => 'Financial health';
+
+  @override
+  String get noSharedSpendingSixMonths =>
+      'No shared spending in the last six months yet';
+
+  @override
+  String get householdBudgetPlan => 'Household budget plan';
+
+  @override
+  String get totalMonthlyBudget => 'Total monthly budget';
+
+  @override
+  String get totalBudget => 'Total budget';
+
+  @override
+  String get noBudgetTapPencil =>
+      'No budget set yet. Tap the pencil to plan one.';
+
+  @override
+  String overThisCycleSplit(String amount) {
+    return '$amount over this cycle. Tap the pencil to split the budget into buckets.';
+  }
+
+  @override
+  String leftThisCycleSplit(String amount) {
+    return '$amount left this cycle. Tap the pencil to split the budget into buckets.';
+  }
+
+  @override
+  String householdBudgetLoadError(String error) {
+    return 'Error loading household budget: $error';
+  }
+
+  @override
+  String get noSharedCategorized =>
+      'No categorized spending yet.\nAssign categories to shared transactions to see them here.';
+
+  @override
+  String transactionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count transactions',
+      one: '1 transaction',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get noSharedTransactions =>
+      'No shared transactions yet.\nAssign one from a transaction\'s details.';
+
+  @override
+  String get noHouseholdsYet => 'No households yet';
+
+  @override
+  String get householdsEmptyBody =>
+      'Create a household to run a budget with the people you live with.';
+
+  @override
+  String get createHousehold => 'Create a household';
+
+  @override
+  String get sharedHouseholds => 'Shared households';
+
+  @override
+  String get newHousehold => 'New household';
+
+  @override
+  String get leaveOrDeleteHousehold => 'Leave or delete a household';
+
+  @override
+  String get thisHousehold => 'this household';
+
+  @override
+  String get unnamedHousehold => 'Unnamed household';
+
+  @override
+  String memberCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count members',
+      one: '1 member',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get noBudgetOpenToSet => 'No budget yet. Open to set one.';
+
+  @override
+  String get noBudgetSetYet => 'No budget set yet';
+
+  @override
+  String get logInToSeeHouseholds => 'Please log in to see your households.';
+
+  @override
+  String get userDataNotFound => 'User data not found.';
+
+  @override
+  String get joiningHousehold => 'Joining the household...';
+
+  @override
+  String get inviteDeclined => 'Invite declined';
+
+  @override
+  String inviteAnswerFailed(String error) {
+    return 'Couldn\'t answer the invite: $error';
+  }
+
+  @override
+  String invitedYouToJoin(String inviter, String household) {
+    return '$inviter invited you to join $household.';
+  }
+
+  @override
+  String get someone => 'Someone';
+
+  @override
+  String get decline => 'Decline';
+
+  @override
+  String get accept => 'Accept';
+
+  @override
+  String get deleteHouseholdMessage =>
+      'The household and its shared budget are removed for every member. This cannot be undone.';
+
+  @override
+  String householdDeleteFailed(String error) {
+    return 'Couldn\'t delete the household: $error';
+  }
+
+  @override
+  String leaveNameTitle(String name) {
+    return 'Leave $name?';
+  }
+
+  @override
+  String get leaveHouseholdMessage =>
+      'You\'ll stop seeing its budget and transactions. The owner can invite you again.';
+
+  @override
+  String get leave => 'Leave';
+
+  @override
+  String householdLeaveFailed(String error) {
+    return 'Couldn\'t leave the household: $error';
+  }
+
+  @override
+  String removeNameTitle(String name) {
+    return 'Remove $name?';
+  }
+
+  @override
+  String get removeMemberMessage =>
+      'They\'ll lose access to this household. You can invite them again later.';
+
+  @override
+  String get removeMember => 'Remove';
+
+  @override
+  String memberRemoveFailed(String name, String error) {
+    return 'Couldn\'t remove $name: $error';
+  }
+
+  @override
+  String get logInToInvite => 'Log in again to invite someone.';
+
+  @override
+  String get enterUsernameOrEmail => 'Enter a username or email.';
+
+  @override
+  String noUserGoesBy(String query) {
+    return 'No Vesta user goes by \"$query\".';
+  }
+
+  @override
+  String get thatsYou => 'That\'s you.';
+
+  @override
+  String get alreadyInHousehold => 'They\'re already in this household.';
+
+  @override
+  String get giveHouseholdName => 'Give the household a name.';
+
+  @override
+  String householdCreateFailed(String error) {
+    return 'Couldn\'t create the household: $error';
+  }
+
+  @override
+  String get create => 'Create';
+
+  @override
+  String get householdName => 'Household name';
+
+  @override
+  String saveFailed(String error) {
+    return 'Couldn\'t save: $error';
+  }
+
+  @override
+  String inviteSentTo(String name) {
+    return 'Invite sent to $name. They can accept it in Shared finances.';
+  }
+
+  @override
+  String inviteSendFailed(String error) {
+    return 'Couldn\'t send the invite: $error';
+  }
+
+  @override
+  String get editHousehold => 'Edit household';
+
+  @override
+  String get members => 'Members';
+
+  @override
+  String get youParen => '(you)';
+
+  @override
+  String get admin => 'Admin';
+
+  @override
+  String get invite => 'Invite';
+
+  @override
+  String get shareInviteLink => 'Share invite link';
+
+  @override
+  String get youAreAdmin =>
+      'You\'re the admin because you created this household. Only the admin can add or remove members.';
+
+  @override
+  String onlyAdminNamed(String name) {
+    return 'Only the admin ($name) can add or remove members.';
+  }
+
+  @override
+  String get onlyAdmin => 'Only the admin can add or remove members.';
+
+  @override
+  String get deleteHousehold => 'Delete household';
+
+  @override
+  String willBeRemovedForEveryone(String name) {
+    return '\"$name\" will be removed for everyone.';
+  }
+
+  @override
+  String get addSharedBill => 'Add a shared bill';
+
+  @override
+  String get noSharedBills =>
+      'No shared bills yet. Add rent, utilities, or subscriptions you split.';
+
+  @override
+  String get whenToday => 'today';
+
+  @override
+  String get whenTomorrow => 'tomorrow';
+
+  @override
+  String whenInDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in $count days',
+      one: 'in 1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String billDueLine(String date, String when) {
+    return 'Due $date · $when · Monthly';
+  }
+
+  @override
+  String get giveBillName => 'Give the bill a name.';
+
+  @override
+  String get enterTheAmount => 'Enter the amount.';
+
+  @override
+  String get pickDueDay => 'Pick a due day from 1 to 31.';
+
+  @override
+  String sharesDontAddUp(String total, String amount) {
+    return 'The shares add up to $total, not $amount.';
+  }
+
+  @override
+  String get newSharedBill => 'New shared bill';
+
+  @override
+  String get egRent => 'e.g. Rent';
+
+  @override
+  String get dueDay => 'Due day';
+
+  @override
+  String get splitEvenly => 'Split evenly';
+
+  @override
+  String amountEach(String amount) {
+    return '$amount each';
+  }
+
+  @override
+  String get setEachPays => 'Or set what each member pays';
+
+  @override
+  String somethingWentWrong(String error) {
+    return 'Something went wrong: $error';
+  }
+
+  @override
+  String get sharedGoalAdded => 'Shared goal added';
+
+  @override
+  String get deleteSharedGoalMessage =>
+      'It\'s removed for everyone. What members put in goes back to their free share.';
+
+  @override
+  String get sharedByMembers => 'Shared by members';
+
+  @override
+  String get allocatedShared => 'Allocated / shared';
+
+  @override
+  String get setHowMuchYouShare => 'Set how much you share';
+
+  @override
+  String get setMonthlyPlanHint =>
+      'Set what you plan to add each month to track the household\'s monthly savings.';
+
+  @override
+  String monthSavingsGoal(String month, String amount) {
+    return '$month savings goal $amount';
+  }
+
+  @override
+  String get reached => 'Reached';
+
+  @override
+  String get notYet => 'Not yet';
+
+  @override
+  String savedThisMonth(String amount) {
+    return '$amount saved this month.';
+  }
+
+  @override
+  String savedSoFarToGo(String saved, String toGo, String days) {
+    return '$saved saved so far, $toGo to go with $days left.';
+  }
+
+  @override
+  String plansPerMonth(String amount) {
+    return 'Plans $amount a month';
+  }
+
+  @override
+  String get noMonthlyPlan => 'No monthly plan yet';
+
+  @override
+  String amountFree(String amount) {
+    return '$amount free';
+  }
+
+  @override
+  String get newSharedGoal => 'New shared goal';
+
+  @override
+  String get noSharedGoals =>
+      'No shared goals yet. Add one to save for something together.';
+
+  @override
+  String byDate(String date) {
+    return 'By $date';
+  }
+
+  @override
+  String shareAtLeast(String amount) {
+    return 'You already put $amount into goals, so share at least that.';
+  }
+
+  @override
+  String get yourSavingsShare => 'Your savings share';
+
+  @override
+  String get savingsShareMessage =>
+      'How much of your savings you share with the household, and what you plan to add each month. Everyone in it sees these.';
+
+  @override
+  String get amountYouShare => 'Amount you share';
+
+  @override
+  String get planToAddMonthly => 'You plan to add each month';
+
+  @override
+  String get enterAnAmount => 'Enter an amount.';
+
+  @override
+  String youHaveInGoal(String amount) {
+    return 'You have $amount in this goal.';
+  }
+
+  @override
+  String freeShareIs(String amount) {
+    return 'Your free share is $amount. Share more first with \"Set how much you share\".';
+  }
+
+  @override
+  String get takeOut => 'Take out';
+
+  @override
+  String savedOfTarget(String saved, String target) {
+    return '$saved of $target saved';
+  }
+
+  @override
+  String fromYouFreeShare(String mine, String free) {
+    return 'From you: $mine · Your free share: $free';
+  }
+
+  @override
+  String get amountToTakeOut => 'Amount to take out';
+
+  @override
+  String get amountToAdd => 'Amount to add';
+
+  @override
+  String emailLinkSent(String email) {
+    return 'We sent a link to $email. Your email changes once you open it.';
+  }
+
+  @override
+  String get emailTakenByOther => 'That email already has a Vesta account.';
+
+  @override
+  String get notAdded => 'Not added';
+
+  @override
+  String get changeNumberSupport => 'To change your number, contact support.';
+
+  @override
+  String get userId => 'User ID';
+
+  @override
+  String get userIdCopied => 'User ID copied';
+
+  @override
+  String get copy => 'Copy';
+
+  @override
+  String get userIdFixed =>
+      'Your user ID is given to you and can\'t be changed.';
+
+  @override
+  String get deleteVestaAccount => 'Delete Vesta account';
+
+  @override
+  String get profilePicture => 'Profile picture';
+
+  @override
+  String get chooseFromGallery => 'Choose from gallery';
+
+  @override
+  String get takeAPhoto => 'Take a photo';
+
+  @override
+  String imageUploadFailed(String error) {
+    return 'Failed to upload image: $error';
+  }
+
+  @override
+  String get passwordWrong => 'That password isn\'t right.';
+
+  @override
+  String get tooManyTries => 'Too many tries. Wait a little, then try again.';
+
+  @override
+  String somethingWentWrongCode(String code) {
+    return 'Something went wrong ($code).';
+  }
+
+  @override
+  String get confirmItsYou => 'Confirm it\'s you';
+
+  @override
+  String get enterPasswordToContinue =>
+      'Enter your Vesta password to continue.';
+
+  @override
+  String get fingerprintReason => 'Authenticate to turn on fingerprint unlock';
+
+  @override
+  String get fingerprintFailed => 'Couldn\'t confirm your fingerprint';
+
+  @override
+  String get changeOrResetPassword => 'Change or reset your password';
+
+  @override
+  String get fingerprintUnlock => 'Fingerprint unlock';
+
+  @override
+  String get notAvailableOnPhone => 'Not available on this phone';
+
+  @override
+  String get unlockWithBiometrics =>
+      'Unlock Vesta with your fingerprint or face';
+
+  @override
+  String get unlockQuickly => 'Unlock quickly instead of typing your password';
+
+  @override
+  String get dataConsent => 'Data consent';
+
+  @override
+  String get dataConsentSubtitle => 'What we read from your bank accounts';
+
+  @override
+  String get privacyPolicy => 'Privacy policy';
+
+  @override
+  String get passwordRule =>
+      'Use 6 or more characters with an uppercase letter, a lowercase letter, and a number.';
+
+  @override
+  String get enterCurrentPassword => 'Enter your current password.';
+
+  @override
+  String get newPasswordsDontMatch => 'The new passwords don\'t match.';
+
+  @override
+  String get pickDifferentPassword => 'Pick a password you are not using now.';
+
+  @override
+  String get passwordUpdated => 'Password updated';
+
+  @override
+  String get currentPasswordWrong => 'Your current password isn\'t right.';
+
+  @override
+  String get passwordTooWeak => 'That password is too weak.';
+
+  @override
+  String resetLinkSent(String email) {
+    return 'We sent a reset link to $email.';
+  }
+
+  @override
+  String linkSendFailed(String code) {
+    return 'Couldn\'t send the link ($code).';
+  }
+
+  @override
+  String get changePassword => 'Change password';
+
+  @override
+  String get currentPassword => 'Current password';
+
+  @override
+  String get newPassword => 'New password';
+
+  @override
+  String get confirmNewPassword => 'Confirm new password';
+
+  @override
+  String get passwordHint =>
+      'At least 6 characters, with an uppercase letter, a lowercase letter, and a number.';
+
+  @override
+  String get updatePassword => 'Update password';
+
+  @override
+  String get forgotMyPassword => 'Forgot my password';
+
+  @override
+  String get twoFactor => 'Two-factor authentication';
+
+  @override
+  String get twoFactorSoon => 'Coming soon: a code by SMS when you sign in';
+
+  @override
+  String get planFree => 'Free';
+
+  @override
+  String get planFeatCore => 'Budgeting, Spendings, and Savings';
+
+  @override
+  String get planFeat2Banks => 'Up to 2 linked bank accounts';
+
+  @override
+  String get planFeatHealth => 'Monthly financial health score';
+
+  @override
+  String get planFeatAllFree => 'Everything in Free';
+
+  @override
+  String get planFeatUnlimitedBanks => 'Unlimited bank accounts';
+
+  @override
+  String get planFeatShared1 =>
+      'Shared finances with 1 household and up to 3 shared goals';
+
+  @override
+  String get planFeatReminders => 'Smart reminders and alerts';
+
+  @override
+  String get planFeatAllPlus => 'Everything in Plus';
+
+  @override
+  String get planFeatShared3 =>
+      'Up to 3 households with unlimited shared goals';
+
+  @override
+  String get planFeatInsights => 'Advanced insights and exports';
+
+  @override
+  String get planFeatPriority => 'Priority customer service';
+
+  @override
+  String get paidPlansSoon => 'Paid plans are coming soon';
+
+  @override
+  String get paidPlansSoonBody =>
+      'You\'ll be able to subscribe here once they launch. Until then, everything in Vesta is free.';
+
+  @override
+  String get noSubscription => 'You don\'t have a subscription';
+
+  @override
+  String get onFreePlan =>
+      'You\'re on the Free plan. Pick a plan to unlock more.';
+
+  @override
+  String get aMonth => 'a month';
+
+  @override
+  String getPlan(String plan) {
+    return 'Get $plan';
+  }
+
+  @override
+  String get howReferralsWork => 'How referrals work';
+
+  @override
+  String referralsHowBody(String reward, String welcome) {
+    return 'Share your code. When a friend enters it while signing up, you get $reward points and they get $welcome. 1,000 points get you a free month of Plus, and 1,500 a free month of Premium.';
+  }
+
+  @override
+  String get gotIt => 'Got it';
+
+  @override
+  String get enoughPremium => 'Enough for a free month of Premium';
+
+  @override
+  String enoughPlusMore(String points) {
+    return 'Enough for a free month of Plus · $points more for Premium';
+  }
+
+  @override
+  String moreForPlus(String points) {
+    return '$points more for a free month of Plus';
+  }
+
+  @override
+  String get yourPoints => 'Your points';
+
+  @override
+  String pointsShort(String points) {
+    return '$points pts';
+  }
+
+  @override
+  String get howItWorks => 'How it works';
+
+  @override
+  String get usePoints => 'Use points';
+
+  @override
+  String get yourReferralCode => 'Your referral code';
+
+  @override
+  String get copyCode => 'Copy code';
+
+  @override
+  String get codeCopied => 'Code copied';
+
+  @override
+  String get copyLink => 'Copy link';
+
+  @override
+  String get linkCopied => 'Link copied';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String referralShareText(String code, String link) {
+    return 'I use Vesta to plan my money. Join with my code $code: $link';
+  }
+
+  @override
+  String get peopleInvited => 'People you\'ve invited';
+
+  @override
+  String peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people',
+      one: '1 person',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get noOneInvitedYet =>
+      'No one yet. Share your code, and the friends who join show up here.';
+
+  @override
+  String get friend => 'Friend';
+
+  @override
+  String joinedOn(String date) {
+    return 'Joined $date';
+  }
+
+  @override
+  String get reasonNotEnough => 'I don\'t use it enough';
+
+  @override
+  String get reasonPrivacy => 'I have privacy concerns';
+
+  @override
+  String get reasonMissingFeatures => 'It\'s missing features I need';
+
+  @override
+  String get reasonSwitching => 'I\'m switching to another app';
+
+  @override
+  String get reasonExpensive => 'It\'s too expensive';
+
+  @override
+  String get reasonTechnical => 'I\'m having technical issues';
+
+  @override
+  String get pickReason => 'Pick at least one reason.';
+
+  @override
+  String get deleteVestaAccountTitle => 'Delete your Vesta account?';
+
+  @override
+  String get deleteVestaAccountMessage =>
+      'Everything in it is removed for good. This cannot be undone.';
+
+  @override
+  String vestaAccountDeleteFailed(String error) {
+    return 'Couldn\'t delete the account: $error';
+  }
+
+  @override
+  String get deleteAccount => 'Delete account';
+
+  @override
+  String get whyDelete => 'Why do you want to delete your account?';
+
+  @override
+  String get tellUsMore => 'Tell us more (optional)';
+
+  @override
+  String get deleteWarning =>
+      'If you delete your account, all of your information will be gone: your budgets, transactions, savings goals, accounts, and shared finances.';
+
+  @override
+  String get iconSecFood => 'Food & drink';
+
+  @override
+  String get iconSecHome => 'Home & bills';
+
+  @override
+  String get iconSecTransport => 'Transport & travel';
+
+  @override
+  String get iconSecLifestyle => 'Lifestyle';
+
+  @override
+  String get iconSecPeople => 'People & other';
+
+  @override
+  String get chooseAnIcon => 'Choose an icon';
 }

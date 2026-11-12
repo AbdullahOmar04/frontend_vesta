@@ -981,5 +981,904 @@
     }
   },
   "allPlanned": "All of it is planned",
-  "amount": "Amount"
+  "amount": "Amount",
+  "savingsGoalAdded": "Savings goal added",
+  "allocateToGoal": "Allocate to {goal}",
+  "@allocateToGoal": {
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "availableAmount": "Available: {amount}",
+  "@availableAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "inThisGoal": "In this goal: {amount}",
+  "@inThisGoal": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "stillNeeded": "Still needed: {amount}",
+  "@stillNeeded": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "amountToAllocate": "Amount to allocate",
+  "removeFromGoal": "Remove from goal",
+  "allocate": "Allocate",
+  "insufficientBalance": "Insufficient available balance",
+  "goalFullyFunded": "This goal is already fully funded",
+  "allocatingCapped": "Allocating {amount} (capped to remaining goal amount)",
+  "@allocatingCapped": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteGoalTitle": "Delete this goal?",
+  "deleteGoalMessage": "The goal and its progress will be removed. It cannot be undone.",
+  "goalDeleted": "Savings goal deleted successfully",
+  "goalDeleteError": "Error deleting goal: {error}",
+  "@goalDeleteError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "removeFromGoalTitle": "Remove from {goal}",
+  "@removeFromGoalTitle": {
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "amountToRemove": "Amount to remove",
+  "removeAll": "Remove all",
+  "amountExceedsAllocation": "Amount exceeds current allocation",
+  "amountAllocated": "{amount} allocated successfully!",
+  "@amountAllocated": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "amountRemovedFromGoal": "{amount} removed successfully!",
+  "@amountRemovedFromGoal": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "noSavingsGoalsYet": "No savings goals yet",
+  "savingsEmptyBody": "Create a goal and move money from your savings into it as you go.",
+  "createSavingsGoal": "Create a savings goal",
+  "savingGoals": "Saving goals",
+  "newGoal": "New goal",
+  "removeAGoal": "Remove a goal",
+  "totalSaved": "Total saved",
+  "allocatedToGoals": "Allocated to goals",
+  "leftToAllocate": "Left to allocate",
+  "completed": "Completed",
+  "amountOfAmount": "{current} of {target}",
+  "@amountOfAmount": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "perMonthByDate": "{amount} a month · by {date}",
+  "@perMonthByDate": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "perMonthFor": "{amount} a month · {duration}",
+  "@perMonthFor": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "monthsCount": "{count, plural, =1{1 month} other{{count} months}}",
+  "@monthsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "yearsCount": "{count, plural, =1{1 year} other{{count} years}}",
+  "@yearsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "yearsAndMonths": "{years} and {months}",
+  "@yearsAndMonths": {
+    "placeholders": {
+      "years": {
+        "type": "String"
+      },
+      "months": {
+        "type": "String"
+      }
+    }
+  },
+  "giveGoalName": "Give the goal a name.",
+  "enterSaveAmount": "Enter how much you want to save.",
+  "enterMonthsOrDate": "Enter how many months, or pick a target date.",
+  "goalAddFailed": "Couldn't add the goal: {error}",
+  "@goalAddFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "newSavingsGoal": "New savings goal",
+  "addGoal": "Add goal",
+  "goalName": "Goal name",
+  "totalTargetAmount": "Total target amount",
+  "targetPerMonth": "Target amount per month",
+  "months": "Months",
+  "targetDate": "Target date",
+  "deleteBillTitle": "Delete this bill?",
+  "willBeRemoved": "\"{name}\" will be removed.",
+  "@willBeRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "billUpdateFailed": "Couldn't update the bill: {error}",
+  "@billUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "billSaveFailed": "Couldn't save the bill: {error}",
+  "@billSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "billsTitle": "Bills & subscriptions",
+  "stillDueThisMonth": "Still due this month",
+  "perMo": "/mo",
+  "noBillsYet": "No bills yet",
+  "billsEmptyBody": "Add rent, phone, subscriptions and anything else you pay each month. Standing orders from your bank show up here too.",
+  "bills": "Bills",
+  "billsFootnote": "Toggle on to mark a bill as autopay. Standing orders are set up at your bank.",
+  "paid": "Paid",
+  "wasDue": "Was due {date}",
+  "@wasDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "noDateSet": "No date set",
+  "dueToday": "Due today",
+  "dueTomorrow": "Due tomorrow",
+  "dueInDays": "{count, plural, =1{Due in 1 day} other{Due in {count} days}}",
+  "@dueInDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "incoming": "incoming",
+  "autopayLower": "autopay",
+  "editBill": "Edit bill",
+  "name": "Name",
+  "billNameHint": "Rent, phone, Netflix...",
+  "dueEveryMonthOn": "Due every month on",
+  "dayN": "Day {day}",
+  "@dayN": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "shorterMonthsNote": "In shorter months it falls on the last day.",
+  "paidFrom": "Paid from",
+  "notSet": "Not set",
+  "subscription": "Subscription",
+  "subscriptionSubtitle": "Counted in your monthly subscriptions",
+  "autopay": "Autopay",
+  "autopaySubtitle": "Comes out automatically",
+  "addBill": "Add bill",
+  "deleteBill": "Delete bill",
+  "billFallback": "Bill",
+  "scheduledPayment": "Scheduled payment",
+  "accountFallback": "Account {id}",
+  "@accountFallback": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "hhInviteShare": "Join my household '{name}' on Vesta! Click here: {link}",
+  "@hhInviteShare": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "hhInviteSubject": "You're invited to join my household!",
+  "aHousehold": "a household",
+  "inviteCreateError": "Error creating invite: {error}",
+  "@inviteCreateError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "member": "Member",
+  "manage": "Manage",
+  "household": "Household",
+  "noLongerInHousehold": "You're no longer in this household",
+  "noLongerInHouseholdBody": "It was deleted, or its owner removed you.",
+  "backToShared": "Back to Shared finances",
+  "nameAdmin": "{name} (admin)",
+  "@nameAdmin": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "nameYou": "{name} (you)",
+  "@nameYou": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noHouseholdBudget": "No household budget yet",
+  "good": "Good",
+  "overTag": "Over",
+  "overall": "Overall",
+  "atRisk": "At risk",
+  "financialHealth": "Financial health",
+  "noSharedSpendingSixMonths": "No shared spending in the last six months yet",
+  "householdBudgetPlan": "Household budget plan",
+  "totalMonthlyBudget": "Total monthly budget",
+  "totalBudget": "Total budget",
+  "noBudgetTapPencil": "No budget set yet. Tap the pencil to plan one.",
+  "overThisCycleSplit": "{amount} over this cycle. Tap the pencil to split the budget into buckets.",
+  "@overThisCycleSplit": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "leftThisCycleSplit": "{amount} left this cycle. Tap the pencil to split the budget into buckets.",
+  "@leftThisCycleSplit": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "householdBudgetLoadError": "Error loading household budget: {error}",
+  "@householdBudgetLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noSharedCategorized": "No categorized spending yet.\nAssign categories to shared transactions to see them here.",
+  "transactionCount": "{count, plural, =1{1 transaction} other{{count} transactions}}",
+  "@transactionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noSharedTransactions": "No shared transactions yet.\nAssign one from a transaction's details.",
+  "noHouseholdsYet": "No households yet",
+  "householdsEmptyBody": "Create a household to run a budget with the people you live with.",
+  "createHousehold": "Create a household",
+  "sharedHouseholds": "Shared households",
+  "newHousehold": "New household",
+  "leaveOrDeleteHousehold": "Leave or delete a household",
+  "thisHousehold": "this household",
+  "unnamedHousehold": "Unnamed household",
+  "memberCount": "{count, plural, =1{1 member} other{{count} members}}",
+  "@memberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noBudgetOpenToSet": "No budget yet. Open to set one.",
+  "noBudgetSetYet": "No budget set yet",
+  "logInToSeeHouseholds": "Please log in to see your households.",
+  "userDataNotFound": "User data not found.",
+  "joiningHousehold": "Joining the household...",
+  "inviteDeclined": "Invite declined",
+  "inviteAnswerFailed": "Couldn't answer the invite: {error}",
+  "@inviteAnswerFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "invitedYouToJoin": "{inviter} invited you to join {household}.",
+  "@invitedYouToJoin": {
+    "placeholders": {
+      "inviter": {
+        "type": "String"
+      },
+      "household": {
+        "type": "String"
+      }
+    }
+  },
+  "someone": "Someone",
+  "decline": "Decline",
+  "accept": "Accept",
+  "deleteHouseholdMessage": "The household and its shared budget are removed for every member. This cannot be undone.",
+  "householdDeleteFailed": "Couldn't delete the household: {error}",
+  "@householdDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "leaveNameTitle": "Leave {name}?",
+  "@leaveNameTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leaveHouseholdMessage": "You'll stop seeing its budget and transactions. The owner can invite you again.",
+  "leave": "Leave",
+  "householdLeaveFailed": "Couldn't leave the household: {error}",
+  "@householdLeaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "removeNameTitle": "Remove {name}?",
+  "@removeNameTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "removeMemberMessage": "They'll lose access to this household. You can invite them again later.",
+  "removeMember": "Remove",
+  "memberRemoveFailed": "Couldn't remove {name}: {error}",
+  "@memberRemoveFailed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "logInToInvite": "Log in again to invite someone.",
+  "enterUsernameOrEmail": "Enter a username or email.",
+  "noUserGoesBy": "No Vesta user goes by \"{query}\".",
+  "@noUserGoesBy": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "thatsYou": "That's you.",
+  "alreadyInHousehold": "They're already in this household.",
+  "giveHouseholdName": "Give the household a name.",
+  "householdCreateFailed": "Couldn't create the household: {error}",
+  "@householdCreateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "create": "Create",
+  "householdName": "Household name",
+  "saveFailed": "Couldn't save: {error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteSentTo": "Invite sent to {name}. They can accept it in Shared finances.",
+  "@inviteSentTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteSendFailed": "Couldn't send the invite: {error}",
+  "@inviteSendFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "editHousehold": "Edit household",
+  "members": "Members",
+  "youParen": "(you)",
+  "admin": "Admin",
+  "invite": "Invite",
+  "shareInviteLink": "Share invite link",
+  "youAreAdmin": "You're the admin because you created this household. Only the admin can add or remove members.",
+  "onlyAdminNamed": "Only the admin ({name}) can add or remove members.",
+  "@onlyAdminNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "onlyAdmin": "Only the admin can add or remove members.",
+  "deleteHousehold": "Delete household",
+  "willBeRemovedForEveryone": "\"{name}\" will be removed for everyone.",
+  "@willBeRemovedForEveryone": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addSharedBill": "Add a shared bill",
+  "noSharedBills": "No shared bills yet. Add rent, utilities, or subscriptions you split.",
+  "whenToday": "today",
+  "whenTomorrow": "tomorrow",
+  "whenInDays": "{count, plural, =1{in 1 day} other{in {count} days}}",
+  "@whenInDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "billDueLine": "Due {date} · {when} · Monthly",
+  "@billDueLine": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "giveBillName": "Give the bill a name.",
+  "enterTheAmount": "Enter the amount.",
+  "pickDueDay": "Pick a due day from 1 to 31.",
+  "sharesDontAddUp": "The shares add up to {total}, not {amount}.",
+  "@sharesDontAddUp": {
+    "placeholders": {
+      "total": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "newSharedBill": "New shared bill",
+  "egRent": "e.g. Rent",
+  "dueDay": "Due day",
+  "splitEvenly": "Split evenly",
+  "amountEach": "{amount} each",
+  "@amountEach": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "setEachPays": "Or set what each member pays",
+  "somethingWentWrong": "Something went wrong: {error}",
+  "@somethingWentWrong": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sharedGoalAdded": "Shared goal added",
+  "deleteSharedGoalMessage": "It's removed for everyone. What members put in goes back to their free share.",
+  "sharedByMembers": "Shared by members",
+  "allocatedShared": "Allocated / shared",
+  "setHowMuchYouShare": "Set how much you share",
+  "setMonthlyPlanHint": "Set what you plan to add each month to track the household's monthly savings.",
+  "monthSavingsGoal": "{month} savings goal {amount}",
+  "@monthSavingsGoal": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "reached": "Reached",
+  "notYet": "Not yet",
+  "savedThisMonth": "{amount} saved this month.",
+  "@savedThisMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savedSoFarToGo": "{saved} saved so far, {toGo} to go with {days} left.",
+  "@savedSoFarToGo": {
+    "placeholders": {
+      "saved": {
+        "type": "String"
+      },
+      "toGo": {
+        "type": "String"
+      },
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "plansPerMonth": "Plans {amount} a month",
+  "@plansPerMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "noMonthlyPlan": "No monthly plan yet",
+  "amountFree": "{amount} free",
+  "@amountFree": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "newSharedGoal": "New shared goal",
+  "noSharedGoals": "No shared goals yet. Add one to save for something together.",
+  "byDate": "By {date}",
+  "@byDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "shareAtLeast": "You already put {amount} into goals, so share at least that.",
+  "@shareAtLeast": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "yourSavingsShare": "Your savings share",
+  "savingsShareMessage": "How much of your savings you share with the household, and what you plan to add each month. Everyone in it sees these.",
+  "amountYouShare": "Amount you share",
+  "planToAddMonthly": "You plan to add each month",
+  "enterAnAmount": "Enter an amount.",
+  "youHaveInGoal": "You have {amount} in this goal.",
+  "@youHaveInGoal": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "freeShareIs": "Your free share is {amount}. Share more first with \"Set how much you share\".",
+  "@freeShareIs": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "takeOut": "Take out",
+  "savedOfTarget": "{saved} of {target} saved",
+  "@savedOfTarget": {
+    "placeholders": {
+      "saved": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "fromYouFreeShare": "From you: {mine} · Your free share: {free}",
+  "@fromYouFreeShare": {
+    "placeholders": {
+      "mine": {
+        "type": "String"
+      },
+      "free": {
+        "type": "String"
+      }
+    }
+  },
+  "amountToTakeOut": "Amount to take out",
+  "amountToAdd": "Amount to add",
+  "emailLinkSent": "We sent a link to {email}. Your email changes once you open it.",
+  "@emailLinkSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "emailTakenByOther": "That email already has a Vesta account.",
+  "notAdded": "Not added",
+  "changeNumberSupport": "To change your number, contact support.",
+  "userId": "User ID",
+  "userIdCopied": "User ID copied",
+  "copy": "Copy",
+  "userIdFixed": "Your user ID is given to you and can't be changed.",
+  "deleteVestaAccount": "Delete Vesta account",
+  "profilePicture": "Profile picture",
+  "chooseFromGallery": "Choose from gallery",
+  "takeAPhoto": "Take a photo",
+  "imageUploadFailed": "Failed to upload image: {error}",
+  "@imageUploadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordWrong": "That password isn't right.",
+  "tooManyTries": "Too many tries. Wait a little, then try again.",
+  "somethingWentWrongCode": "Something went wrong ({code}).",
+  "@somethingWentWrongCode": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmItsYou": "Confirm it's you",
+  "enterPasswordToContinue": "Enter your Vesta password to continue.",
+  "fingerprintReason": "Authenticate to turn on fingerprint unlock",
+  "fingerprintFailed": "Couldn't confirm your fingerprint",
+  "changeOrResetPassword": "Change or reset your password",
+  "fingerprintUnlock": "Fingerprint unlock",
+  "notAvailableOnPhone": "Not available on this phone",
+  "unlockWithBiometrics": "Unlock Vesta with your fingerprint or face",
+  "unlockQuickly": "Unlock quickly instead of typing your password",
+  "dataConsent": "Data consent",
+  "dataConsentSubtitle": "What we read from your bank accounts",
+  "privacyPolicy": "Privacy policy",
+  "passwordRule": "Use 6 or more characters with an uppercase letter, a lowercase letter, and a number.",
+  "enterCurrentPassword": "Enter your current password.",
+  "newPasswordsDontMatch": "The new passwords don't match.",
+  "pickDifferentPassword": "Pick a password you are not using now.",
+  "passwordUpdated": "Password updated",
+  "currentPasswordWrong": "Your current password isn't right.",
+  "passwordTooWeak": "That password is too weak.",
+  "resetLinkSent": "We sent a reset link to {email}.",
+  "@resetLinkSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "linkSendFailed": "Couldn't send the link ({code}).",
+  "@linkSendFailed": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "changePassword": "Change password",
+  "currentPassword": "Current password",
+  "newPassword": "New password",
+  "confirmNewPassword": "Confirm new password",
+  "passwordHint": "At least 6 characters, with an uppercase letter, a lowercase letter, and a number.",
+  "updatePassword": "Update password",
+  "forgotMyPassword": "Forgot my password",
+  "twoFactor": "Two-factor authentication",
+  "twoFactorSoon": "Coming soon: a code by SMS when you sign in",
+  "planFree": "Free",
+  "planFeatCore": "Budgeting, Spendings, and Savings",
+  "planFeat2Banks": "Up to 2 linked bank accounts",
+  "planFeatHealth": "Monthly financial health score",
+  "planFeatAllFree": "Everything in Free",
+  "planFeatUnlimitedBanks": "Unlimited bank accounts",
+  "planFeatShared1": "Shared finances with 1 household and up to 3 shared goals",
+  "planFeatReminders": "Smart reminders and alerts",
+  "planFeatAllPlus": "Everything in Plus",
+  "planFeatShared3": "Up to 3 households with unlimited shared goals",
+  "planFeatInsights": "Advanced insights and exports",
+  "planFeatPriority": "Priority customer service",
+  "paidPlansSoon": "Paid plans are coming soon",
+  "paidPlansSoonBody": "You'll be able to subscribe here once they launch. Until then, everything in Vesta is free.",
+  "noSubscription": "You don't have a subscription",
+  "onFreePlan": "You're on the Free plan. Pick a plan to unlock more.",
+  "aMonth": "a month",
+  "getPlan": "Get {plan}",
+  "@getPlan": {
+    "placeholders": {
+      "plan": {
+        "type": "String"
+      }
+    }
+  },
+  "howReferralsWork": "How referrals work",
+  "referralsHowBody": "Share your code. When a friend enters it while signing up, you get {reward} points and they get {welcome}. 1,000 points get you a free month of Plus, and 1,500 a free month of Premium.",
+  "@referralsHowBody": {
+    "placeholders": {
+      "reward": {
+        "type": "String"
+      },
+      "welcome": {
+        "type": "String"
+      }
+    }
+  },
+  "gotIt": "Got it",
+  "enoughPremium": "Enough for a free month of Premium",
+  "enoughPlusMore": "Enough for a free month of Plus · {points} more for Premium",
+  "@enoughPlusMore": {
+    "placeholders": {
+      "points": {
+        "type": "String"
+      }
+    }
+  },
+  "moreForPlus": "{points} more for a free month of Plus",
+  "@moreForPlus": {
+    "placeholders": {
+      "points": {
+        "type": "String"
+      }
+    }
+  },
+  "yourPoints": "Your points",
+  "pointsShort": "{points} pts",
+  "@pointsShort": {
+    "placeholders": {
+      "points": {
+        "type": "String"
+      }
+    }
+  },
+  "howItWorks": "How it works",
+  "usePoints": "Use points",
+  "yourReferralCode": "Your referral code",
+  "copyCode": "Copy code",
+  "codeCopied": "Code copied",
+  "copyLink": "Copy link",
+  "linkCopied": "Link copied",
+  "share": "Share",
+  "referralShareText": "I use Vesta to plan my money. Join with my code {code}: {link}",
+  "@referralShareText": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "peopleInvited": "People you've invited",
+  "peopleCount": "{count, plural, =1{1 person} other{{count} people}}",
+  "@peopleCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noOneInvitedYet": "No one yet. Share your code, and the friends who join show up here.",
+  "friend": "Friend",
+  "joinedOn": "Joined {date}",
+  "@joinedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "reasonNotEnough": "I don't use it enough",
+  "reasonPrivacy": "I have privacy concerns",
+  "reasonMissingFeatures": "It's missing features I need",
+  "reasonSwitching": "I'm switching to another app",
+  "reasonExpensive": "It's too expensive",
+  "reasonTechnical": "I'm having technical issues",
+  "pickReason": "Pick at least one reason.",
+  "deleteVestaAccountTitle": "Delete your Vesta account?",
+  "deleteVestaAccountMessage": "Everything in it is removed for good. This cannot be undone.",
+  "vestaAccountDeleteFailed": "Couldn't delete the account: {error}",
+  "@vestaAccountDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAccount": "Delete account",
+  "whyDelete": "Why do you want to delete your account?",
+  "tellUsMore": "Tell us more (optional)",
+  "deleteWarning": "If you delete your account, all of your information will be gone: your budgets, transactions, savings goals, accounts, and shared finances.",
+  "iconSecFood": "Food & drink",
+  "iconSecHome": "Home & bills",
+  "iconSecTransport": "Transport & travel",
+  "iconSecLifestyle": "Lifestyle",
+  "iconSecPeople": "People & other",
+  "chooseAnIcon": "Choose an icon"
 }
