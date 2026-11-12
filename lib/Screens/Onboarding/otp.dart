@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/referral_codes.dart';
@@ -116,34 +117,34 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       context: context,
       barrierDismissible: false,
       builder: (context) => VestaDialog(
-        title: 'Phone Number Blocked',
+        title: context.l10n.blockedTitle,
         icon: PhosphorIconsRegular.warningCircle,
         iconColor: context.vesta.neg,
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Your phone number has been temporarily blocked due to multiple failed attempts.',
+              context.l10n.blockedOtpBody,
               style: TextStyle(fontSize: 15),
             ),
             SizedBox(height: 16),
             Text(
-              'Block Duration: 30 minutes',
+              context.l10n.blockedDuration,
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
             SizedBox(height: 12),
             Text(
-              'To regain access:',
+              context.l10n.blockedRegain,
               style: TextStyle(fontWeight: FontWeight.w500),
             ),
             SizedBox(height: 8),
-            Text('1. Wait for the block period to expire (up to 30 minutes)'),
-            Text('2. Ensure you have access to the phone number'),
-            Text('3. Try again with the correct OTP'),
+            Text(context.l10n.blockedStep1),
+            Text(context.l10n.blockedStep2),
+            Text(context.l10n.blockedStep3Otp),
           ],
         ),
-        cancelLabel: 'Go Back',
+        cancelLabel: context.l10n.goBack,
         onCancel: () {
           Navigator.of(context).pop();
           Navigator.of(context).pop(); // Go back to previous screen
@@ -196,7 +197,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
     if (_otpExpired) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("OTP has expired. Please request a new code."),
+          content: Text(context.l10n.otpExpired),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -206,7 +207,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
     if (smsCode.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Please enter a 6-digit OTP"),
+          content: Text(context.l10n.otpEnter6),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -226,7 +227,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       );
       final phoneUser = phoneUserCred.user;
       if (phoneUser == null) {
-        throw Exception('Phone verification failed');
+        throw Exception(context.l10n.phoneVerifyFailed);
       }
 
       // A number that already has an account signs straight into it. Sign
@@ -236,8 +237,8 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text(
-              'This number already has a Vesta account. Log in instead.',
+            content: Text(
+              context.l10n.numberHasAccount,
             ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
@@ -258,7 +259,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
         if (e.code == 'email-already-in-use' ||
             e.code == 'credential-already-in-use') {
           throw Exception(
-            'That email already has a Vesta account. Log in instead.',
+            context.l10n.emailHasAccount,
           );
         }
         rethrow;
@@ -283,14 +284,14 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       final usernameCheck = await usernameDocRef.get();
       if (usernameCheck.exists) {
         await phoneUser.delete();
-        throw Exception("Username is already taken. Please try registering again with a different username.");
+        throw Exception(context.l10n.usernameTakenRetry);
       }
 
       // Check if email already exists
       final emailCheck = await emailDocRef.get();
       if (emailCheck.exists) {
         await phoneUser.delete();
-        throw Exception("Email is already registered. Please try logging in or use a different email.");
+        throw Exception(context.l10n.emailTakenRetry);
       }
 
       // Use batched writes to atomically create user doc, reserve username, and reserve email
@@ -348,10 +349,10 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
         // Check if it's a permission error (likely duplicate username/email)
         if (e.toString().contains('PERMISSION_DENIED') ||
             e.toString().contains('permission-denied')) {
-          throw Exception("Username or email is already taken. Please try registering again with different credentials.");
+          throw Exception(context.l10n.usernameOrEmailTaken);
         }
 
-        throw Exception("Failed to create account: $e");
+        throw Exception(context.l10n.createAccountFailed('$e'));
       }
 
       await initializeDefaultCategories(uid);
@@ -378,7 +379,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.message ?? "Verification failed"),
+            content: Text(e.message ?? context.l10n.verificationFailed),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -389,7 +390,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
         _showBlockedDialog();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: $e"), backgroundColor: Theme.of(context).colorScheme.error),
+          SnackBar(content: Text(context.l10n.errorWith('$e')), backgroundColor: Theme.of(context).colorScheme.error),
         );
       }
     } finally {
@@ -414,7 +415,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(e.message ?? "Failed to resend OTP"),
+                content: Text(e.message ?? context.l10n.resendFailed),
                 backgroundColor: Theme.of(context).colorScheme.error,
               ),
             );
@@ -433,8 +434,8 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
           _startCountdownTimer();
           _startResendCooldown();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("New OTP sent successfully"),
+            SnackBar(
+              content: Text(context.l10n.otpResent),
             ),
           );
         },
@@ -452,7 +453,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Error resending OTP: $e"),
+            content: Text(context.l10n.resendError('$e')),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -467,7 +468,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
     final small = TextStyle(fontSize: 13, color: v.muted);
 
     return Scaffold(
-      appBar: const VestaAppBar(title: 'Sign up'),
+      appBar: VestaAppBar(title: context.l10n.signUp),
       body: VestaBackground(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
@@ -477,10 +478,12 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
             VestaSpace.xl,
           ),
           children: [
-            Text('Enter the code', style: headingStyle(24)),
+            Text(context.l10n.enterCode, style: headingStyle(24)),
             const SizedBox(height: VestaSpace.xs),
             Text(
-              "We texted a code to (+962) ${widget.phoneNumber.substring(4)} to verify your number.",
+              context.l10n.codeSentTo(
+                '\u2066(+962) ${widget.phoneNumber.substring(4)}\u2069',
+              ),
               style: TextStyle(fontSize: 14, color: v.muted),
             ),
             const SizedBox(height: VestaSpace.xl),
@@ -498,7 +501,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
             const SizedBox(height: VestaSpace.md),
             if (_otpExpired)
               Text(
-                "This code has expired. Request a new one below.",
+                context.l10n.codeExpiredBelow,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: v.neg),
               )
@@ -513,14 +516,14 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    "Code expires in ${_formatTime(_remainingSeconds)}",
+                    context.l10n.codeExpiresIn(_formatTime(_remainingSeconds)),
                     style: small.copyWith(color: urgent ? v.neg : v.muted),
                   ),
                 ],
               ),
             const SizedBox(height: VestaSpace.xl),
             PrimaryButton(
-              label: 'Verify & create account',
+              label: context.l10n.verifyCreate,
               loading: _loading,
               onPressed: _finishSignup,
             ),
@@ -529,11 +532,11 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Didn't get it? ", style: small),
+                  Text(context.l10n.didntGetIt, style: small),
                   GestureDetector(
                     onTap: _loading ? null : _resendOtp,
                     child: Text(
-                      "Resend code",
+                      context.l10n.resendCode,
                       style: TextStyle(fontSize: 13, color: v.accentInk),
                     ),
                   ),
@@ -541,7 +544,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
               )
             else
               Text(
-                "You can resend the code in ${_resendCooldownRemaining}s",
+                context.l10n.resendIn('$_resendCooldownRemaining'),
                 textAlign: TextAlign.center,
                 style: small,
               ),

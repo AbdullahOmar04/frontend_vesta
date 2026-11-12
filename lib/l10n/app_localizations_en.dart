@@ -224,4 +224,432 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationsSupportSubtitle => 'Replies to your support requests';
+
+  @override
+  String get signUp => 'Sign up';
+
+  @override
+  String get logIn => 'Log in';
+
+  @override
+  String get continueLabel => 'Continue';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get skip => 'Skip';
+
+  @override
+  String get goBack => 'Go Back';
+
+  @override
+  String get genericErrorLater => 'An error occurred. Please try again later.';
+
+  @override
+  String get genericErrorAgain => 'An error occurred. Please try again.';
+
+  @override
+  String get tooManyAttempts => 'Too many attempts. Please try again later.';
+
+  @override
+  String get enterValidEmail => 'Please enter a valid email address';
+
+  @override
+  String errorWith(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get welcomeTitle => 'Welcome to Vesta';
+
+  @override
+  String get welcomeSubtitle => 'Log in or create an account to continue.';
+
+  @override
+  String get unlockReason => 'Unlock Vesta';
+
+  @override
+  String get welcomeBack => 'Welcome back';
+
+  @override
+  String welcomeBackName(String name) {
+    return 'Welcome back, $name';
+  }
+
+  @override
+  String get unlockSubtitle => 'Unlock to see your money.';
+
+  @override
+  String get unlock => 'Unlock';
+
+  @override
+  String get logInWithPassword => 'Log in with password';
+
+  @override
+  String get notYou => 'Not you? Use another account or sign up';
+
+  @override
+  String get blockedTitle => 'Phone Number Blocked';
+
+  @override
+  String get blockedVerifyBody =>
+      'Your phone number has been temporarily blocked due to multiple verification attempts.';
+
+  @override
+  String get blockedOtpBody =>
+      'Your phone number has been temporarily blocked due to multiple failed attempts.';
+
+  @override
+  String get blockedDuration => 'Block Duration: 30 minutes';
+
+  @override
+  String get blockedRegain => 'To regain access:';
+
+  @override
+  String get blockedStep1 =>
+      '1. Wait for the block period to expire (up to 30 minutes)';
+
+  @override
+  String get blockedStep2 => '2. Ensure you have access to the phone number';
+
+  @override
+  String get blockedStep3Later => '3. Try again after the waiting period';
+
+  @override
+  String get blockedStep3Otp => '3. Try again with the correct OTP';
+
+  @override
+  String get phoneInvalid =>
+      'Enter a valid Jordan number starting with 7 (e.g. 79xxxxxxx)';
+
+  @override
+  String get phoneVerifyFailed => 'Phone verification failed';
+
+  @override
+  String phoneVerifyStartError(String error) {
+    return 'Error starting phone verification: $error';
+  }
+
+  @override
+  String get phoneTitle => 'Your phone number';
+
+  @override
+  String get phoneSubtitle =>
+      'We\'ll send you a verification code to the provided number.';
+
+  @override
+  String get phoneLabel => 'Phone number';
+
+  @override
+  String get sendCode => 'Send code';
+
+  @override
+  String get fillAllFields => 'Please fill all fields';
+
+  @override
+  String get passwordsDontMatch => 'Passwords do not match';
+
+  @override
+  String get passwordRequirementsNotMet =>
+      'Please ensure your password meets all requirements';
+
+  @override
+  String get usernameRules =>
+      'Username can only contain letters, numbers, and underscores';
+
+  @override
+  String get usernameTaken =>
+      'Username already taken. Please choose another one.';
+
+  @override
+  String get emailRegistered =>
+      'Email already registered. Please use another email or login.';
+
+  @override
+  String get referralNotFound =>
+      'We couldn\'t find that referral code. Check it, or leave it empty.';
+
+  @override
+  String checkUsernameError(String error) {
+    return 'Error checking username/email: $error';
+  }
+
+  @override
+  String get createAccountTitle => 'Create your account';
+
+  @override
+  String get nextVerifyPhone => 'Next we will verify your phone number.';
+
+  @override
+  String useTheseToLogIn(String username) {
+    return 'You\'ll use these to log in as $username. Next we will verify your phone number.';
+  }
+
+  @override
+  String get username => 'Username';
+
+  @override
+  String get passwordNeeds => 'Password needs';
+
+  @override
+  String get pwMinLength => 'At least 6 characters';
+
+  @override
+  String get pwUppercase => 'At least one uppercase letter (A-Z)';
+
+  @override
+  String get pwLowercase => 'At least one lowercase letter (a-z)';
+
+  @override
+  String get pwNumber => 'At least one number (0-9)';
+
+  @override
+  String get repeatPassword => 'Repeat password';
+
+  @override
+  String get referralCode => 'Referral code';
+
+  @override
+  String get referralHint => 'Optional, e.g. MAYA-25K9';
+
+  @override
+  String get resetPasswordTitle => 'Reset password';
+
+  @override
+  String get resetPasswordMessage =>
+      'Enter your email and we\'ll send you a link to reset your password.';
+
+  @override
+  String get sendResetLink => 'Send reset link';
+
+  @override
+  String get enterEmail => 'Please enter your email address';
+
+  @override
+  String get resetEmailSent =>
+      'Password reset email sent. Please check your inbox.';
+
+  @override
+  String get resetEmailFailed =>
+      'Failed to send reset email. Please try again.';
+
+  @override
+  String get invalidLogin => 'Invalid username or password';
+
+  @override
+  String get networkError => 'Network error. Please check your connection.';
+
+  @override
+  String get accountError => 'Account error. Please contact support.';
+
+  @override
+  String get biometricUnavailable =>
+      'Biometric login is not available or not enabled';
+
+  @override
+  String get biometricFailed => 'Biometric authentication failed';
+
+  @override
+  String get noStoredCredentials =>
+      'No stored credentials. Please login with password first.';
+
+  @override
+  String get sessionExpired => 'Session expired. Please login with password.';
+
+  @override
+  String get loginSubtitle => 'Log in with your username or email.';
+
+  @override
+  String get usernameOrEmail => 'Username or email';
+
+  @override
+  String get forgotPassword => 'Forgot password?';
+
+  @override
+  String get logInWithBiometrics => 'Log in with biometrics';
+
+  @override
+  String get enableBiometricsLater =>
+      'Enable biometrics in settings after logging in';
+
+  @override
+  String get noAccount => 'Don\'t have an account? ';
+
+  @override
+  String get otpExpired => 'OTP has expired. Please request a new code.';
+
+  @override
+  String get otpEnter6 => 'Please enter a 6-digit OTP';
+
+  @override
+  String get numberHasAccount =>
+      'This number already has a Vesta account. Log in instead.';
+
+  @override
+  String get emailHasAccount =>
+      'That email already has a Vesta account. Log in instead.';
+
+  @override
+  String get usernameTakenRetry =>
+      'Username is already taken. Please try registering again with a different username.';
+
+  @override
+  String get emailTakenRetry =>
+      'Email is already registered. Please try logging in or use a different email.';
+
+  @override
+  String get usernameOrEmailTaken =>
+      'Username or email is already taken. Please try registering again with different credentials.';
+
+  @override
+  String createAccountFailed(String error) {
+    return 'Failed to create account: $error';
+  }
+
+  @override
+  String get verificationFailed => 'Verification failed';
+
+  @override
+  String get resendFailed => 'Failed to resend OTP';
+
+  @override
+  String get otpResent => 'New OTP sent successfully';
+
+  @override
+  String resendError(String error) {
+    return 'Error resending OTP: $error';
+  }
+
+  @override
+  String get enterCode => 'Enter the code';
+
+  @override
+  String codeSentTo(String phone) {
+    return 'We texted a code to $phone to verify your number.';
+  }
+
+  @override
+  String get codeExpiredBelow =>
+      'This code has expired. Request a new one below.';
+
+  @override
+  String codeExpiresIn(String time) {
+    return 'Code expires in $time';
+  }
+
+  @override
+  String get verifyCreate => 'Verify & create account';
+
+  @override
+  String get didntGetIt => 'Didn\'t get it? ';
+
+  @override
+  String get resendCode => 'Resend code';
+
+  @override
+  String resendIn(String seconds) {
+    return 'You can resend the code in ${seconds}s';
+  }
+
+  @override
+  String get usernameCharsShort => 'Use only letters, numbers and underscores';
+
+  @override
+  String get usernameTakenShort => 'That username is taken';
+
+  @override
+  String usernameCheckFailed(String error) {
+    return 'Couldn\'t check the username: $error';
+  }
+
+  @override
+  String get onbWelcomeTitle => 'Let\'s get your money into one calm view.';
+
+  @override
+  String get onbWelcomeBody =>
+      'A few questions and you\'ll have a starting budget, your accounts in one place, and a coach that keeps an eye on your spending.';
+
+  @override
+  String get chooseUsername => 'Choose a username';
+
+  @override
+  String incomeTitle(String name) {
+    return 'Nice to meet you, $name. What lands in your account each month?';
+  }
+
+  @override
+  String get incomeBody =>
+      'Your take-home pay after taxes. We\'ll suggest a split you can change anytime.';
+
+  @override
+  String get perMonth => '/ month';
+
+  @override
+  String get incomePrivate =>
+      'Stays on your phone until you create your account.';
+
+  @override
+  String get suggestedSplit => 'SUGGESTED STARTING SPLIT';
+
+  @override
+  String get useAsBudget => 'Use this as my starting budget';
+
+  @override
+  String get bucketNecessities => 'Necessities';
+
+  @override
+  String get bucketNecessitiesExamples => 'Rent, groceries, bills';
+
+  @override
+  String get bucketLuxuries => 'Luxuries';
+
+  @override
+  String get bucketLuxuriesExamples => 'Dining, fun, shopping';
+
+  @override
+  String get bucketSavings => 'Savings';
+
+  @override
+  String get bucketSavingsExamples => 'Goals and extra payments';
+
+  @override
+  String get focusTitle => 'What do you want to work on first?';
+
+  @override
+  String get focusBody => 'Pick up to three. Your coach will focus here.';
+
+  @override
+  String get focusSpend => 'Manage my spendings';
+
+  @override
+  String get focusGoals => 'Start saving goals';
+
+  @override
+  String get focusBills => 'Manage bills and scheduled payments';
+
+  @override
+  String get focusShared => 'Manage shared finances';
+
+  @override
+  String get focusBudget => 'Build a monthly budget';
+
+  @override
+  String get focusClarity => 'Get financial clarity';
+
+  @override
+  String get banksTitle => 'Which banks do you use?';
+
+  @override
+  String get banksBody =>
+      'Pick any that apply. Nothing gets connected; it helps us set Vesta up around your accounts.';
 }

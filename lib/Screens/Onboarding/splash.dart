@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/Onboarding/login.dart';
@@ -47,19 +48,19 @@ class OnboardingSplash extends StatelessWidget {
                     ),
                     const SizedBox(height: VestaSpace.lg),
                     Text(
-                      'Welcome to Vesta',
+                      context.l10n.welcomeTitle,
                       textAlign: TextAlign.center,
                       style: headingStyle(26),
                     ),
                     const SizedBox(height: VestaSpace.sm),
                     Text(
-                      'Log in or create an account to continue.',
+                      context.l10n.welcomeSubtitle,
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 14, color: v.muted),
                     ),
                     const SizedBox(height: VestaSpace.xl),
                     PrimaryButton(
-                      label: 'Log in',
+                      label: context.l10n.logIn,
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -69,7 +70,7 @@ class OnboardingSplash extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     OutlineButton(
-                      label: 'Sign up',
+                      label: context.l10n.signUp,
                       onPressed: () {
                         Navigator.push(
                           context,

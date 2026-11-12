@@ -1,15 +1,14 @@
 {
   "@@locale": "en",
-
   "tabHome": "Home",
   "tabDashboard": "Dashboard",
   "tabWallet": "Wallet",
   "tabProfile": "Profile",
-
   "comingSoon": "Coming soon",
   "currencyJod": "JOD",
-  "@currencyJod": { "description": "Short label for the Jordanian dinar, shown next to amounts." },
-
+  "@currencyJod": {
+    "description": "Short label for the Jordanian dinar, shown next to amounts."
+  },
   "profileTitle": "Profile",
   "notLoggedIn": "Not logged in",
   "profilePersonalInfo": "Personal information",
@@ -18,25 +17,35 @@
   "profileFreePlan": "Free plan",
   "profileReferrals": "Referrals",
   "profilePoints": "{points} points",
-  "@profilePoints": { "placeholders": { "points": { "type": "String" } } },
+  "@profilePoints": {
+    "placeholders": {
+      "points": {
+        "type": "String"
+      }
+    }
+  },
   "profilePreferences": "Preferences",
   "profileSecurity": "Password and security",
   "profileTerms": "Terms and conditions",
   "logOut": "Log out",
   "logOutTitle": "Log out of Vesta?",
   "logOutMessage": "You'll need to log in again to see your money.",
-
   "prefsTitle": "Preferences",
   "prefsDisplay": "Display",
   "prefsDisplaySubtitle": "Appearance, language, and currency",
   "prefsResetDay": "Budget reset day",
   "prefsResetDaySubtitle": "Day {day} of each month",
-  "@prefsResetDaySubtitle": { "placeholders": { "day": { "type": "String" } } },
+  "@prefsResetDaySubtitle": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
   "prefsFeatures": "Features management",
   "prefsReminders": "Reminders and alerts",
   "prefsRemindersSubtitle": "Upcoming payments, budgets, and goals",
   "prefsNotifications": "Notifications",
-
   "displayTitle": "Display",
   "displayAppearance": "Appearance",
   "displayLight": "Light",
@@ -47,13 +56,18 @@
   "displayCurrency": "Currency",
   "displayCurrencyJod": "JOD · Jordanian dinar",
   "displayMoreCurrencies": "More currencies are coming.",
-
   "remindersIntro": "Choose what Vesta should remind you about.",
   "remindersUpcoming": "Upcoming payments",
   "remindersUpcomingSubtitle": "Before a scheduled payment is due",
   "remindersRemindMe": "Remind me",
   "remindersDays": "{count, plural, =1{1 day} other{{count} days}}",
-  "@remindersDays": { "placeholders": { "count": { "type": "int" } } },
+  "@remindersDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "remindersOverBudget": "Going over budget",
   "remindersOverBudgetSubtitle": "When your spending gets close to the budget",
   "remindersAlertAt": "Alert at",
@@ -63,9 +77,14 @@
   "remindersSavingsSubtitle": "When you haven't reached this month's target",
   "remindersLarge": "Large transactions",
   "remindersLargeSubtitle": "When a single transaction is over {amount}",
-  "@remindersLargeSubtitle": { "placeholders": { "amount": { "type": "String" } } },
+  "@remindersLargeSubtitle": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "remindersNotYet": "Vesta doesn't send these yet. Your choices are saved for when it does.",
-
   "notificationsIntro": "Choose which notifications you want to get.",
   "notificationsPerTransaction": "Per transaction",
   "notificationsPerTransactionSubtitle": "Every time money comes in or goes out",
@@ -76,5 +95,215 @@
   "notificationsPromotional": "Promotional and app updates",
   "notificationsPromotionalSubtitle": "Offers and new features",
   "notificationsSupport": "Customer service",
-  "notificationsSupportSubtitle": "Replies to your support requests"
+  "notificationsSupportSubtitle": "Replies to your support requests",
+  "signUp": "Sign up",
+  "logIn": "Log in",
+  "continueLabel": "Continue",
+  "email": "Email",
+  "password": "Password",
+  "ok": "OK",
+  "back": "Back",
+  "skip": "Skip",
+  "goBack": "Go Back",
+  "genericErrorLater": "An error occurred. Please try again later.",
+  "genericErrorAgain": "An error occurred. Please try again.",
+  "tooManyAttempts": "Too many attempts. Please try again later.",
+  "enterValidEmail": "Please enter a valid email address",
+  "errorWith": "Error: {error}",
+  "@errorWith": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "welcomeTitle": "Welcome to Vesta",
+  "welcomeSubtitle": "Log in or create an account to continue.",
+  "unlockReason": "Unlock Vesta",
+  "welcomeBack": "Welcome back",
+  "welcomeBackName": "Welcome back, {name}",
+  "@welcomeBackName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "unlockSubtitle": "Unlock to see your money.",
+  "unlock": "Unlock",
+  "logInWithPassword": "Log in with password",
+  "notYou": "Not you? Use another account or sign up",
+  "blockedTitle": "Phone Number Blocked",
+  "blockedVerifyBody": "Your phone number has been temporarily blocked due to multiple verification attempts.",
+  "blockedOtpBody": "Your phone number has been temporarily blocked due to multiple failed attempts.",
+  "blockedDuration": "Block Duration: 30 minutes",
+  "blockedRegain": "To regain access:",
+  "blockedStep1": "1. Wait for the block period to expire (up to 30 minutes)",
+  "blockedStep2": "2. Ensure you have access to the phone number",
+  "blockedStep3Later": "3. Try again after the waiting period",
+  "blockedStep3Otp": "3. Try again with the correct OTP",
+  "phoneInvalid": "Enter a valid Jordan number starting with 7 (e.g. 79xxxxxxx)",
+  "phoneVerifyFailed": "Phone verification failed",
+  "phoneVerifyStartError": "Error starting phone verification: {error}",
+  "@phoneVerifyStartError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "phoneTitle": "Your phone number",
+  "phoneSubtitle": "We'll send you a verification code to the provided number.",
+  "phoneLabel": "Phone number",
+  "sendCode": "Send code",
+  "fillAllFields": "Please fill all fields",
+  "passwordsDontMatch": "Passwords do not match",
+  "passwordRequirementsNotMet": "Please ensure your password meets all requirements",
+  "usernameRules": "Username can only contain letters, numbers, and underscores",
+  "usernameTaken": "Username already taken. Please choose another one.",
+  "emailRegistered": "Email already registered. Please use another email or login.",
+  "referralNotFound": "We couldn't find that referral code. Check it, or leave it empty.",
+  "checkUsernameError": "Error checking username/email: {error}",
+  "@checkUsernameError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "createAccountTitle": "Create your account",
+  "nextVerifyPhone": "Next we will verify your phone number.",
+  "useTheseToLogIn": "You'll use these to log in as {username}. Next we will verify your phone number.",
+  "@useTheseToLogIn": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "username": "Username",
+  "passwordNeeds": "Password needs",
+  "pwMinLength": "At least 6 characters",
+  "pwUppercase": "At least one uppercase letter (A-Z)",
+  "pwLowercase": "At least one lowercase letter (a-z)",
+  "pwNumber": "At least one number (0-9)",
+  "repeatPassword": "Repeat password",
+  "referralCode": "Referral code",
+  "referralHint": "Optional, e.g. MAYA-25K9",
+  "resetPasswordTitle": "Reset password",
+  "resetPasswordMessage": "Enter your email and we'll send you a link to reset your password.",
+  "sendResetLink": "Send reset link",
+  "enterEmail": "Please enter your email address",
+  "resetEmailSent": "Password reset email sent. Please check your inbox.",
+  "resetEmailFailed": "Failed to send reset email. Please try again.",
+  "invalidLogin": "Invalid username or password",
+  "networkError": "Network error. Please check your connection.",
+  "accountError": "Account error. Please contact support.",
+  "biometricUnavailable": "Biometric login is not available or not enabled",
+  "biometricFailed": "Biometric authentication failed",
+  "noStoredCredentials": "No stored credentials. Please login with password first.",
+  "sessionExpired": "Session expired. Please login with password.",
+  "loginSubtitle": "Log in with your username or email.",
+  "usernameOrEmail": "Username or email",
+  "forgotPassword": "Forgot password?",
+  "logInWithBiometrics": "Log in with biometrics",
+  "enableBiometricsLater": "Enable biometrics in settings after logging in",
+  "noAccount": "Don't have an account? ",
+  "otpExpired": "OTP has expired. Please request a new code.",
+  "otpEnter6": "Please enter a 6-digit OTP",
+  "numberHasAccount": "This number already has a Vesta account. Log in instead.",
+  "emailHasAccount": "That email already has a Vesta account. Log in instead.",
+  "usernameTakenRetry": "Username is already taken. Please try registering again with a different username.",
+  "emailTakenRetry": "Email is already registered. Please try logging in or use a different email.",
+  "usernameOrEmailTaken": "Username or email is already taken. Please try registering again with different credentials.",
+  "createAccountFailed": "Failed to create account: {error}",
+  "@createAccountFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationFailed": "Verification failed",
+  "resendFailed": "Failed to resend OTP",
+  "otpResent": "New OTP sent successfully",
+  "resendError": "Error resending OTP: {error}",
+  "@resendError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "enterCode": "Enter the code",
+  "codeSentTo": "We texted a code to {phone} to verify your number.",
+  "@codeSentTo": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "codeExpiredBelow": "This code has expired. Request a new one below.",
+  "codeExpiresIn": "Code expires in {time}",
+  "@codeExpiresIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "verifyCreate": "Verify & create account",
+  "didntGetIt": "Didn't get it? ",
+  "resendCode": "Resend code",
+  "resendIn": "You can resend the code in {seconds}s",
+  "@resendIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "usernameCharsShort": "Use only letters, numbers and underscores",
+  "usernameTakenShort": "That username is taken",
+  "usernameCheckFailed": "Couldn't check the username: {error}",
+  "@usernameCheckFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "onbWelcomeTitle": "Let's get your money into one calm view.",
+  "onbWelcomeBody": "A few questions and you'll have a starting budget, your accounts in one place, and a coach that keeps an eye on your spending.",
+  "chooseUsername": "Choose a username",
+  "incomeTitle": "Nice to meet you, {name}. What lands in your account each month?",
+  "@incomeTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "incomeBody": "Your take-home pay after taxes. We'll suggest a split you can change anytime.",
+  "perMonth": "/ month",
+  "incomePrivate": "Stays on your phone until you create your account.",
+  "suggestedSplit": "SUGGESTED STARTING SPLIT",
+  "useAsBudget": "Use this as my starting budget",
+  "bucketNecessities": "Necessities",
+  "bucketNecessitiesExamples": "Rent, groceries, bills",
+  "bucketLuxuries": "Luxuries",
+  "bucketLuxuriesExamples": "Dining, fun, shopping",
+  "bucketSavings": "Savings",
+  "bucketSavingsExamples": "Goals and extra payments",
+  "focusTitle": "What do you want to work on first?",
+  "focusBody": "Pick up to three. Your coach will focus here.",
+  "focusSpend": "Manage my spendings",
+  "focusGoals": "Start saving goals",
+  "focusBills": "Manage bills and scheduled payments",
+  "focusShared": "Manage shared finances",
+  "focusBudget": "Build a monthly budget",
+  "focusClarity": "Get financial clarity",
+  "banksTitle": "Which banks do you use?",
+  "banksBody": "Pick any that apply. Nothing gets connected; it helps us set Vesta up around your accounts."
 }

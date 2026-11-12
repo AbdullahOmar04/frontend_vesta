@@ -224,4 +224,424 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notificationsSupportSubtitle => 'الردود على طلبات الدعم';
+
+  @override
+  String get signUp => 'إنشاء حساب';
+
+  @override
+  String get logIn => 'تسجيل الدخول';
+
+  @override
+  String get continueLabel => 'متابعة';
+
+  @override
+  String get email => 'البريد الإلكتروني';
+
+  @override
+  String get password => 'كلمة المرور';
+
+  @override
+  String get ok => 'حسناً';
+
+  @override
+  String get back => 'رجوع';
+
+  @override
+  String get skip => 'تخطي';
+
+  @override
+  String get goBack => 'رجوع';
+
+  @override
+  String get genericErrorLater => 'حدث خطأ. حاول مرة أخرى لاحقاً.';
+
+  @override
+  String get genericErrorAgain => 'حدث خطأ. حاول مرة أخرى.';
+
+  @override
+  String get tooManyAttempts => 'محاولات كثيرة. حاول مرة أخرى لاحقاً.';
+
+  @override
+  String get enterValidEmail => 'أدخل بريداً إلكترونياً صحيحاً';
+
+  @override
+  String errorWith(String error) {
+    return 'خطأ: $error';
+  }
+
+  @override
+  String get welcomeTitle => 'أهلاً بك في Vesta';
+
+  @override
+  String get welcomeSubtitle => 'سجّل الدخول أو أنشئ حساباً للمتابعة.';
+
+  @override
+  String get unlockReason => 'افتح Vesta';
+
+  @override
+  String get welcomeBack => 'أهلاً بعودتك';
+
+  @override
+  String welcomeBackName(String name) {
+    return 'أهلاً بعودتك، $name';
+  }
+
+  @override
+  String get unlockSubtitle => 'افتح القفل لرؤية أموالك.';
+
+  @override
+  String get unlock => 'فتح القفل';
+
+  @override
+  String get logInWithPassword => 'الدخول بكلمة المرور';
+
+  @override
+  String get notYou => 'لست أنت؟ استخدم حساباً آخر أو أنشئ حساباً';
+
+  @override
+  String get blockedTitle => 'رقم الهاتف محظور مؤقتاً';
+
+  @override
+  String get blockedVerifyBody => 'حُظر رقمك مؤقتاً بسبب كثرة محاولات التحقق.';
+
+  @override
+  String get blockedOtpBody => 'حُظر رقمك مؤقتاً بسبب كثرة المحاولات الفاشلة.';
+
+  @override
+  String get blockedDuration => 'مدة الحظر: 30 دقيقة';
+
+  @override
+  String get blockedRegain => 'لاستعادة الوصول:';
+
+  @override
+  String get blockedStep1 => '1. انتظر حتى تنتهي مدة الحظر (حتى 30 دقيقة)';
+
+  @override
+  String get blockedStep2 => '2. تأكد من أن الرقم معك ويستقبل الرسائل';
+
+  @override
+  String get blockedStep3Later => '3. حاول مرة أخرى بعد انتهاء المدة';
+
+  @override
+  String get blockedStep3Otp => '3. حاول مرة أخرى بالرمز الصحيح';
+
+  @override
+  String get phoneInvalid =>
+      'أدخل رقماً أردنياً صحيحاً يبدأ بـ 7 (مثل 79xxxxxxx)';
+
+  @override
+  String get phoneVerifyFailed => 'فشل التحقق من الرقم';
+
+  @override
+  String phoneVerifyStartError(String error) {
+    return 'تعذّر بدء التحقق من الرقم: $error';
+  }
+
+  @override
+  String get phoneTitle => 'رقم هاتفك';
+
+  @override
+  String get phoneSubtitle => 'سنرسل رمز تحقق إلى هذا الرقم.';
+
+  @override
+  String get phoneLabel => 'رقم الهاتف';
+
+  @override
+  String get sendCode => 'إرسال الرمز';
+
+  @override
+  String get fillAllFields => 'يرجى تعبئة جميع الحقول';
+
+  @override
+  String get passwordsDontMatch => 'كلمتا المرور غير متطابقتين';
+
+  @override
+  String get passwordRequirementsNotMet =>
+      'تأكد من أن كلمة المرور تستوفي جميع الشروط';
+
+  @override
+  String get usernameRules =>
+      'اسم المستخدم يقبل الحروف الإنجليزية والأرقام والشرطة السفلية (_) فقط';
+
+  @override
+  String get usernameTaken => 'اسم المستخدم محجوز. اختر اسماً آخر.';
+
+  @override
+  String get emailRegistered =>
+      'البريد الإلكتروني مسجّل مسبقاً. استخدم بريداً آخر أو سجّل الدخول.';
+
+  @override
+  String get referralNotFound =>
+      'لم نجد رمز الدعوة هذا. تحقق منه أو اتركه فارغاً.';
+
+  @override
+  String checkUsernameError(String error) {
+    return 'تعذّر التحقق من اسم المستخدم أو البريد: $error';
+  }
+
+  @override
+  String get createAccountTitle => 'أنشئ حسابك';
+
+  @override
+  String get nextVerifyPhone => 'بعد ذلك سنتحقق من رقم هاتفك.';
+
+  @override
+  String useTheseToLogIn(String username) {
+    return 'ستستخدم هذه البيانات لتسجيل الدخول باسم $username. بعد ذلك سنتحقق من رقم هاتفك.';
+  }
+
+  @override
+  String get username => 'اسم المستخدم';
+
+  @override
+  String get passwordNeeds => 'يجب أن تحتوي كلمة المرور على';
+
+  @override
+  String get pwMinLength => '6 أحرف على الأقل';
+
+  @override
+  String get pwUppercase => 'حرف إنجليزي كبير واحد على الأقل (A-Z)';
+
+  @override
+  String get pwLowercase => 'حرف إنجليزي صغير واحد على الأقل (a-z)';
+
+  @override
+  String get pwNumber => 'رقم واحد على الأقل (من 0 إلى 9)';
+
+  @override
+  String get repeatPassword => 'تأكيد كلمة المرور';
+
+  @override
+  String get referralCode => 'رمز الدعوة';
+
+  @override
+  String get referralHint => 'اختياري، مثل MAYA-25K9';
+
+  @override
+  String get resetPasswordTitle => 'إعادة تعيين كلمة المرور';
+
+  @override
+  String get resetPasswordMessage =>
+      'أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة المرور.';
+
+  @override
+  String get sendResetLink => 'إرسال الرابط';
+
+  @override
+  String get enterEmail => 'أدخل بريدك الإلكتروني';
+
+  @override
+  String get resetEmailSent =>
+      'أرسلنا رسالة إعادة تعيين كلمة المرور. تفقّد بريدك.';
+
+  @override
+  String get resetEmailFailed => 'تعذّر إرسال الرسالة. حاول مرة أخرى.';
+
+  @override
+  String get invalidLogin => 'اسم المستخدم أو كلمة المرور غير صحيحة';
+
+  @override
+  String get networkError => 'خطأ في الشبكة. تحقق من اتصالك.';
+
+  @override
+  String get accountError => 'مشكلة في الحساب. تواصل مع الدعم.';
+
+  @override
+  String get biometricUnavailable => 'الدخول بالبصمة غير متاح أو غير مفعّل';
+
+  @override
+  String get biometricFailed => 'فشل التحقق بالبصمة';
+
+  @override
+  String get noStoredCredentials =>
+      'لا توجد بيانات محفوظة. سجّل الدخول بكلمة المرور أولاً.';
+
+  @override
+  String get sessionExpired => 'انتهت الجلسة. سجّل الدخول بكلمة المرور.';
+
+  @override
+  String get loginSubtitle => 'سجّل الدخول باسم المستخدم أو البريد الإلكتروني.';
+
+  @override
+  String get usernameOrEmail => 'اسم المستخدم أو البريد الإلكتروني';
+
+  @override
+  String get forgotPassword => 'نسيت كلمة المرور؟';
+
+  @override
+  String get logInWithBiometrics => 'الدخول بالبصمة';
+
+  @override
+  String get enableBiometricsLater =>
+      'فعّل البصمة من الإعدادات بعد تسجيل الدخول';
+
+  @override
+  String get noAccount => 'ليس لديك حساب؟ ';
+
+  @override
+  String get otpExpired => 'انتهت صلاحية الرمز. اطلب رمزاً جديداً.';
+
+  @override
+  String get otpEnter6 => 'أدخل الرمز المكوّن من 6 أرقام';
+
+  @override
+  String get numberHasAccount =>
+      'هذا الرقم مرتبط بحساب في Vesta. سجّل الدخول بدلاً من ذلك.';
+
+  @override
+  String get emailHasAccount =>
+      'هذا البريد مرتبط بحساب في Vesta. سجّل الدخول بدلاً من ذلك.';
+
+  @override
+  String get usernameTakenRetry => 'اسم المستخدم محجوز. أعد التسجيل باسم آخر.';
+
+  @override
+  String get emailTakenRetry =>
+      'البريد الإلكتروني مسجّل مسبقاً. سجّل الدخول أو استخدم بريداً آخر.';
+
+  @override
+  String get usernameOrEmailTaken =>
+      'اسم المستخدم أو البريد محجوز. أعد التسجيل ببيانات أخرى.';
+
+  @override
+  String createAccountFailed(String error) {
+    return 'تعذّر إنشاء الحساب: $error';
+  }
+
+  @override
+  String get verificationFailed => 'فشل التحقق';
+
+  @override
+  String get resendFailed => 'تعذّرت إعادة إرسال الرمز';
+
+  @override
+  String get otpResent => 'أرسلنا رمزاً جديداً';
+
+  @override
+  String resendError(String error) {
+    return 'تعذّرت إعادة إرسال الرمز: $error';
+  }
+
+  @override
+  String get enterCode => 'أدخل الرمز';
+
+  @override
+  String codeSentTo(String phone) {
+    return 'أرسلنا رمزاً إلى $phone للتحقق من رقمك.';
+  }
+
+  @override
+  String get codeExpiredBelow =>
+      'انتهت صلاحية الرمز. اطلب رمزاً جديداً بالأسفل.';
+
+  @override
+  String codeExpiresIn(String time) {
+    return 'تنتهي صلاحية الرمز خلال $time';
+  }
+
+  @override
+  String get verifyCreate => 'تحقّق وأنشئ الحساب';
+
+  @override
+  String get didntGetIt => 'لم يصلك؟ ';
+
+  @override
+  String get resendCode => 'إعادة إرسال الرمز';
+
+  @override
+  String resendIn(String seconds) {
+    return 'يمكنك إعادة الإرسال بعد $seconds ث';
+  }
+
+  @override
+  String get usernameCharsShort =>
+      'استخدم الحروف الإنجليزية والأرقام والشرطة السفلية فقط';
+
+  @override
+  String get usernameTakenShort => 'اسم المستخدم هذا محجوز';
+
+  @override
+  String usernameCheckFailed(String error) {
+    return 'تعذّر التحقق من اسم المستخدم: $error';
+  }
+
+  @override
+  String get onbWelcomeTitle => 'لنجمع أموالك في مكان واحد هادئ.';
+
+  @override
+  String get onbWelcomeBody =>
+      'بضعة أسئلة وتحصل على ميزانية أولى، وحساباتك في مكان واحد، ومدرّب يتابع إنفاقك.';
+
+  @override
+  String get chooseUsername => 'اختر اسم مستخدم';
+
+  @override
+  String incomeTitle(String name) {
+    return 'تشرّفنا يا $name. كم يصل إلى حسابك كل شهر؟';
+  }
+
+  @override
+  String get incomeBody =>
+      'صافي دخلك بعد الضرائب. سنقترح تقسيماً يمكنك تغييره متى شئت.';
+
+  @override
+  String get perMonth => 'شهرياً';
+
+  @override
+  String get incomePrivate => 'يبقى على هاتفك حتى تنشئ حسابك.';
+
+  @override
+  String get suggestedSplit => 'التقسيم المقترح للبداية';
+
+  @override
+  String get useAsBudget => 'اعتمده كميزانيتي الأولى';
+
+  @override
+  String get bucketNecessities => 'الضروريات';
+
+  @override
+  String get bucketNecessitiesExamples => 'الإيجار والبقالة والفواتير';
+
+  @override
+  String get bucketLuxuries => 'الكماليات';
+
+  @override
+  String get bucketLuxuriesExamples => 'المطاعم والترفيه والتسوق';
+
+  @override
+  String get bucketSavings => 'الادخار';
+
+  @override
+  String get bucketSavingsExamples => 'الأهداف والدفعات الإضافية';
+
+  @override
+  String get focusTitle => 'بماذا تريد أن تبدأ؟';
+
+  @override
+  String get focusBody => 'اختر حتى ثلاثة. سيركّز مدرّبك عليها.';
+
+  @override
+  String get focusSpend => 'إدارة مصاريفي';
+
+  @override
+  String get focusGoals => 'بدء أهداف ادخار';
+
+  @override
+  String get focusBills => 'إدارة الفواتير والدفعات المجدولة';
+
+  @override
+  String get focusShared => 'إدارة المصاريف المشتركة';
+
+  @override
+  String get focusBudget => 'بناء ميزانية شهرية';
+
+  @override
+  String get focusClarity => 'فهم وضعي المالي بوضوح';
+
+  @override
+  String get banksTitle => 'ما البنوك التي تتعامل معها؟';
+
+  @override
+  String get banksBody =>
+      'اختر كل ما ينطبق. لن نربط أي حساب؛ هذا يساعدنا فقط على تجهيز Vesta حول حساباتك.';
 }

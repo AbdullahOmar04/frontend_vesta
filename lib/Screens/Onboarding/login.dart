@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:frontend_vesta/Helpers/api_calls.dart';
@@ -59,18 +60,17 @@ class _LoginState extends State<Login> {
       barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => VestaDialog(
-          title: 'Reset password',
-          message:
-              "Enter your email and we'll send you a link to reset your password.",
+          title: context.l10n.resetPasswordTitle,
+          message: context.l10n.resetPasswordMessage,
           content: TextField(
             controller: emailController,
             keyboardType: TextInputType.emailAddress,
             decoration: InputDecoration(
-              labelText: 'Email',
+              labelText: context.l10n.email,
               hintText: 'example@email.com',
             ),
           ),
-          confirmLabel: 'Send reset link',
+          confirmLabel: context.l10n.sendResetLink,
           onConfirm: isLoading
               ? null
               : () async {
@@ -78,7 +78,7 @@ class _LoginState extends State<Login> {
                   if (email.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Please enter your email address'),
+                        content: Text(context.l10n.enterEmail),
                         backgroundColor: Theme.of(context).colorScheme.error,
                       ),
                     );
@@ -92,7 +92,7 @@ class _LoginState extends State<Login> {
                   if (!emailRegex.hasMatch(email)) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Please enter a valid email address'),
+                        content: Text(context.l10n.enterValidEmail),
                         backgroundColor: Theme.of(context).colorScheme.error,
                       ),
                     );
@@ -110,9 +110,9 @@ class _LoginState extends State<Login> {
                     }
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
+                        SnackBar(
                           content: Text(
-                            'Password reset email sent. Please check your inbox.',
+                            context.l10n.resetEmailSent,
                           ),
                         ),
                       );
@@ -122,10 +122,10 @@ class _LoginState extends State<Login> {
                     debugPrint('Password reset Firebase error: ${e.code}');
                     // Show user-friendly message without exposing internal details
                     String message =
-                        'Failed to send reset email. Please try again.';
+                        context.l10n.resetEmailFailed;
                     if (e.code == 'too-many-requests') {
                       message =
-                          'Too many attempts. Please try again later.';
+                          context.l10n.tooManyAttempts;
                     }
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -139,7 +139,7 @@ class _LoginState extends State<Login> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          'An error occurred. Please try again later.',
+                          context.l10n.genericErrorLater,
                         ),
                         backgroundColor: Theme.of(context).colorScheme.error,
                       ),
@@ -203,13 +203,13 @@ class _LoginState extends State<Login> {
     } on FirebaseAuthException catch (e) {
       debugPrint('Login error: ${e.code}');
       // Use generic message to prevent account enumeration (V09)
-      String message = 'Invalid username or password';
+      String message = context.l10n.invalidLogin;
       if (e.code == 'too-many-requests') {
-        message = 'Too many attempts. Please try again later.';
+        message = context.l10n.tooManyAttempts;
       } else if (e.code == 'network-request-failed') {
-        message = 'Network error. Please check your connection.';
+        message = context.l10n.networkError;
       } else if (e.code == 'duplicate-username') {
-        message = 'Account error. Please contact support.';
+        message = context.l10n.accountError;
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), backgroundColor: Theme.of(context).colorScheme.error),
@@ -222,8 +222,8 @@ class _LoginState extends State<Login> {
   Future<void> _biometricLogin() async {
     if (!_biometricAvailable || !_biometricEnabled) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Biometric login is not available or not enabled'),
+        SnackBar(
+          content: Text(context.l10n.biometricUnavailable),
         ),
       );
       return;
@@ -237,7 +237,7 @@ class _LoginState extends State<Login> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Biometric authentication failed'),
+              content: Text(context.l10n.biometricFailed),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
@@ -250,8 +250,8 @@ class _LoginState extends State<Login> {
       if (userId == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No stored credentials. Please login with password first.'),
+            SnackBar(
+              content: Text(context.l10n.noStoredCredentials),
             ),
           );
         }
@@ -273,8 +273,8 @@ class _LoginState extends State<Login> {
         // Try to restore session - user needs to login with password
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Session expired. Please login with password.'),
+            SnackBar(
+              content: Text(context.l10n.sessionExpired),
             ),
           );
         }
@@ -284,7 +284,7 @@ class _LoginState extends State<Login> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('An error occurred. Please try again.'),
+            content: Text(context.l10n.genericErrorAgain),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -298,7 +298,7 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
     final v = context.vesta;
     return Scaffold(
-      appBar: const VestaAppBar(title: 'Log in'),
+      appBar: VestaAppBar(title: context.l10n.logIn),
       body: VestaBackground(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
@@ -308,18 +308,18 @@ class _LoginState extends State<Login> {
             VestaSpace.xl,
           ),
           children: [
-            Text('Welcome back', style: headingStyle(24)),
+            Text(context.l10n.welcomeBack, style: headingStyle(24)),
             const SizedBox(height: VestaSpace.xs),
             Text(
-              'Log in with your username or email.',
+              context.l10n.loginSubtitle,
               style: TextStyle(fontSize: 14, color: v.muted),
             ),
             const SizedBox(height: VestaSpace.xl),
             TextField(
               controller: identifierController,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Username or email',
+              decoration: InputDecoration(
+                labelText: context.l10n.usernameOrEmail,
               ),
             ),
             const SizedBox(height: 14),
@@ -327,7 +327,7 @@ class _LoginState extends State<Login> {
               controller: passwordController,
               obscureText: _obscurePassword,
               decoration: InputDecoration(
-                labelText: 'Password',
+                labelText: context.l10n.password,
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword
@@ -347,7 +347,7 @@ class _LoginState extends State<Login> {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: _showForgotPasswordDialog,
-                child: const Text('Forgot password?'),
+                child: Text(context.l10n.forgotPassword),
               ),
             ),
             const SizedBox(height: VestaSpace.sm),
@@ -355,14 +355,14 @@ class _LoginState extends State<Login> {
               children: [
                 Expanded(
                   child: PrimaryButton(
-                    label: 'Log in',
+                    label: context.l10n.logIn,
                     loading: _loading,
                     onPressed: _login,
                   ),
                 ),
                 if (_biometricAvailable)
                   Padding(
-                    padding: const EdgeInsets.only(left: VestaSpace.sm),
+                    padding: const EdgeInsetsDirectional.only(start: VestaSpace.sm),
                     child: IconButton(
                       onPressed: _biometricEnabled && !_loading
                           ? _biometricLogin
@@ -373,8 +373,7 @@ class _LoginState extends State<Login> {
                         color: _biometricEnabled ? v.accentInk : v.muted,
                       ),
                       tooltip: _biometricEnabled
-                          ? 'Log in with biometrics'
-                          : 'Enable biometrics in settings after logging in',
+                          ? context.l10n.logInWithBiometrics : context.l10n.enableBiometricsLater,
                       style: IconButton.styleFrom(
                         fixedSize: const Size(48, 48),
                         shape: RoundedRectangleBorder(
@@ -393,7 +392,7 @@ class _LoginState extends State<Login> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Don't have an account? ",
+                  context.l10n.noAccount,
                   style: TextStyle(fontSize: 13, color: v.muted),
                 ),
                 GestureDetector(
@@ -406,7 +405,7 @@ class _LoginState extends State<Login> {
                     );
                   },
                   child: Text(
-                    "Sign up",
+                    context.l10n.signUp,
                     style: TextStyle(fontSize: 13, color: v.accentInk),
                   ),
                 ),
