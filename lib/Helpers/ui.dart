@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/language.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:frontend_vesta/Helpers/icon_picker.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 
@@ -400,7 +400,11 @@ String formatMoney(num amount, {String currency = 'JOD', bool showPlus = false})
   final sign = amount < 0 ? '-' : (showPlus && amount > 0 ? '+' : '');
   final number = _money.format(amount.abs());
   return isArabic
-      ? '\u2066$sign$number\u2069 ${currencyLabel(currency)}'
+      // A minus sign would drift to the right of the number in Arabic text, so
+      // the signed number is isolated left to right. Plain numbers get no
+      // marks: Poppins has no glyph for them, so they'd pull in Almarai's
+      // taller line metrics.
+      ? '${sign.isEmpty ? number : '\u2066$sign$number\u2069'} ${currencyLabel(currency)}'
       : '$sign$currency $number';
 }
 
@@ -444,11 +448,19 @@ class MoneyText extends StatelessWidget {
     final sign = amount < 0 ? '-' : '';
     final currencyText = Text(
       isArabic ? currencyLabel(currency) : '$sign$currency',
-      style: TextStyle(fontSize: size * 0.38, color: context.vesta.muted),
+      // Tight line height: Almarai (د.أ) reserves far more room above and
+      // below its letters than Poppins, which stretched the whole row
+      style: TextStyle(
+        fontSize: size * 0.38,
+        height: 1,
+        leadingDistribution: TextLeadingDistribution.even,
+        color: context.vesta.muted,
+      ),
     );
     final numberText = Text(
-      // In Arabic the sign stays with the number
-      '${isArabic ? '\u2066$sign' : ''}${_money.format(amount.abs())}${isArabic ? '\u2069' : ''}',
+      '${isArabic ? sign : ''}${_money.format(amount.abs())}',
+      // Left to right on its own, so a minus sign stays in front in Arabic
+      textDirection: TextDirection.ltr,
       style: amountStyle(size, color: color).copyWith(
         height: 1.05,
         letterSpacing: -size * 0.025,
