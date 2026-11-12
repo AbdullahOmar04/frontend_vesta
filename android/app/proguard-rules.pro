@@ -2,13 +2,10 @@
 # Vesta App ProGuard Rules
 # =============================================================================
 
-# Flutter
--keep class io.flutter.app.** { *; }
--keep class io.flutter.plugin.** { *; }
--keep class io.flutter.util.** { *; }
--keep class io.flutter.view.** { *; }
--keep class io.flutter.** { *; }
--keep class io.flutter.plugins.** { *; }
+# Flutter, Firebase and AndroidX ship their own keep rules with their
+# libraries. Blanket "-keep class io.flutter.** / com.google.firebase.** /
+# androidx.** { *; }" rules here stopped R8 from shrinking anything and
+# made the Java/Kotlin code 12.6 MB, so only specific rules stay below.
 
 # freeRASP (Talsec)
 -keep class com.aheaditec.** { *; }
@@ -17,8 +14,6 @@
 -keepclassmembers class com.talsec.** { *; }
 
 # Firebase
--keep class com.google.firebase.** { *; }
--keep class com.google.android.gms.** { *; }
 -dontwarn com.google.firebase.**
 -dontwarn com.google.android.gms.**
 -keepattributes Signature
@@ -48,19 +43,14 @@
 # OkHttp / Networking
 -dontwarn okhttp3.**
 -dontwarn okio.**
--keep class okhttp3.** { *; }
--keep class okio.** { *; }
 
 # Gson
 -dontwarn sun.misc.**
--keep class com.google.gson.** { *; }
 -keep class * implements com.google.gson.TypeAdapterFactory
 -keep class * implements com.google.gson.JsonSerializer
 -keep class * implements com.google.gson.JsonDeserializer
 
 # General Android
--keep class androidx.** { *; }
--keep class android.** { *; }
 -dontwarn androidx.**
 -dontwarn android.**
 
