@@ -281,16 +281,18 @@ class _MonthBars extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: VestaSpace.sm),
-                // One line: Arabic month names are longer than "Aug"
-                Text(
-                  labels[i],
-                  maxLines: 1,
-                  softWrap: false,
-                  overflow: TextOverflow.visible,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: i == totals.length - 1 ? null : v.muted,
-                    fontWeight: i == totals.length - 1 ? FontWeight.w600 : null,
+                // One line, shrunk to the column: Arabic month names such
+                // as "تشرين الثاني" are much longer than "Aug"
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    labels[i],
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: i == totals.length - 1 ? null : v.muted,
+                      fontWeight: i == totals.length - 1 ? FontWeight.w600 : null,
+                    ),
                   ),
                 ),
               ],
