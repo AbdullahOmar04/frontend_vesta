@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:intl/intl.dart';
 import 'package:frontend_vesta/Helpers/icon_picker.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
@@ -349,7 +350,7 @@ class HeaderButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(VestaRadius.md),
           ),
-          textStyle: const TextStyle(fontFamily: bodyFont, fontSize: 13),
+          textStyle: const TextStyle(fontFamily: bodyFont, fontFamilyFallback: bodyFallback, fontSize: 13),
         ),
         child: Text(label),
       ),
@@ -359,11 +360,19 @@ class HeaderButton extends StatelessWidget {
 
 final NumberFormat _money = NumberFormat('#,##0.00', 'en_US');
 
+/// The currency as shown: "JOD", or "د.أ" in Arabic.
+String currencyLabel(String currency) =>
+    isArabic && currency == 'JOD' ? 'د.أ' : currency;
+
 /// Formats an amount the way the prototype does: "JOD 1,234.50", and
-/// "-JOD 5.75" for negatives.
+/// "-JOD 5.75" for negatives. In Arabic the currency follows the amount
+/// ("1,234.50 د.أ"); digits stay Western either way.
 String formatMoney(num amount, {String currency = 'JOD', bool showPlus = false}) {
   final sign = amount < 0 ? '-' : (showPlus && amount > 0 ? '+' : '');
-  return '$sign$currency ${_money.format(amount.abs())}';
+  final number = _money.format(amount.abs());
+  return isArabic
+      ? '$sign$number ${currencyLabel(currency)}'
+      : '$sign$currency $number';
 }
 
 /// An amount in Poppins Medium with fixed-width digits.
@@ -404,26 +413,28 @@ class MoneyText extends StatelessWidget {
       );
     }
     final sign = amount < 0 ? '-' : '';
+    final currencyText = Text(
+      isArabic ? currencyLabel(currency) : '$sign$currency',
+      style: TextStyle(fontSize: size * 0.38, color: context.vesta.muted),
+    );
+    final numberText = Text(
+      // In Arabic the sign stays with the number
+      '${isArabic ? sign : ''}${_money.format(amount.abs())}',
+      style: amountStyle(size, color: color).copyWith(
+        height: 1.05,
+        letterSpacing: -size * 0.025,
+      ),
+    );
     return FittedBox(
       fit: BoxFit.scaleDown,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
-        children: [
-          Text(
-            '$sign$currency',
-            style: TextStyle(fontSize: size * 0.38, color: context.vesta.muted),
-          ),
-          const SizedBox(width: VestaSpace.sm),
-          Text(
-            _money.format(amount.abs()),
-            style: amountStyle(size, color: color).copyWith(
-              height: 1.05,
-              letterSpacing: -size * 0.025,
-            ),
-          ),
-        ],
+        // Read right to left in Arabic: the amount, then the currency
+        children: isArabic
+            ? [numberText, const SizedBox(width: VestaSpace.sm), currencyText]
+            : [currencyText, const SizedBox(width: VestaSpace.sm), numberText],
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 
 // Design tokens and themes for the redesign, taken from the brand palette in
 // Vesta Prototype.html. Screens read colours from the theme
@@ -6,6 +7,12 @@ import 'package:flutter/material.dart';
 
 const String headingFont = 'PPNeueBit';
 const String bodyFont = 'Poppins';
+
+/// Arabic letters: Poppins and PP NeueBit have none. Body text falls back to
+/// it letter by letter (Latin and digits stay Poppins), and headings switch
+/// to it when the app is in Arabic.
+const String arabicFont = 'Almarai';
+const List<String> bodyFallback = [arabicFont];
 
 class VestaRadius {
   static const double sm = 4;
@@ -270,7 +277,16 @@ const double _headingScale = 1.5;
 
 /// Headings in PP NeueBit Bold. The letters are scaled up but the line
 /// spacing stays that of the requested size, as size-adjust does in CSS.
-TextStyle headingStyle(double size, {Color? color}) => TextStyle(
+TextStyle headingStyle(double size, {Color? color}) => isArabic
+    ? TextStyle(
+        fontFamily: bodyFont,
+        fontFamilyFallback: bodyFallback,
+        fontSize: size,
+        fontWeight: FontWeight.w600,
+        height: 1.35,
+        color: color,
+      )
+    : TextStyle(
   fontFamily: headingFont,
   fontSize: size * _headingScale,
   fontWeight: FontWeight.w700,
@@ -282,7 +298,7 @@ TextStyle headingStyle(double size, {Color? color}) => TextStyle(
 
 /// Poppins Medium with fixed-width digits, for money.
 TextStyle amountStyle(double size, {Color? color}) => TextStyle(
-  fontFamily: bodyFont,
+  fontFamily: bodyFont, fontFamilyFallback: bodyFallback,
   fontSize: size,
   fontWeight: FontWeight.w500,
   fontFeatures: const [FontFeature.tabularFigures()],
@@ -330,14 +346,14 @@ ThemeData _buildTheme({
     // and label roles, so those stay in Poppins; headings come from
     // headingStyle() where the prototype uses them. The font is named on each
     // style because some slots (dialog content) use them without merging.
-    titleMedium: TextStyle(fontFamily: bodyFont, fontSize: 15, fontWeight: FontWeight.w500, color: text),
-    titleSmall: TextStyle(fontFamily: bodyFont, fontSize: 14, fontWeight: FontWeight.w500, color: text),
-    bodyLarge: TextStyle(fontFamily: bodyFont, fontSize: 15, color: text),
-    bodyMedium: TextStyle(fontFamily: bodyFont, fontSize: 14, color: text),
-    bodySmall: TextStyle(fontFamily: bodyFont, fontSize: 12, color: v.muted),
-    labelLarge: TextStyle(fontFamily: bodyFont, fontSize: 14, fontWeight: FontWeight.w500, color: text),
-    labelMedium: TextStyle(fontFamily: bodyFont, fontSize: 13, color: text),
-    labelSmall: TextStyle(fontFamily: bodyFont, fontSize: 11, color: text),
+    titleMedium: TextStyle(fontFamily: bodyFont, fontFamilyFallback: bodyFallback, fontSize: 15, fontWeight: FontWeight.w500, color: text),
+    titleSmall: TextStyle(fontFamily: bodyFont, fontFamilyFallback: bodyFallback, fontSize: 14, fontWeight: FontWeight.w500, color: text),
+    bodyLarge: TextStyle(fontFamily: bodyFont, fontFamilyFallback: bodyFallback, fontSize: 15, color: text),
+    bodyMedium: TextStyle(fontFamily: bodyFont, fontFamilyFallback: bodyFallback, fontSize: 14, color: text),
+    bodySmall: TextStyle(fontFamily: bodyFont, fontFamilyFallback: bodyFallback, fontSize: 12, color: v.muted),
+    labelLarge: TextStyle(fontFamily: bodyFont, fontFamilyFallback: bodyFallback, fontSize: 14, fontWeight: FontWeight.w500, color: text),
+    labelMedium: TextStyle(fontFamily: bodyFont, fontFamilyFallback: bodyFallback, fontSize: 13, color: text),
+    labelSmall: TextStyle(fontFamily: bodyFont, fontFamilyFallback: bodyFallback, fontSize: 11, color: text),
   );
 
   final buttonShape = RoundedRectangleBorder(
@@ -349,7 +365,7 @@ ThemeData _buildTheme({
     useMaterial3: true,
     brightness: brightness,
     colorScheme: scheme,
-    fontFamily: bodyFont,
+    fontFamily: bodyFont, fontFamilyFallback: bodyFallback,
     textTheme: textTheme,
     scaffoldBackgroundColor: bg,
     canvasColor: bg,
@@ -425,7 +441,7 @@ ThemeData _buildTheme({
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: v.accentInk,
-        textStyle: const TextStyle(fontFamily: bodyFont, fontSize: 13),
+        textStyle: const TextStyle(fontFamily: bodyFont, fontFamilyFallback: bodyFallback, fontSize: 13),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -491,12 +507,12 @@ ThemeData _buildTheme({
         borderRadius: BorderRadius.circular(VestaRadius.sheet),
       ),
       headerForegroundColor: text,
-      headerHelpStyle: TextStyle(fontFamily: bodyFont, fontSize: 12, color: v.muted),
+      headerHelpStyle: TextStyle(fontFamily: bodyFont, fontFamilyFallback: bodyFallback, fontSize: 12, color: v.muted),
       headerHeadlineStyle: headingStyle(24, color: text),
       dividerColor: v.divider,
-      weekdayStyle: TextStyle(fontFamily: bodyFont, fontSize: 12, color: v.muted),
-      dayStyle: const TextStyle(fontFamily: bodyFont, fontSize: 13),
-      yearStyle: const TextStyle(fontFamily: bodyFont, fontSize: 14),
+      weekdayStyle: TextStyle(fontFamily: bodyFont, fontFamilyFallback: bodyFallback, fontSize: 12, color: v.muted),
+      dayStyle: const TextStyle(fontFamily: bodyFont, fontFamilyFallback: bodyFallback, fontSize: 13),
+      yearStyle: const TextStyle(fontFamily: bodyFont, fontFamilyFallback: bodyFallback, fontSize: 14),
       todayBorder: BorderSide(color: v.accentInk),
       cancelButtonStyle: TextButton.styleFrom(
         foregroundColor: text,
@@ -539,7 +555,7 @@ ThemeData _buildTheme({
     ),
     snackBarTheme: SnackBarThemeData(
       backgroundColor: text,
-      contentTextStyle: TextStyle(fontFamily: bodyFont, fontSize: 14, color: bg),
+      contentTextStyle: TextStyle(fontFamily: bodyFont, fontFamilyFallback: bodyFallback, fontSize: 14, color: bg),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(VestaRadius.md),
@@ -554,18 +570,21 @@ ThemeData _buildTheme({
   );
 }
 
-final ThemeData lightTheme = _buildTheme(
+// Rebuilt per language: Arabic headings use another font.
+final _themes = <String, ThemeData>{};
+
+ThemeData get lightTheme => _themes.putIfAbsent('light-$activeLanguage', () => _buildTheme(
   brightness: Brightness.light,
   bg: const Color(0xFFE9F0FF),
   surface: const Color(0xFFF7F9FF),
   text: const Color(0xFF313031),
   v: VestaColors.light,
-);
+));
 
-final ThemeData darkTheme = _buildTheme(
+ThemeData get darkTheme => _themes.putIfAbsent('dark-$activeLanguage', () => _buildTheme(
   brightness: Brightness.dark,
   bg: const Color(0xFF313031),
   surface: const Color(0xFF3B3A3B),
   text: const Color(0xFFE9F0FF),
   v: VestaColors.dark,
-);
+));

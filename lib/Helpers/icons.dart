@@ -13,7 +13,7 @@ class PhosphorIconsRegular {
   static const IconData alarm = IconData(0xe006, fontFamily: 'Phosphor');
   static const IconData arrowCircleDown = IconData(0xe028, fontFamily: 'Phosphor');
   static const IconData arrowDownLeft = IconData(0xe040, fontFamily: 'Phosphor');
-  static const IconData arrowLeft = IconData(0xe058, fontFamily: 'Phosphor');
+  static const IconData arrowLeft = IconData(0xe058, fontFamily: 'Phosphor', matchTextDirection: true);
   static const IconData arrowSquareOut = IconData(0xe5de, fontFamily: 'Phosphor');
   static const IconData arrowUUpLeft = IconData(0xe08a, fontFamily: 'Phosphor');
   static const IconData arrowUpRight = IconData(0xe092, fontFamily: 'Phosphor');
@@ -42,7 +42,7 @@ class PhosphorIconsRegular {
   static const IconData car = IconData(0xe112, fontFamily: 'Phosphor');
   static const IconData caretDown = IconData(0xe136, fontFamily: 'Phosphor');
   static const IconData caretLeft = IconData(0xe138, fontFamily: 'Phosphor');
-  static const IconData caretRight = IconData(0xe13a, fontFamily: 'Phosphor');
+  static const IconData caretRight = IconData(0xe13a, fontFamily: 'Phosphor', matchTextDirection: true);
   static const IconData caretUp = IconData(0xe13c, fontFamily: 'Phosphor');
   static const IconData cellSignalFull = IconData(0xe142, fontFamily: 'Phosphor');
   static const IconData chartLineUp = IconData(0xe156, fontFamily: 'Phosphor');
@@ -173,7 +173,7 @@ class PhosphorIconsFill {
   static const IconData alarm = IconData(0xe006, fontFamily: 'PhosphorFill');
   static const IconData arrowCircleDown = IconData(0xe028, fontFamily: 'PhosphorFill');
   static const IconData arrowDownLeft = IconData(0xe040, fontFamily: 'PhosphorFill');
-  static const IconData arrowLeft = IconData(0xe058, fontFamily: 'PhosphorFill');
+  static const IconData arrowLeft = IconData(0xe058, fontFamily: 'PhosphorFill', matchTextDirection: true);
   static const IconData arrowSquareOut = IconData(0xe5de, fontFamily: 'PhosphorFill');
   static const IconData arrowUUpLeft = IconData(0xe08a, fontFamily: 'PhosphorFill');
   static const IconData arrowUpRight = IconData(0xe092, fontFamily: 'PhosphorFill');
@@ -202,7 +202,7 @@ class PhosphorIconsFill {
   static const IconData car = IconData(0xe112, fontFamily: 'PhosphorFill');
   static const IconData caretDown = IconData(0xe136, fontFamily: 'PhosphorFill');
   static const IconData caretLeft = IconData(0xe138, fontFamily: 'PhosphorFill');
-  static const IconData caretRight = IconData(0xe13a, fontFamily: 'PhosphorFill');
+  static const IconData caretRight = IconData(0xe13a, fontFamily: 'PhosphorFill', matchTextDirection: true);
   static const IconData caretUp = IconData(0xe13c, fontFamily: 'PhosphorFill');
   static const IconData cellSignalFull = IconData(0xe142, fontFamily: 'PhosphorFill');
   static const IconData chartLineUp = IconData(0xe156, fontFamily: 'PhosphorFill');

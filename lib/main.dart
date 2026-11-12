@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/appearance.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/referral_codes.dart';
 import 'package:frontend_vesta/Helpers/security_service.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 import 'package:frontend_vesta/Screens/Onboarding/auth_gate.dart';
 import 'package:frontend_vesta/firebase_options.dart';
+import 'package:frontend_vesta/l10n/app_localizations.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -55,6 +57,7 @@ Future<void> main() async {
   startCategoryListener();
   listenForReferralLinks();
   await loadAppearance();
+  await loadLanguage();
 
   runApp(const MainApp());
 }
@@ -64,13 +67,17 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: appearance,
-      builder: (context, mode, _) => MaterialApp(
+    return ListenableBuilder(
+      listenable: Listenable.merge([appearance, appLanguage]),
+      builder: (context, _) => MaterialApp(
         navigatorKey: navigatorKey,
         theme: lightTheme,
         darkTheme: darkTheme,
-        themeMode: mode,
+        themeMode: appearance.value,
+        // Arabic also turns the layout right to left
+        locale: Locale(activeLanguage),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
         home: const AuthGate(),
         debugShowCheckedModeBanner: false,
       ),

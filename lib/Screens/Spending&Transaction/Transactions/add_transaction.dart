@@ -59,6 +59,15 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
 
   String? _selectedAccountId;
   String? _selectedCategory;
+
+  /// The chosen account's currency: a transaction is in its account's money.
+  String get _currency =>
+      (_accounts.firstWhere(
+                (a) => a['id'] == _selectedAccountId,
+                orElse: () => const {},
+              )['currency'] ??
+              'JOD')
+          .toString();
   TransactionType _type = TransactionType.debit;
   DateTime _date = DateTime.now();
 
@@ -102,6 +111,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
         final data = d.data();
         return {
           'id': d.id,
+          'currency': data['currency'] ?? 'JOD',
           'name': data['accountName'] ?? d.id,
           'type': data['accountTypeName'],
           // Last digits, to find the account a bank SMS names
@@ -177,7 +187,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
         firestoreAccountId: _selectedAccountId!,
         id: newDoc.id,
         amount: amount,
-        currency: "JOD",
+        currency: _currency,
         type: _type,
         date: _date,
         merchantName: _merchantCtrl.text.trim().isEmpty
@@ -432,11 +442,12 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
                 const SizedBox(width: VestaSpace.sm),
                 Expanded(
                   child: Text(
-                    // Amounts are saved as JOD, so a foreign one needs converting
-                    _smsCurrency != null && _smsCurrency != 'JOD'
+                    // Saved in the account's currency, so another one needs
+                    // converting
+                    _smsCurrency != null && _smsCurrency != _currency
                         ? 'Filled from your SMS. The amount is in '
-                              '$_smsCurrency, so change it to JOD before '
-                              'saving.'
+                              '$_smsCurrency, so change it to $_currency '
+                              'before saving.'
                         : 'Filled from your SMS. Check the details below.',
                     style: TextStyle(fontSize: 12, color: v.tintText),
                   ),
@@ -480,7 +491,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
         TextField(
           controller: _amountCtrl,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(labelText: "Amount"),
+          decoration: InputDecoration(labelText: "Amount ($_currency)"),
         ),
         gap,
 

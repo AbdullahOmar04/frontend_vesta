@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/biometric_service.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/links.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 
 /// Password and security: change the password, fingerprint unlock, and the
@@ -109,10 +110,10 @@ class _SecurityPageState extends State<SecurityPage> {
                 subtitle: 'What we read from your bank accounts',
                 tag: 'Coming soon',
               ),
-              const MenuRow(
+              MenuRow(
                 icon: PhosphorIconsRegular.shieldCheck,
                 title: 'Privacy policy',
-                tag: 'Coming soon',
+                onTap: () => openWebPage(context, privacyPolicyUrl),
               ),
             ]),
           ],
