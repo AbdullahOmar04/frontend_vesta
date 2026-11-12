@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/appearance.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 
@@ -18,10 +19,6 @@ Future<void> _saveSetting(String group, String key, Object value) {
   }, SetOptions(merge: true));
 }
 
-/// Shown under reminder and notification settings until Vesta sends them.
-const _notYetNote =
-    "Vesta doesn't send these yet. Your choices are saved for when it does.";
-
 class PreferencesPage extends StatelessWidget {
   const PreferencesPage({super.key});
 
@@ -30,7 +27,7 @@ class PreferencesPage extends StatelessWidget {
     void open(Widget page) =>
         Navigator.push(context, MaterialPageRoute(builder: (_) => page));
     return Scaffold(
-      appBar: const VestaAppBar(title: 'Preferences'),
+      appBar: VestaAppBar(title: context.l10n.prefsTitle),
       body: VestaBackground(
         child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           stream: _userRef().snapshots(),
@@ -47,30 +44,32 @@ class PreferencesPage extends StatelessWidget {
                 MenuCard([
                   MenuRow(
                     icon: PhosphorIconsRegular.monitor,
-                    title: 'Display',
-                    subtitle: 'Appearance, language, and currency',
+                    title: context.l10n.prefsDisplay,
+                    subtitle: context.l10n.prefsDisplaySubtitle,
                     onTap: () => open(const DisplayPage()),
                   ),
                   MenuRow(
                     icon: PhosphorIconsRegular.calendarBlank,
-                    title: 'Budget reset day',
-                    subtitle: day != null ? 'Day $day of each month' : null,
+                    title: context.l10n.prefsResetDay,
+                    subtitle: day != null
+                        ? context.l10n.prefsResetDaySubtitle('$day')
+                        : null,
                     onTap: () => inputDayOfMonth(context),
                   ),
-                  const MenuRow(
+                  MenuRow(
                     icon: PhosphorIconsRegular.squaresFour,
-                    title: 'Features management',
-                    tag: 'Coming soon',
+                    title: context.l10n.prefsFeatures,
+                    tag: context.l10n.comingSoon,
                   ),
                   MenuRow(
                     icon: PhosphorIconsRegular.alarm,
-                    title: 'Reminders and alerts',
-                    subtitle: 'Upcoming payments, budgets, and goals',
+                    title: context.l10n.prefsReminders,
+                    subtitle: context.l10n.prefsRemindersSubtitle,
                     onTap: () => open(const RemindersPage()),
                   ),
                   MenuRow(
                     icon: PhosphorIconsRegular.bell,
-                    title: 'Notifications',
+                    title: context.l10n.prefsNotifications,
                     onTap: () => open(const NotificationsPage()),
                   ),
                 ]),
@@ -136,6 +135,7 @@ class DisplayPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final v = context.vesta;
+    final l10n = context.l10n;
     Widget label(String text) => Padding(
       padding: const EdgeInsets.only(bottom: VestaSpace.sm),
       child: Text(text, style: TextStyle(fontSize: 12, color: v.muted)),
@@ -143,7 +143,7 @@ class DisplayPage extends StatelessWidget {
     const gap = SizedBox(width: VestaSpace.sm);
 
     return Scaffold(
-      appBar: const VestaAppBar(title: 'Display'),
+      appBar: VestaAppBar(title: l10n.displayTitle),
       body: VestaBackground(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
@@ -159,25 +159,25 @@ class DisplayPage extends StatelessWidget {
                 builder: (context, mode, _) => Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    label('Appearance'),
+                    label(l10n.displayAppearance),
                     Row(
                       children: [
                         _Choice(
-                          label: 'Light',
+                          label: l10n.displayLight,
                           icon: PhosphorIconsRegular.sun,
                           selected: mode == ThemeMode.light,
                           onTap: () => setAppearance(ThemeMode.light),
                         ),
                         gap,
                         _Choice(
-                          label: 'Dark',
+                          label: l10n.displayDark,
                           icon: PhosphorIconsRegular.moon,
                           selected: mode == ThemeMode.dark,
                           onTap: () => setAppearance(ThemeMode.dark),
                         ),
                         gap,
                         _Choice(
-                          label: 'Auto',
+                          label: l10n.displayAuto,
                           icon: PhosphorIconsRegular.deviceMobile,
                           selected: mode == ThemeMode.system,
                           onTap: () => setAppearance(ThemeMode.system),
@@ -186,49 +186,45 @@ class DisplayPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      "Auto follows your phone's setting.",
+                      l10n.displayAutoNote,
                       style: TextStyle(fontSize: 11, color: v.muted),
                     ),
                     const SizedBox(height: VestaSpace.lg),
-                    label('Language'),
+                    label(l10n.displayLanguage),
+                    // Each language is written in itself, so it can be
+                    // found whichever one the app is in
                     Row(
                       children: [
                         _Choice(
                           label: 'English',
                           icon: PhosphorIconsRegular.translate,
-                          selected: true,
-                          onTap: () {},
+                          selected: activeLanguage == 'en',
+                          onTap: () => setLanguage('en'),
                         ),
                         gap,
                         _Choice(
                           label: 'العربية',
                           icon: PhosphorIconsRegular.translate,
-                          selected: false,
-                          onTap: () => ScaffoldMessenger.of(context)
-                            ..clearSnackBars()
-                            ..showSnackBar(
-                              const SnackBar(
-                                content: Text('Arabic is coming soon.'),
-                              ),
-                            ),
+                          selected: activeLanguage == 'ar',
+                          onTap: () => setLanguage('ar'),
                         ),
                       ],
                     ),
                     const SizedBox(height: VestaSpace.lg),
-                    label('Currency'),
+                    label(l10n.displayCurrency),
                     DropdownButtonFormField<String>(
                       initialValue: 'JOD',
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: 'JOD',
-                          child: Text('JOD · Jordanian dinar'),
+                          child: Text(l10n.displayCurrencyJod),
                         ),
                       ],
                       onChanged: (_) {},
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'More currencies are coming.',
+                      l10n.displayMoreCurrencies,
                       style: TextStyle(fontSize: 11, color: v.muted),
                     ),
                   ],
@@ -254,7 +250,7 @@ class _Pill extends StatelessWidget {
   Widget build(BuildContext context) {
     final v = context.vesta;
     return Padding(
-      padding: const EdgeInsets.only(left: 6),
+      padding: const EdgeInsetsDirectional.only(start: 6),
       child: Material(
         color: selected ? v.accentWash : Colors.transparent,
         shape: StadiumBorder(
@@ -285,8 +281,9 @@ class RemindersPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final v = context.vesta;
+    final l10n = context.l10n;
     return Scaffold(
-      appBar: const VestaAppBar(title: 'Reminders and alerts'),
+      appBar: VestaAppBar(title: l10n.prefsReminders),
       body: VestaBackground(
         child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           stream: _userRef().snapshots(),
@@ -308,7 +305,7 @@ class RemindersPage extends StatelessWidget {
               bool enabled,
             ) {
               return Padding(
-                padding: const EdgeInsets.fromLTRB(47, 0, 14, 12),
+                padding: const EdgeInsetsDirectional.fromSTEB(47, 0, 14, 12),
                 child: Row(
                   children: [
                     Text(lead, style: TextStyle(fontSize: 12, color: v.muted)),
@@ -333,7 +330,7 @@ class RemindersPage extends StatelessWidget {
               ),
               children: [
                 Text(
-                  'Choose what Vesta should remind you about.',
+                  l10n.remindersIntro,
                   style: TextStyle(fontSize: 13, color: v.muted),
                 ),
                 const SizedBox(height: VestaSpace.md),
@@ -342,14 +339,14 @@ class RemindersPage extends StatelessWidget {
                     children: [
                       ToggleRow(
                         icon: PhosphorIconsRegular.calendarCheck,
-                        title: 'Upcoming payments',
-                        subtitle: 'Before a scheduled payment is due',
+                        title: l10n.remindersUpcoming,
+                        subtitle: l10n.remindersUpcomingSubtitle,
                         value: on('upcoming', true),
                         onChanged: (x) => set('upcoming', x),
                       ),
                       choices(
-                        'Remind me',
-                        [('1 day', 1), ('3 days', 3), ('7 days', 7)],
+                        l10n.remindersRemindMe,
+                        [for (final d in [1, 3, 7]) (l10n.remindersDays(d), d)],
                         days,
                         'upcomingDays',
                         on('upcoming', true),
@@ -360,13 +357,13 @@ class RemindersPage extends StatelessWidget {
                     children: [
                       ToggleRow(
                         icon: PhosphorIconsRegular.gauge,
-                        title: 'Going over budget',
-                        subtitle: 'When your spending gets close to the budget',
+                        title: l10n.remindersOverBudget,
+                        subtitle: l10n.remindersOverBudgetSubtitle,
                         value: on('overBudget', true),
                         onChanged: (x) => set('overBudget', x),
                       ),
                       choices(
-                        'Alert at',
+                        l10n.remindersAlertAt,
                         [('80%', 80), ('90%', 90), ('100%', 100)],
                         at,
                         'overBudgetAt',
@@ -376,30 +373,29 @@ class RemindersPage extends StatelessWidget {
                   ),
                   ToggleRow(
                     icon: PhosphorIconsRegular.tag,
-                    title: 'Category limits',
-                    subtitle: 'When a category reaches its monthly limit',
+                    title: l10n.remindersCategoryLimits,
+                    subtitle: l10n.remindersCategoryLimitsSubtitle,
                     value: on('categoryLimits', true),
                     onChanged: (x) => set('categoryLimits', x),
                   ),
                   ToggleRow(
                     icon: PhosphorIconsRegular.piggyBank,
-                    title: 'Savings goals',
-                    subtitle: "When you haven't reached this month's target",
+                    title: l10n.remindersSavings,
+                    subtitle: l10n.remindersSavingsSubtitle,
                     value: on('savingsGoals', true),
                     onChanged: (x) => set('savingsGoals', x),
                   ),
                   ToggleRow(
                     icon: PhosphorIconsRegular.warningDiamond,
-                    title: 'Large transactions',
-                    subtitle:
-                        'When a single transaction is over ${formatMoney(100)}',
+                    title: l10n.remindersLarge,
+                    subtitle: l10n.remindersLargeSubtitle(formatMoney(100)),
                     value: on('largeTransactions', false),
                     onChanged: (x) => set('largeTransactions', x),
                   ),
                 ]),
                 const SizedBox(height: VestaSpace.md),
                 Text(
-                  _notYetNote,
+                  l10n.remindersNotYet,
                   style: TextStyle(fontSize: 12, color: v.muted),
                 ),
               ],
@@ -417,8 +413,9 @@ class NotificationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final v = context.vesta;
+    final l10n = context.l10n;
     return Scaffold(
-      appBar: const VestaAppBar(title: 'Notifications'),
+      appBar: VestaAppBar(title: l10n.prefsNotifications),
       body: VestaBackground(
         child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           stream: _userRef().snapshots(),
@@ -451,7 +448,7 @@ class NotificationsPage extends StatelessWidget {
               ),
               children: [
                 Text(
-                  'Choose which notifications you want to get.',
+                  l10n.notificationsIntro,
                   style: TextStyle(fontSize: 13, color: v.muted),
                 ),
                 const SizedBox(height: VestaSpace.md),
@@ -459,42 +456,42 @@ class NotificationsPage extends StatelessWidget {
                   row(
                     PhosphorIconsRegular.receipt,
                     'perTransaction',
-                    'Per transaction',
-                    'Every time money comes in or goes out',
+                    l10n.notificationsPerTransaction,
+                    l10n.notificationsPerTransactionSubtitle,
                     true,
                   ),
                   row(
                     PhosphorIconsRegular.handPointing,
                     'requiredActions',
-                    'Required actions',
-                    'Things that need you, like a bill to confirm',
+                    l10n.notificationsRequired,
+                    l10n.notificationsRequiredSubtitle,
                     true,
                   ),
                   row(
                     PhosphorIconsRegular.confetti,
                     'motivational',
-                    'Motivational',
-                    'Milestones and encouragement',
+                    l10n.notificationsMotivational,
+                    l10n.notificationsMotivationalSubtitle,
                     true,
                   ),
                   row(
                     PhosphorIconsRegular.megaphone,
                     'promotional',
-                    'Promotional and app updates',
-                    'Offers and new features',
+                    l10n.notificationsPromotional,
+                    l10n.notificationsPromotionalSubtitle,
                     false,
                   ),
                   row(
                     PhosphorIconsRegular.headset,
                     'customerService',
-                    'Customer service',
-                    'Replies to your support requests',
+                    l10n.notificationsSupport,
+                    l10n.notificationsSupportSubtitle,
                     true,
                   ),
                 ]),
                 const SizedBox(height: VestaSpace.md),
                 Text(
-                  _notYetNote,
+                  l10n.remindersNotYet,
                   style: TextStyle(fontSize: 12, color: v.muted),
                 ),
               ],

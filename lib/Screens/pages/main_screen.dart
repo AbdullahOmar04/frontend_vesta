@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/pages/accounts.dart';
 import 'package:frontend_vesta/Screens/pages/dashboard.dart';
@@ -22,24 +23,24 @@ class _MainScreenState extends State<MainScreen> {
 
   // Home / Dashboard / Wallet / Profile, as in the prototype. Transactions
   // opens from the Dashboard's Recent section and from Spendings.
-  static const List<VestaNavItem> _tabs = [
+  List<VestaNavItem> _tabs(BuildContext context) => [
     VestaNavItem(
-      label: 'Home',
+      label: context.l10n.tabHome,
       icon: PhosphorIconsRegular.house,
       selectedIcon: PhosphorIconsFill.house,
     ),
     VestaNavItem(
-      label: 'Dashboard',
+      label: context.l10n.tabDashboard,
       icon: PhosphorIconsRegular.chartLineUp,
       selectedIcon: PhosphorIconsFill.chartLineUp,
     ),
     VestaNavItem(
-      label: 'Wallet',
+      label: context.l10n.tabWallet,
       icon: PhosphorIconsRegular.wallet,
       selectedIcon: PhosphorIconsFill.wallet,
     ),
     VestaNavItem(
-      label: 'Profile',
+      label: context.l10n.tabProfile,
       icon: PhosphorIconsRegular.userCircle,
       selectedIcon: PhosphorIconsFill.userCircle,
     ),
@@ -76,7 +77,7 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: _page(_selectedIndex),
       bottomNavigationBar: VestaBottomBar(
-        items: _tabs,
+        items: _tabs(context),
         selectedIndex: _selectedIndex,
         onSelected: _select,
       ),

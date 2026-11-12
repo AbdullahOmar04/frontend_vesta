@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
+import 'package:frontend_vesta/Helpers/links.dart';
 import 'package:frontend_vesta/Helpers/secure_storage.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/Profile/account_helpers.dart';
@@ -38,9 +40,9 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _confirmLogout() async {
     final confirmed = await confirmDialog(
       context,
-      title: 'Log out of Vesta?',
-      message: "You'll need to log in again to see your money.",
-      confirmLabel: 'Log out',
+      title: context.l10n.logOutTitle,
+      message: context.l10n.logOutMessage,
+      confirmLabel: context.l10n.logOut,
       icon: PhosphorIconsRegular.signOut,
     );
     if (confirmed) {
@@ -58,10 +60,10 @@ class _ProfilePageState extends State<ProfilePage> {
     final uid = user?.uid;
 
     return Scaffold(
-      appBar: const VestaAppBar.large(title: 'Profile'),
+      appBar: VestaAppBar.large(title: context.l10n.profileTitle),
       body: VestaBackground(
         child: uid == null
-            ? const Center(child: Text('Not logged in'))
+            ? Center(child: Text(context.l10n.notLoggedIn))
             : StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                 stream: FirebaseFirestore.instance
                     .collection('users')
@@ -113,48 +115,49 @@ class _ProfilePageState extends State<ProfilePage> {
                       MenuCard([
                         MenuRow(
                           icon: PhosphorIconsRegular.user,
-                          title: 'Personal information',
+                          title: context.l10n.profilePersonalInfo,
                           onTap: () => _open(const PersonalInfoPage()),
                         ),
                         MenuRow(
                           icon: PhosphorIconsRegular.bank,
-                          title: 'Bank accounts management',
+                          title: context.l10n.profileBankAccounts,
                           onTap: () => _open(const AccountsPage()),
                         ),
                         MenuRow(
                           icon: PhosphorIconsRegular.crownSimple,
-                          title: 'Subscriptions',
-                          subtitle: 'Free plan',
+                          title: context.l10n.profileSubscriptions,
+                          subtitle: context.l10n.profileFreePlan,
                           onTap: () => _open(const SubscriptionsPage()),
                         ),
                         MenuRow(
                           icon: PhosphorIconsRegular.gift,
-                          title: 'Referrals',
-                          subtitle:
-                              '${NumberFormat.decimalPattern().format(points)} points',
+                          title: context.l10n.profileReferrals,
+                          subtitle: context.l10n.profilePoints(
+                            NumberFormat.decimalPattern('en_US').format(points),
+                          ),
                           onTap: () => _open(const ReferralsPage()),
                         ),
                         MenuRow(
                           icon: PhosphorIconsRegular.slidersHorizontal,
-                          title: 'Preferences',
+                          title: context.l10n.profilePreferences,
                           onTap: () => _open(const PreferencesPage()),
                         ),
                         MenuRow(
                           icon: PhosphorIconsRegular.lockKey,
-                          title: 'Password and security',
+                          title: context.l10n.profileSecurity,
                           onTap: () => _open(const SecurityPage()),
                         ),
-                        const MenuRow(
+                        MenuRow(
                           icon: PhosphorIconsRegular.fileText,
-                          title: 'Terms and conditions',
-                          tag: 'Coming soon',
+                          title: context.l10n.profileTerms,
+                          onTap: () => openWebPage(context, termsUrl),
                         ),
                       ]),
                       const SizedBox(height: 14),
                       MenuCard([
                         MenuRow(
                           icon: PhosphorIconsRegular.signOut,
-                          title: 'Log out',
+                          title: context.l10n.logOut,
                           color: context.vesta.neg,
                           showCaret: false,
                           onTap: _confirmLogout,
