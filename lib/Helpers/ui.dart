@@ -374,6 +374,21 @@ String _shared(BuildContext context, String text) {
   };
 }
 
+/// An account type or bank name as stored ('Current account', 'Cash'),
+/// shown in the app's language. Bank names and unknown values pass through.
+String accountTypeLabel(BuildContext context, String name) {
+  final l10n = context.l10n;
+  return switch (name) {
+    'Current account' => l10n.typeCurrent,
+    'Savings account' => l10n.typeSavings,
+    'Credit card' => l10n.typeCreditCard,
+    'Loan' => l10n.typeLoan,
+    'Investment account' => l10n.typeInvestment,
+    'Cash' => l10n.typeCash,
+    _ => name,
+  };
+}
+
 /// The currency as shown: "JOD", or "د.أ" in Arabic.
 String currencyLabel(String currency) =>
     isArabic && currency == 'JOD' ? 'د.أ' : currency;

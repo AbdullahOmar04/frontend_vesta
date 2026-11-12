@@ -499,5 +499,65 @@
         "type": "String"
       }
     }
-  }
+  },
+  "delete": "Delete",
+  "deleteNameTitle": "Delete {name}?",
+  "@deleteNameTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAccountMessage": "This also deletes every transaction in the account. It cannot be undone.",
+  "accountDeleted": "Account deleted",
+  "accountDeleteFailed": "Failed to delete account: {error}",
+  "@accountDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "walletTitle": "Wallet",
+  "addAccount": "Add account",
+  "removeAnAccount": "Remove an account",
+  "noAccountsYet": "No accounts yet. Tap + to add one.",
+  "netWorth": "Net worth",
+  "acrossAccounts": "{count, plural, =1{Across 1 account} other{Across {count} accounts}}",
+  "@acrossAccounts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unknownBank": "Unknown Bank",
+  "unknownType": "Unknown Type",
+  "typeCurrent": "Current account",
+  "typeSavings": "Savings account",
+  "typeCreditCard": "Credit card",
+  "typeLoan": "Loan",
+  "typeInvestment": "Investment account",
+  "typeCash": "Cash",
+  "enterBalanceNumber": "Enter the balance as a number",
+  "accountAdded": "Account added",
+  "accountAddFailed": "Couldn't add the account: {error}",
+  "@accountAddFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addAccountManually": "Add account manually",
+  "bank": "Bank",
+  "accountType": "Account type",
+  "accountName": "Account name",
+  "accountNameHint": "e.g. Salary account",
+  "last4Digits": "Last 4 digits",
+  "optional": "Optional",
+  "amountOwed": "Amount owed",
+  "currentBalance": "Current balance",
+  "manualAccountsNote": "Manual accounts don't sync. You'll add transactions and update the balance yourself."
 }

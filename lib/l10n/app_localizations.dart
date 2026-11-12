@@ -1610,6 +1610,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{amount} this month'**
   String amountThisMonth(String amount);
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @deleteNameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String deleteNameTitle(String name);
+
+  /// No description provided for @deleteAccountMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This also deletes every transaction in the account. It cannot be undone.'**
+  String get deleteAccountMessage;
+
+  /// No description provided for @accountDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted'**
+  String get accountDeleted;
+
+  /// No description provided for @accountDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete account: {error}'**
+  String accountDeleteFailed(String error);
+
+  /// No description provided for @walletTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet'**
+  String get walletTitle;
+
+  /// No description provided for @addAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Add account'**
+  String get addAccount;
+
+  /// No description provided for @removeAnAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove an account'**
+  String get removeAnAccount;
+
+  /// No description provided for @noAccountsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts yet. Tap + to add one.'**
+  String get noAccountsYet;
+
+  /// No description provided for @netWorth.
+  ///
+  /// In en, this message translates to:
+  /// **'Net worth'**
+  String get netWorth;
+
+  /// No description provided for @acrossAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Across 1 account} other{Across {count} accounts}}'**
+  String acrossAccounts(int count);
+
+  /// No description provided for @unknownBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Bank'**
+  String get unknownBank;
+
+  /// No description provided for @unknownType.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Type'**
+  String get unknownType;
+
+  /// No description provided for @typeCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current account'**
+  String get typeCurrent;
+
+  /// No description provided for @typeSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings account'**
+  String get typeSavings;
+
+  /// No description provided for @typeCreditCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit card'**
+  String get typeCreditCard;
+
+  /// No description provided for @typeLoan.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan'**
+  String get typeLoan;
+
+  /// No description provided for @typeInvestment.
+  ///
+  /// In en, this message translates to:
+  /// **'Investment account'**
+  String get typeInvestment;
+
+  /// No description provided for @typeCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get typeCash;
+
+  /// No description provided for @enterBalanceNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the balance as a number'**
+  String get enterBalanceNumber;
+
+  /// No description provided for @accountAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Account added'**
+  String get accountAdded;
+
+  /// No description provided for @accountAddFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add the account: {error}'**
+  String accountAddFailed(String error);
+
+  /// No description provided for @addAccountManually.
+  ///
+  /// In en, this message translates to:
+  /// **'Add account manually'**
+  String get addAccountManually;
+
+  /// No description provided for @bank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank'**
+  String get bank;
+
+  /// No description provided for @accountType.
+  ///
+  /// In en, this message translates to:
+  /// **'Account type'**
+  String get accountType;
+
+  /// No description provided for @accountName.
+  ///
+  /// In en, this message translates to:
+  /// **'Account name'**
+  String get accountName;
+
+  /// No description provided for @accountNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Salary account'**
+  String get accountNameHint;
+
+  /// No description provided for @last4Digits.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 4 digits'**
+  String get last4Digits;
+
+  /// No description provided for @optional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get optional;
+
+  /// No description provided for @amountOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount owed'**
+  String get amountOwed;
+
+  /// No description provided for @currentBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Current balance'**
+  String get currentBalance;
+
+  /// No description provided for @manualAccountsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual accounts don\'t sync. You\'ll add transactions and update the balance yourself.'**
+  String get manualAccountsNote;
 }
 
 class _AppLocalizationsDelegate

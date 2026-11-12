@@ -886,4 +886,116 @@ class AppLocalizationsEn extends AppLocalizations {
   String amountThisMonth(String amount) {
     return '$amount this month';
   }
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String deleteNameTitle(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String get deleteAccountMessage =>
+      'This also deletes every transaction in the account. It cannot be undone.';
+
+  @override
+  String get accountDeleted => 'Account deleted';
+
+  @override
+  String accountDeleteFailed(String error) {
+    return 'Failed to delete account: $error';
+  }
+
+  @override
+  String get walletTitle => 'Wallet';
+
+  @override
+  String get addAccount => 'Add account';
+
+  @override
+  String get removeAnAccount => 'Remove an account';
+
+  @override
+  String get noAccountsYet => 'No accounts yet. Tap + to add one.';
+
+  @override
+  String get netWorth => 'Net worth';
+
+  @override
+  String acrossAccounts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Across $count accounts',
+      one: 'Across 1 account',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get unknownBank => 'Unknown Bank';
+
+  @override
+  String get unknownType => 'Unknown Type';
+
+  @override
+  String get typeCurrent => 'Current account';
+
+  @override
+  String get typeSavings => 'Savings account';
+
+  @override
+  String get typeCreditCard => 'Credit card';
+
+  @override
+  String get typeLoan => 'Loan';
+
+  @override
+  String get typeInvestment => 'Investment account';
+
+  @override
+  String get typeCash => 'Cash';
+
+  @override
+  String get enterBalanceNumber => 'Enter the balance as a number';
+
+  @override
+  String get accountAdded => 'Account added';
+
+  @override
+  String accountAddFailed(String error) {
+    return 'Couldn\'t add the account: $error';
+  }
+
+  @override
+  String get addAccountManually => 'Add account manually';
+
+  @override
+  String get bank => 'Bank';
+
+  @override
+  String get accountType => 'Account type';
+
+  @override
+  String get accountName => 'Account name';
+
+  @override
+  String get accountNameHint => 'e.g. Salary account';
+
+  @override
+  String get last4Digits => 'Last 4 digits';
+
+  @override
+  String get optional => 'Optional';
+
+  @override
+  String get amountOwed => 'Amount owed';
+
+  @override
+  String get currentBalance => 'Current balance';
+
+  @override
+  String get manualAccountsNote =>
+      'Manual accounts don\'t sync. You\'ll add transactions and update the balance yourself.';
 }

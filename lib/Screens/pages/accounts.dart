@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/account_balance.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
@@ -23,10 +24,9 @@ class _AccountsPageState extends State<AccountsPage> {
   Future<void> _showDeleteDialog(String accountId, String bankName) async {
     final confirmed = await confirmDialog(
       context,
-      title: 'Delete $bankName?',
-      message:
-          'This also deletes every transaction in the account. It cannot be undone.',
-      confirmLabel: 'Delete',
+      title: context.l10n.deleteNameTitle(accountTypeLabel(context, bankName)),
+      message: context.l10n.deleteAccountMessage,
+      confirmLabel: context.l10n.delete,
     );
 
     if (confirmed) {
@@ -47,14 +47,14 @@ class _AccountsPageState extends State<AccountsPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Account deleted')),
+          SnackBar(content: Text(context.l10n.accountDeleted)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to delete account: $e'),
+            content: Text(context.l10n.accountDeleteFailed('$e')),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -70,11 +70,11 @@ class _AccountsPageState extends State<AccountsPage> {
 
     return Scaffold(
       appBar: widget.showBack
-          ? const VestaAppBar(title: 'Wallet')
-          : const VestaAppBar.large(title: 'Wallet'),
+          ? VestaAppBar(title: context.l10n.walletTitle)
+          : VestaAppBar.large(title: context.l10n.walletTitle),
       body: VestaBackground(
         child: uid == null
-            ? const Center(child: Text("Not logged in"))
+            ? Center(child: Text(context.l10n.notLoggedIn))
             : StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection("users")
@@ -112,14 +112,14 @@ class _AccountsPageState extends State<AccountsPage> {
                       _netWorth(total, totalCurrency, accounts.length),
                       const SizedBox(height: VestaSpace.gutter),
                       SectionHeader(
-                        title: 'Accounts',
+                        title: context.l10n.accountsLabel,
                         trailing: [
                           AddRemoveButtons(
                             onAdd: () => showAddAccountSheet(context),
-                            addTooltip: 'Add account',
+                            addTooltip: context.l10n.addAccount,
                             removing: _removing,
                             canRemove: accounts.isNotEmpty,
-                            removeTooltip: 'Remove an account',
+                            removeTooltip: context.l10n.removeAnAccount,
                             onToggleRemove: () {
                               setState(() => _removing = !_removing);
                             },
@@ -131,7 +131,7 @@ class _AccountsPageState extends State<AccountsPage> {
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 28),
                           child: Text(
-                            "No accounts yet. Tap + to add one.",
+                            context.l10n.noAccountsYet,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
@@ -172,14 +172,14 @@ class _AccountsPageState extends State<AccountsPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Net worth', style: muted),
+        Text(context.l10n.netWorth, style: muted),
         FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
           child: MoneyText(total, currency: currency, size: 36),
         ),
         Text(
-          count == 1 ? 'Across 1 account' : 'Across $count accounts',
+          context.l10n.acrossAccounts(count),
           style: muted,
         ),
       ],
@@ -191,16 +191,17 @@ class _AccountsPageState extends State<AccountsPage> {
 
     final bankName = (acc["bankName"]?.toString().trim().isNotEmpty ?? false)
         ? acc["bankName"].toString()
-        : "Unknown Bank";
+        : context.l10n.unknownBank;
 
-    final accountType = acc["accountTypeName"]?.toString() ?? "Unknown Type";
+    final accountType = acc["accountTypeName"]?.toString() ?? context.l10n.unknownType;
 
     // Bank accounts end in their IBAN; manual ones in the last 4 digits
     // the user gave, if any
     final iban = acc["iban"]?.toString().trim() ?? "";
     final mask = acc["mask"]?.toString().trim() ?? "";
     final last4 = iban.length >= 4 ? iban.substring(iban.length - 4) : mask;
-    final subtitle = last4.isNotEmpty ? "$accountType · •••• $last4" : accountType;
+    final typeLabel = accountTypeLabel(context, accountType);
+    final subtitle = last4.isNotEmpty ? "$typeLabel · •••• $last4" : typeLabel;
 
     final balance = _balanceOf(acc);
 
@@ -233,7 +234,7 @@ class _AccountsPageState extends State<AccountsPage> {
                     children: [
                       Expanded(
                         child: Text(
-                          bankName,
+                          accountTypeLabel(context, bankName),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontWeight: FontWeight.w500),

@@ -888,4 +888,120 @@ class AppLocalizationsAr extends AppLocalizations {
   String amountThisMonth(String amount) {
     return '$amount هذا الشهر';
   }
+
+  @override
+  String get delete => 'حذف';
+
+  @override
+  String deleteNameTitle(String name) {
+    return 'حذف $name؟';
+  }
+
+  @override
+  String get deleteAccountMessage =>
+      'سيُحذف معه كل معاملات الحساب، ولا يمكن التراجع عن ذلك.';
+
+  @override
+  String get accountDeleted => 'حُذف الحساب';
+
+  @override
+  String accountDeleteFailed(String error) {
+    return 'تعذّر حذف الحساب: $error';
+  }
+
+  @override
+  String get walletTitle => 'المحفظة';
+
+  @override
+  String get addAccount => 'إضافة حساب';
+
+  @override
+  String get removeAnAccount => 'حذف حساب';
+
+  @override
+  String get noAccountsYet => 'لا حسابات بعد. اضغط + لإضافة حساب.';
+
+  @override
+  String get netWorth => 'صافي الثروة';
+
+  @override
+  String acrossAccounts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'في $count حساب',
+      many: 'في $count حساباً',
+      few: 'في $count حسابات',
+      two: 'في حسابين',
+      one: 'في حساب واحد',
+      zero: 'لا حسابات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get unknownBank => 'بنك غير معروف';
+
+  @override
+  String get unknownType => 'نوع غير معروف';
+
+  @override
+  String get typeCurrent => 'حساب جاري';
+
+  @override
+  String get typeSavings => 'حساب توفير';
+
+  @override
+  String get typeCreditCard => 'بطاقة ائتمان';
+
+  @override
+  String get typeLoan => 'قرض';
+
+  @override
+  String get typeInvestment => 'حساب استثماري';
+
+  @override
+  String get typeCash => 'نقدي';
+
+  @override
+  String get enterBalanceNumber => 'أدخل الرصيد كرقم';
+
+  @override
+  String get accountAdded => 'أُضيف الحساب';
+
+  @override
+  String accountAddFailed(String error) {
+    return 'تعذّرت إضافة الحساب: $error';
+  }
+
+  @override
+  String get addAccountManually => 'إضافة حساب يدوياً';
+
+  @override
+  String get bank => 'البنك';
+
+  @override
+  String get accountType => 'نوع الحساب';
+
+  @override
+  String get accountName => 'اسم الحساب';
+
+  @override
+  String get accountNameHint => 'مثل: حساب الراتب';
+
+  @override
+  String get last4Digits => 'آخر 4 أرقام';
+
+  @override
+  String get optional => 'اختياري';
+
+  @override
+  String get amountOwed => 'المبلغ المستحق';
+
+  @override
+  String get currentBalance => 'الرصيد الحالي';
+
+  @override
+  String get manualAccountsNote =>
+      'الحسابات اليدوية لا تتزامن مع البنك؛ ستضيف المعاملات وتحدّث الرصيد بنفسك.';
 }
