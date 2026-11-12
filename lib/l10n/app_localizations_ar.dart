@@ -1500,4 +1500,105 @@ class AppLocalizationsAr extends AppLocalizations {
   String percentOfBudget(String percent) {
     return '$percent% من الميزانية';
   }
+
+  @override
+  String get budgetingTitle => 'الميزانية';
+
+  @override
+  String get noBudgetPlanYet => 'لا خطة ميزانية بعد';
+
+  @override
+  String get budgetEmptyBody =>
+      'قسّم دخلك بين الادخار والضروريات والكماليات، وتابع كيف تسير كل دورة مقارنة بالخطة.';
+
+  @override
+  String get createBudgetPlan => 'إنشاء خطة ميزانية';
+
+  @override
+  String get spendingByBucket => 'الإنفاق حسب البند';
+
+  @override
+  String get noSpendingSixMonths => 'لا إنفاق في الأشهر الستة الأخيرة بعد';
+
+  @override
+  String budgetPlanFor(String month) {
+    return 'خطة ميزانية $month';
+  }
+
+  @override
+  String get editBudgetPlan => 'تعديل خطة الميزانية';
+
+  @override
+  String get totalIncome => 'إجمالي الدخل';
+
+  @override
+  String get spentSoFar => 'المصروف حتى الآن';
+
+  @override
+  String get upcomingPayments => 'الدفعات القادمة';
+
+  @override
+  String get addABill => 'إضافة فاتورة';
+
+  @override
+  String get removeABill => 'حذف فاتورة';
+
+  @override
+  String billDeleteFailed(String error) {
+    return 'تعذّر حذف الفاتورة: $error';
+  }
+
+  @override
+  String get noUpcomingPayments => 'لا دفعات قادمة بعد. اضغط + لإضافة فاتورة.';
+
+  @override
+  String seeAllCount(String count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String get noDate => 'بلا تاريخ';
+
+  @override
+  String nextDate(String date) {
+    return 'التالية: $date';
+  }
+
+  @override
+  String fromAccount(String account) {
+    return 'من $account';
+  }
+
+  @override
+  String paymentsLeft(String count) {
+    return 'متبقٍّ $count';
+  }
+
+  @override
+  String get yourBudgetPlan => 'خطة ميزانيتك';
+
+  @override
+  String get totalMonthlyIncome => 'إجمالي الدخل الشهري';
+
+  @override
+  String planSaveFailed(String error) {
+    return 'تعذّر حفظ الخطة: $error';
+  }
+
+  @override
+  String get savePlan => 'حفظ الخطة';
+
+  @override
+  String get enterAmountToPlan => 'أدخل مبلغاً لتخطيطه.';
+
+  @override
+  String overBy(String amount) {
+    return 'زيادة بمقدار $amount';
+  }
+
+  @override
+  String get allPlanned => 'خُطّط المبلغ كله';
+
+  @override
+  String get amount => 'المبلغ';
 }

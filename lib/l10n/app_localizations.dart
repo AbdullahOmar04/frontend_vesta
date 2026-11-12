@@ -2642,6 +2642,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{percent}% of budget'**
   String percentOfBudget(String percent);
+
+  /// No description provided for @budgetingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Budgeting'**
+  String get budgetingTitle;
+
+  /// No description provided for @noBudgetPlanYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No budget plan yet'**
+  String get noBudgetPlanYet;
+
+  /// No description provided for @budgetEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Split your income into savings, necessities and luxuries, and see how each cycle tracks against it.'**
+  String get budgetEmptyBody;
+
+  /// No description provided for @createBudgetPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Create budget plan'**
+  String get createBudgetPlan;
+
+  /// No description provided for @spendingByBucket.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending by bucket'**
+  String get spendingByBucket;
+
+  /// No description provided for @noSpendingSixMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'No spending in the last six months yet'**
+  String get noSpendingSixMonths;
+
+  /// No description provided for @budgetPlanFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget plan for {month}'**
+  String budgetPlanFor(String month);
+
+  /// No description provided for @editBudgetPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit budget plan'**
+  String get editBudgetPlan;
+
+  /// No description provided for @totalIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Total income'**
+  String get totalIncome;
+
+  /// No description provided for @spentSoFar.
+  ///
+  /// In en, this message translates to:
+  /// **'Spent so far'**
+  String get spentSoFar;
+
+  /// No description provided for @upcomingPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming payments'**
+  String get upcomingPayments;
+
+  /// No description provided for @addABill.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a bill'**
+  String get addABill;
+
+  /// No description provided for @removeABill.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove a bill'**
+  String get removeABill;
+
+  /// No description provided for @billDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t delete the bill: {error}'**
+  String billDeleteFailed(String error);
+
+  /// No description provided for @noUpcomingPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming payments yet. Tap + to add a bill.'**
+  String get noUpcomingPayments;
+
+  /// No description provided for @seeAllCount.
+  ///
+  /// In en, this message translates to:
+  /// **'See all {count}'**
+  String seeAllCount(String count);
+
+  /// No description provided for @noDate.
+  ///
+  /// In en, this message translates to:
+  /// **'No date'**
+  String get noDate;
+
+  /// No description provided for @nextDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {date}'**
+  String nextDate(String date);
+
+  /// No description provided for @fromAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'From {account}'**
+  String fromAccount(String account);
+
+  /// No description provided for @paymentsLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} left'**
+  String paymentsLeft(String count);
+
+  /// No description provided for @yourBudgetPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Your budget plan'**
+  String get yourBudgetPlan;
+
+  /// No description provided for @totalMonthlyIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Total monthly income'**
+  String get totalMonthlyIncome;
+
+  /// No description provided for @planSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the plan: {error}'**
+  String planSaveFailed(String error);
+
+  /// No description provided for @savePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Save plan'**
+  String get savePlan;
+
+  /// No description provided for @enterAmountToPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount to plan it.'**
+  String get enterAmountToPlan;
+
+  /// No description provided for @overBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Over by {amount}'**
+  String overBy(String amount);
+
+  /// No description provided for @allPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'All of it is planned'**
+  String get allPlanned;
+
+  /// No description provided for @amount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get amount;
 }
 
 class _AppLocalizationsDelegate

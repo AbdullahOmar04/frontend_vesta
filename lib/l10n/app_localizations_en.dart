@@ -1490,4 +1490,106 @@ class AppLocalizationsEn extends AppLocalizations {
   String percentOfBudget(String percent) {
     return '$percent% of budget';
   }
+
+  @override
+  String get budgetingTitle => 'Budgeting';
+
+  @override
+  String get noBudgetPlanYet => 'No budget plan yet';
+
+  @override
+  String get budgetEmptyBody =>
+      'Split your income into savings, necessities and luxuries, and see how each cycle tracks against it.';
+
+  @override
+  String get createBudgetPlan => 'Create budget plan';
+
+  @override
+  String get spendingByBucket => 'Spending by bucket';
+
+  @override
+  String get noSpendingSixMonths => 'No spending in the last six months yet';
+
+  @override
+  String budgetPlanFor(String month) {
+    return 'Budget plan for $month';
+  }
+
+  @override
+  String get editBudgetPlan => 'Edit budget plan';
+
+  @override
+  String get totalIncome => 'Total income';
+
+  @override
+  String get spentSoFar => 'Spent so far';
+
+  @override
+  String get upcomingPayments => 'Upcoming payments';
+
+  @override
+  String get addABill => 'Add a bill';
+
+  @override
+  String get removeABill => 'Remove a bill';
+
+  @override
+  String billDeleteFailed(String error) {
+    return 'Couldn\'t delete the bill: $error';
+  }
+
+  @override
+  String get noUpcomingPayments =>
+      'No upcoming payments yet. Tap + to add a bill.';
+
+  @override
+  String seeAllCount(String count) {
+    return 'See all $count';
+  }
+
+  @override
+  String get noDate => 'No date';
+
+  @override
+  String nextDate(String date) {
+    return 'Next: $date';
+  }
+
+  @override
+  String fromAccount(String account) {
+    return 'From $account';
+  }
+
+  @override
+  String paymentsLeft(String count) {
+    return '$count left';
+  }
+
+  @override
+  String get yourBudgetPlan => 'Your budget plan';
+
+  @override
+  String get totalMonthlyIncome => 'Total monthly income';
+
+  @override
+  String planSaveFailed(String error) {
+    return 'Couldn\'t save the plan: $error';
+  }
+
+  @override
+  String get savePlan => 'Save plan';
+
+  @override
+  String get enterAmountToPlan => 'Enter an amount to plan it.';
+
+  @override
+  String overBy(String amount) {
+    return 'Over by $amount';
+  }
+
+  @override
+  String get allPlanned => 'All of it is planned';
+
+  @override
+  String get amount => 'Amount';
 }

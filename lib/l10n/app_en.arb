@@ -897,5 +897,89 @@
         "type": "String"
       }
     }
-  }
+  },
+  "budgetingTitle": "Budgeting",
+  "noBudgetPlanYet": "No budget plan yet",
+  "budgetEmptyBody": "Split your income into savings, necessities and luxuries, and see how each cycle tracks against it.",
+  "createBudgetPlan": "Create budget plan",
+  "spendingByBucket": "Spending by bucket",
+  "noSpendingSixMonths": "No spending in the last six months yet",
+  "budgetPlanFor": "Budget plan for {month}",
+  "@budgetPlanFor": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "editBudgetPlan": "Edit budget plan",
+  "totalIncome": "Total income",
+  "spentSoFar": "Spent so far",
+  "upcomingPayments": "Upcoming payments",
+  "addABill": "Add a bill",
+  "removeABill": "Remove a bill",
+  "billDeleteFailed": "Couldn't delete the bill: {error}",
+  "@billDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noUpcomingPayments": "No upcoming payments yet. Tap + to add a bill.",
+  "seeAllCount": "See all {count}",
+  "@seeAllCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "noDate": "No date",
+  "nextDate": "Next: {date}",
+  "@nextDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "fromAccount": "From {account}",
+  "@fromAccount": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentsLeft": "{count} left",
+  "@paymentsLeft": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "yourBudgetPlan": "Your budget plan",
+  "totalMonthlyIncome": "Total monthly income",
+  "planSaveFailed": "Couldn't save the plan: {error}",
+  "@planSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "savePlan": "Save plan",
+  "enterAmountToPlan": "Enter an amount to plan it.",
+  "overBy": "Over by {amount}",
+  "@overBy": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "allPlanned": "All of it is planned",
+  "amount": "Amount"
 }

@@ -3,6 +3,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -286,7 +288,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading budget: $e')),
+          SnackBar(content: Text(context.l10n.loadBudgetError('$e'))),
         );
       }
     }
@@ -475,10 +477,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
 
   // ==================== BUILD METHODS ====================
 
-  static const _monthNames = [
-    '', 'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
-  ];
+  
 
   Future<void> _openPlan() async {
     if (await showBudgetPlanDialog(context)) _refreshBudget();
@@ -487,7 +486,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const VestaAppBar(title: "Budgeting"),
+      appBar: VestaAppBar(title: context.l10n.budgetingTitle),
       body: VestaBackground(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -544,15 +543,15 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
         children: [
           const PixelIcon(PixelArt.budget, size: 72),
           const SizedBox(height: 14),
-          Text("No budget plan yet", style: headingStyle(22)),
+          Text(context.l10n.noBudgetPlanYet, style: headingStyle(22)),
           const SizedBox(height: VestaSpace.sm),
           Text(
-            "Split your income into savings, necessities and luxuries, and see how each cycle tracks against it.",
+            context.l10n.budgetEmptyBody,
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 14, color: v.muted),
           ),
           const SizedBox(height: VestaSpace.xl),
-          PrimaryButton(label: 'Create budget plan', onPressed: _openPlan),
+          PrimaryButton(label: context.l10n.createBudgetPlan, onPressed: _openPlan),
         ],
       ),
     );
@@ -565,11 +564,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     final now = DateTime.now();
     for (int i = 5; i >= 0; i--) {
       final month = DateTime(now.year, now.month - i);
-      final monthNames = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-      ];
-      monthLabels.add(monthNames[month.month - 1]);
+      monthLabels.add(DateFormat('MMM').format(month));
     }
 
     final series = [
@@ -598,7 +593,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Spending by bucket",
+            context.l10n.spendingByBucket,
             style: TextStyle(fontSize: 12, color: v.muted),
           ),
           const SizedBox(height: VestaSpace.md),
@@ -607,7 +602,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
             child: !hasData
                 ? Center(
                     child: Text(
-                      "No spending in the last six months yet",
+                      context.l10n.noSpendingSixMonths,
                       style: TextStyle(fontSize: 13, color: v.muted),
                     ),
                   )
@@ -685,9 +680,9 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
             spacing: 16,
             runSpacing: 6,
             children: [
-              _buildLegendItem("Savings", v.bucketSavings),
-              _buildLegendItem("Necessities", v.bucketEssential),
-              _buildLegendItem("Luxuries", v.bucketLuxury),
+              _buildLegendItem(context.l10n.bucketSavings, v.bucketSavings),
+              _buildLegendItem(context.l10n.bucketNecessities, v.bucketEssential),
+              _buildLegendItem(context.l10n.bucketLuxuries, v.bucketLuxury),
             ],
           ),
         ],
@@ -728,7 +723,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
           const SizedBox(height: 2),
           FittedBox(
             fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: MoneyText(amount, size: 20, color: color),
           ),
           if (sub != null)
@@ -756,11 +751,13 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SectionHeader(
-            title: "Budget plan for ${_monthNames[currentMonth]}",
+            title: context.l10n.budgetPlanFor(
+              DateFormat('MMMM').format(DateTime(2000, currentMonth)),
+            ),
             trailing: [
               OutlineIconButton(
                 icon: PhosphorIconsRegular.pencilSimple,
-                tooltip: "Edit budget plan",
+                tooltip: context.l10n.editBudgetPlan,
                 onPressed: _openPlan,
               ),
             ],
@@ -768,16 +765,18 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
           const SizedBox(height: VestaSpace.md),
           Row(
             children: [
-              Expanded(child: _statTile("Total income", income, v.pos)),
+              Expanded(child: _statTile(context.l10n.totalIncome, income, v.pos)),
               const SizedBox(width: 10),
               Expanded(
                 child: _statTile(
-                  "Spent so far",
+                  context.l10n.spentSoFar,
                   totalSpending,
                   totalSpending > totalBudget && totalBudget > 0
                       ? v.neg
                       : Theme.of(context).colorScheme.onSurface,
-                  sub: totalBudget > 0 ? "of ${formatMoney(totalBudget)}" : null,
+                  sub: totalBudget > 0
+                      ? context.l10n.ofAmount(formatMoney(totalBudget))
+                      : null,
                 ),
               ),
             ],
@@ -823,20 +822,20 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
           ),
           const SizedBox(height: VestaSpace.sm),
           _buildBreakdownItemWithProgress(
-            label: "Savings",
+            label: context.l10n.bucketSavings,
             budgetAmount: _savingsBudget,
             spentAmount: _savingsTransfers,
             color: v.bucketSavings,
             isInverted: true, // For savings, "spent" means transferred to savings
           ),
           _buildBreakdownItemWithProgress(
-            label: "Necessities",
+            label: context.l10n.bucketNecessities,
             budgetAmount: _essentialBudget,
             spentAmount: _essentialSpending,
             color: v.bucketEssential,
           ),
           _buildBreakdownItemWithProgress(
-            label: "Luxuries",
+            label: context.l10n.bucketLuxuries,
             budgetAmount: _luxuryBudget,
             spentAmount: _luxurySpending,
             color: v.bucketLuxury,
@@ -924,7 +923,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Couldn't delete the bill: $e")),
+        SnackBar(content: Text(context.l10n.billDeleteFailed('$e'))),
       );
     }
   }
@@ -936,14 +935,14 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SectionHeader(
-            title: "Upcoming payments",
+            title: context.l10n.upcomingPayments,
             trailing: [
               AddRemoveButtons(
                 onAdd: _addBill,
-                addTooltip: 'Add a bill',
+                addTooltip: context.l10n.addABill,
                 removing: _removingBills,
                 canRemove: _upcoming.any((p) => p.isBill),
-                removeTooltip: 'Remove a bill',
+                removeTooltip: context.l10n.removeABill,
                 onToggleRemove: () =>
                     setState(() => _removingBills = !_removingBills),
               ),
@@ -958,7 +957,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: VestaSpace.md),
               child: Text(
-                "No upcoming payments yet. Tap + to add a bill.",
+                context.l10n.noUpcomingPayments,
                 style: TextStyle(fontSize: 13, color: v.muted),
               ),
             ),
@@ -968,10 +967,10 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
 
           if (!_isLoading && _upcoming.length > 4)
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: TextButton(
                 onPressed: _openBills,
-                child: Text("See all ${_upcoming.length}"),
+                child: Text(context.l10n.seeAllCount('${_upcoming.length}')),
               ),
             ),
         ],
@@ -980,14 +979,10 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
   }
 
   Widget _buildUpcomingItem(UpcomingPayment p) {
-    const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
     final date = p.nextDate;
     final formattedDate = date == null
-        ? "No date"
-        : "Next: ${date.day} ${monthNames[date.month - 1]} ${date.year}";
+        ? context.l10n.noDate
+        : context.l10n.nextDate(DateFormat.yMMMd().format(date));
 
     final icon = p.isBill
         ? categoryIcon(p.category ?? p.title)
@@ -1063,7 +1058,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
                   Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
                   if (accountName != null)
                     Text(
-                      "From $accountName",
+                      context.l10n.fromAccount(accountName),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   Text(details, style: Theme.of(context).textTheme.bodySmall),
@@ -1082,7 +1077,7 @@ class _PersonalBudgetScreenState extends State<PersonalBudgetScreen> {
                 ),
                 if (remainingPayments != null)
                   Text(
-                    "$remainingPayments left",
+                    context.l10n.paymentsLeft('$remainingPayments'),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
               ],
