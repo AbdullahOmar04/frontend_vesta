@@ -27,6 +27,7 @@ class PhosphorIconsRegular {
   static const IconData batteryFull = IconData(0xe0c0, fontFamily: 'Phosphor');
   static const IconData beerBottle = IconData(0xe7b0, fontFamily: 'Phosphor');
   static const IconData bell = IconData(0xe0ce, fontFamily: 'Phosphor');
+  static const IconData bellSlash = IconData(0xe0d4, fontFamily: 'Phosphor');
   static const IconData bicycle = IconData(0xe0d6, fontFamily: 'Phosphor');
   static const IconData boat = IconData(0xe786, fontFamily: 'Phosphor');
   static const IconData bookOpen = IconData(0xe0e6, fontFamily: 'Phosphor');
@@ -187,6 +188,7 @@ class PhosphorIconsFill {
   static const IconData batteryFull = IconData(0xe0c0, fontFamily: 'PhosphorFill');
   static const IconData beerBottle = IconData(0xe7b0, fontFamily: 'PhosphorFill');
   static const IconData bell = IconData(0xe0ce, fontFamily: 'PhosphorFill');
+  static const IconData bellSlash = IconData(0xe0d4, fontFamily: 'PhosphorFill');
   static const IconData bicycle = IconData(0xe0d6, fontFamily: 'PhosphorFill');
   static const IconData boat = IconData(0xe786, fontFamily: 'PhosphorFill');
   static const IconData bookOpen = IconData(0xe0e6, fontFamily: 'PhosphorFill');

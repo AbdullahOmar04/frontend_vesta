@@ -5,12 +5,19 @@ import 'package:frontend_vesta/Helpers/appearance.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/language.dart';
+import 'package:frontend_vesta/Helpers/notifications.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
 
 DocumentReference<Map<String, dynamic>> _userRef() => FirebaseFirestore.instance
     .collection('users')
     .doc(FirebaseAuth.instance.currentUser?.uid);
+
+/// Notifications follow the app's language too (see notifications.dart).
+Future<void> _switchLanguage(String code) async {
+  await setLanguage(code);
+  await onLanguageChanged();
+}
 
 /// Saves one setting inside a map on the user doc (e.g. reminders.upcoming).
 Future<void> _saveSetting(String group, String key, Object value) {
@@ -199,14 +206,14 @@ class DisplayPage extends StatelessWidget {
                           label: 'English',
                           icon: PhosphorIconsRegular.translate,
                           selected: activeLanguage == 'en',
-                          onTap: () => setLanguage('en'),
+                          onTap: () => _switchLanguage('en'),
                         ),
                         gap,
                         _Choice(
                           label: 'العربية',
                           icon: PhosphorIconsRegular.translate,
                           selected: activeLanguage == 'ar',
-                          onTap: () => setLanguage('ar'),
+                          onTap: () => _switchLanguage('ar'),
                         ),
                       ],
                     ),
@@ -292,8 +299,10 @@ class RemindersPage extends StatelessWidget {
               snap.data?.data()?['reminders'] ?? const {},
             );
             bool on(String key, bool fallback) => r[key] as bool? ?? fallback;
-            void set(String key, Object value) =>
-                _saveSetting('reminders', key, value);
+            void set(String key, Object value) {
+              _saveSetting('reminders', key, value);
+              if (value == true) askForNotificationsOnce(context);
+            }
             final days = (r['upcomingDays'] as num?)?.toInt() ?? 3;
             final at = (r['overBudgetAt'] as num?)?.toInt() ?? 90;
 
@@ -334,6 +343,7 @@ class RemindersPage extends StatelessWidget {
                   style: TextStyle(fontSize: 13, color: v.muted),
                 ),
                 const SizedBox(height: VestaSpace.md),
+                const NotificationsOffRow(),
                 MenuCard([
                   Column(
                     children: [
@@ -395,7 +405,7 @@ class RemindersPage extends StatelessWidget {
                 ]),
                 const SizedBox(height: VestaSpace.md),
                 Text(
-                  l10n.remindersNotYet,
+                  l10n.remindersLiveNote,
                   style: TextStyle(fontSize: 12, color: v.muted),
                 ),
               ],
@@ -435,7 +445,10 @@ class NotificationsPage extends StatelessWidget {
                 title: title,
                 subtitle: sub,
                 value: n[key] as bool? ?? fallback,
-                onChanged: (x) => _saveSetting('notifications', key, x),
+                onChanged: (x) {
+                  _saveSetting('notifications', key, x);
+                  if (x) askForNotificationsOnce(context);
+                },
               );
             }
 
@@ -452,6 +465,7 @@ class NotificationsPage extends StatelessWidget {
                   style: TextStyle(fontSize: 13, color: v.muted),
                 ),
                 const SizedBox(height: VestaSpace.md),
+                const NotificationsOffRow(),
                 MenuCard([
                   row(
                     PhosphorIconsRegular.receipt,
@@ -491,7 +505,7 @@ class NotificationsPage extends StatelessWidget {
                 ]),
                 const SizedBox(height: VestaSpace.md),
                 Text(
-                  l10n.remindersNotYet,
+                  l10n.notificationsLiveNote,
                   style: TextStyle(fontSize: 12, color: v.muted),
                 ),
               ],

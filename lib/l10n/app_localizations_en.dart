@@ -185,10 +185,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get remindersNotYet =>
-      'Vesta doesn\'t send these yet. Your choices are saved for when it does.';
-
-  @override
   String get notificationsIntro =>
       'Choose which notifications you want to get.';
 
@@ -204,14 +200,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationsRequiredSubtitle =>
-      'Things that need you, like a bill to confirm';
+      'Things that need you, like a household invite';
 
   @override
   String get notificationsMotivational => 'Motivational';
 
   @override
   String get notificationsMotivationalSubtitle =>
-      'Milestones and encouragement';
+      'Milestones, like a friend joining with your code';
 
   @override
   String get notificationsPromotional => 'Promotional and app updates';
@@ -224,6 +220,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationsSupportSubtitle => 'Replies to your support requests';
+
+  @override
+  String get remindersLiveNote =>
+      'Upcoming payment reminders arrive at 6 pm. The other alerts aren\'t sent yet; your choices are saved for when they are.';
+
+  @override
+  String get notificationsLiveNote =>
+      'Vesta sends required actions and motivational notifications. The others aren\'t sent yet; your choices are saved for when they are.';
+
+  @override
+  String get notifChannelReminders => 'Bill reminders';
+
+  @override
+  String get notifChannelRemindersDesc => 'Bills and subscriptions coming up';
+
+  @override
+  String get notifChannelUpdates => 'Households and friends';
+
+  @override
+  String get notifChannelUpdatesDesc =>
+      'Household invites and friends who join with your code';
+
+  @override
+  String get notifAskTitle => 'Turn on notifications?';
+
+  @override
+  String get notifAskBody =>
+      'Vesta can tell you before a bill is due, when someone invites you to a household, and when a friend joins with your code.';
+
+  @override
+  String get notifAskAllow => 'Turn on';
+
+  @override
+  String get notifAskLater => 'Not now';
+
+  @override
+  String get notifOffTitle => 'Notifications are off';
+
+  @override
+  String get notifOffSubtitle => 'Tap to let Vesta send them on this phone';
 
   @override
   String get signUp => 'Sign up';

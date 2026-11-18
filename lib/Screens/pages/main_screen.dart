@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/language.dart';
+import 'package:frontend_vesta/Helpers/notifications.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
+import 'package:frontend_vesta/Screens/Bills/bills_screen.dart';
+import 'package:frontend_vesta/Screens/Household/household.dart';
+import 'package:frontend_vesta/Screens/Profile/referrals.dart';
 import 'package:frontend_vesta/Screens/pages/accounts.dart';
 import 'package:frontend_vesta/Screens/pages/dashboard.dart';
 import 'package:frontend_vesta/Screens/pages/home.dart';
@@ -51,6 +55,34 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     deepLinkService.init(context, navigatorKey: navigatorKey);
     deepLinkService.checkPendingLink(context);
+    // Every way in (log in, sign up, unlock) lands here
+    registerThisDevice();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setNotificationOpener(_openFromNotification);
+    });
+  }
+
+  @override
+  void dispose() {
+    clearNotificationOpener(_openFromNotification);
+    super.dispose();
+  }
+
+  /// Opens the screen a tapped notification is about (data from the Cloud
+  /// Functions, see notifications.dart).
+  void _openFromNotification(Map<String, dynamic> data) {
+    final householdId = data['householdId'] as String?;
+    final Widget? page = switch (data['type']) {
+      'invite' => const HouseholdPage(),
+      'inviteAccepted' when householdId != null => HouseholdDetailPage(
+        householdId: householdId,
+      ),
+      'referral' => const ReferralsPage(),
+      'bill' => const BillsScreen(),
+      _ => null,
+    };
+    if (page == null) return;
+    navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => page));
   }
 
   void _select(int index) {

@@ -5,6 +5,7 @@ import 'package:frontend_vesta/Helpers/api_calls.dart';
 import 'package:frontend_vesta/Helpers/biometric_service.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/notifications.dart';
 import 'package:frontend_vesta/Helpers/secure_storage.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/Onboarding/login.dart';
@@ -78,6 +79,7 @@ class _AuthGateState extends State<AuthGate> {
   /// Signs out the way Log out in Profile does, then shows Welcome, where
   /// they can log in as someone else or sign up.
   Future<void> _useAnotherAccount() async {
+    await forgetThisDevice();
     await SecureStorage().deleteAll();
     await FirebaseAuth.instance.signOut();
     if (mounted) setState(() => _state = _GateState.signedOut);

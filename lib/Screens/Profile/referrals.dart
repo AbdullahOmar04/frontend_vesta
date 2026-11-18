@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/language.dart';
+import 'package:frontend_vesta/Helpers/notifications.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
@@ -218,11 +219,17 @@ class ReferralsPage extends StatelessWidget {
                   label: context.l10n.share,
                   onPressed: code == null
                       ? null
-                      : () => SharePlus.instance.share(
-                          ShareParams(
-                            text: context.l10n.referralShareText(code, link),
-                          ),
-                        ),
+                      : () async {
+                          await SharePlus.instance.share(
+                            ShareParams(
+                              text: context.l10n.referralShareText(code, link),
+                            ),
+                          );
+                          // So they hear when the friend joins
+                          if (context.mounted) {
+                            await askForNotificationsOnce(context);
+                          }
+                        },
                 ),
               ),
             ],

@@ -5,6 +5,7 @@ import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/links.dart';
+import 'package:frontend_vesta/Helpers/notifications.dart';
 import 'package:frontend_vesta/Helpers/secure_storage.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/Profile/account_helpers.dart';
@@ -46,6 +47,7 @@ class _ProfilePageState extends State<ProfilePage> {
       icon: PhosphorIconsRegular.signOut,
     );
     if (confirmed) {
+      await forgetThisDevice();
       await SecureStorage().deleteAll();
       await FirebaseAuth.instance.signOut();
       if (mounted) {

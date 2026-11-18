@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/language.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
+import 'package:frontend_vesta/Helpers/notifications.dart';
 import 'package:frontend_vesta/Helpers/secure_storage.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
 import 'package:frontend_vesta/Screens/Household/household_actions.dart';
@@ -237,6 +238,9 @@ Future<void> deleteMyAccount({
   } catch (e) {
     debugPrint('Could not record the deletion reasons: $e');
   }
+
+  // No more notifications on this phone (onUserDeleted clears the rest)
+  await forgetThisDevice();
 
   // Households: delete the ones this user owns, leave the others
   for (final id in List<String>.from(data['householdIds'] ?? const [])) {
