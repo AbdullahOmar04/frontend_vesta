@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/language.dart';
+import 'package:frontend_vesta/Helpers/notifications.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
 import 'package:frontend_vesta/Helpers/ui.dart';
@@ -1503,6 +1504,15 @@ class _HouseholdPageState extends State<HouseholdPage> {
   final _auth = FirebaseAuth.instance;
   bool _removing = false;
   String? _healedFor;
+
+  @override
+  void initState() {
+    super.initState();
+    // Invites arrive here; ask so the next one reaches the phone
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) askForNotificationsOnce(context);
+    });
+  }
 
   void _openCreateHousehold() => showNewHouseholdDialog(context);
 

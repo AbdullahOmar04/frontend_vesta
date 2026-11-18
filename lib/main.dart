@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/appearance.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/language.dart';
+import 'package:frontend_vesta/Helpers/notifications.dart';
 import 'package:frontend_vesta/Helpers/referral_codes.dart';
 import 'package:frontend_vesta/Helpers/security_service.dart';
 import 'package:frontend_vesta/Helpers/widgets.dart';
@@ -58,6 +59,7 @@ Future<void> main() async {
   listenForReferralLinks();
   await loadAppearance();
   await loadLanguage();
+  await initNotifications();
 
   runApp(const MainApp());
 }

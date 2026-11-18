@@ -416,12 +416,6 @@ abstract class AppLocalizations {
   /// **'When a single transaction is over {amount}'**
   String remindersLargeSubtitle(String amount);
 
-  /// No description provided for @remindersNotYet.
-  ///
-  /// In en, this message translates to:
-  /// **'Vesta doesn\'t send these yet. Your choices are saved for when it does.'**
-  String get remindersNotYet;
-
   /// No description provided for @notificationsIntro.
   ///
   /// In en, this message translates to:
@@ -449,7 +443,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationsRequiredSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Things that need you, like a bill to confirm'**
+  /// **'Things that need you, like a household invite'**
   String get notificationsRequiredSubtitle;
 
   /// No description provided for @notificationsMotivational.
@@ -461,7 +455,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationsMotivationalSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Milestones and encouragement'**
+  /// **'Milestones, like a friend joining with your code'**
   String get notificationsMotivationalSubtitle;
 
   /// No description provided for @notificationsPromotional.
@@ -487,6 +481,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Replies to your support requests'**
   String get notificationsSupportSubtitle;
+
+  /// No description provided for @remindersLiveNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming payment reminders arrive at 6 pm. The other alerts aren\'t sent yet; your choices are saved for when they are.'**
+  String get remindersLiveNote;
+
+  /// No description provided for @notificationsLiveNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Vesta sends required actions and motivational notifications. The others aren\'t sent yet; your choices are saved for when they are.'**
+  String get notificationsLiveNote;
+
+  /// No description provided for @notifChannelReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill reminders'**
+  String get notifChannelReminders;
+
+  /// No description provided for @notifChannelRemindersDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills and subscriptions coming up'**
+  String get notifChannelRemindersDesc;
+
+  /// No description provided for @notifChannelUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Households and friends'**
+  String get notifChannelUpdates;
+
+  /// No description provided for @notifChannelUpdatesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Household invites and friends who join with your code'**
+  String get notifChannelUpdatesDesc;
+
+  /// No description provided for @notifAskTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on notifications?'**
+  String get notifAskTitle;
+
+  /// No description provided for @notifAskBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Vesta can tell you before a bill is due, when someone invites you to a household, and when a friend joins with your code.'**
+  String get notifAskBody;
+
+  /// No description provided for @notifAskAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get notifAskAllow;
+
+  /// No description provided for @notifAskLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get notifAskLater;
+
+  /// No description provided for @notifOffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are off'**
+  String get notifOffTitle;
+
+  /// No description provided for @notifOffSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to let Vesta send them on this phone'**
+  String get notifOffSubtitle;
 
   /// No description provided for @signUp.
   ///

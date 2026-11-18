@@ -187,10 +187,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get remindersNotYet =>
-      'لا يرسل Vesta هذه التنبيهات بعد. سنحفظ اختياراتك حتى يبدأ بإرسالها.';
-
-  @override
   String get notificationsIntro => 'اختر الإشعارات التي تريد استلامها.';
 
   @override
@@ -205,13 +201,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notificationsRequiredSubtitle =>
-      'أمور تحتاجك، مثل فاتورة بانتظار التأكيد';
+      'أمور تحتاجك، مثل دعوة إلى منزل مشترك';
 
   @override
   String get notificationsMotivational => 'تحفيزية';
 
   @override
-  String get notificationsMotivationalSubtitle => 'الإنجازات والتشجيع';
+  String get notificationsMotivationalSubtitle =>
+      'إنجازات، مثل انضمام صديق برمز دعوتك';
 
   @override
   String get notificationsPromotional => 'العروض وتحديثات التطبيق';
@@ -224,6 +221,46 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notificationsSupportSubtitle => 'الردود على طلبات الدعم';
+
+  @override
+  String get remindersLiveNote =>
+      'تصلك تذكيرات الدفعات القادمة الساعة 6 مساءً. لا يرسل Vesta التنبيهات الأخرى بعد، وسنحفظ اختياراتك حتى يبدأ بإرسالها.';
+
+  @override
+  String get notificationsLiveNote =>
+      'يرسل Vesta إشعارات الإجراءات المطلوبة والإشعارات التحفيزية. لا يرسل الأنواع الأخرى بعد، وسنحفظ اختياراتك حتى يبدأ بإرسالها.';
+
+  @override
+  String get notifChannelReminders => 'تذكيرات الفواتير';
+
+  @override
+  String get notifChannelRemindersDesc => 'الفواتير والاشتراكات القادمة';
+
+  @override
+  String get notifChannelUpdates => 'المنازل المشتركة والأصدقاء';
+
+  @override
+  String get notifChannelUpdatesDesc =>
+      'دعوات المنازل المشتركة والأصدقاء الذين ينضمون برمز دعوتك';
+
+  @override
+  String get notifAskTitle => 'تفعيل الإشعارات؟';
+
+  @override
+  String get notifAskBody =>
+      'يستطيع Vesta تنبيهك قبل موعد أي فاتورة، وعندما يدعوك أحد إلى منزل مشترك، وعندما ينضم صديق برمز دعوتك.';
+
+  @override
+  String get notifAskAllow => 'تفعيل';
+
+  @override
+  String get notifAskLater => 'ليس الآن';
+
+  @override
+  String get notifOffTitle => 'الإشعارات متوقفة';
+
+  @override
+  String get notifOffSubtitle => 'اضغط للسماح لـ Vesta بإرسالها على هذا الهاتف';
 
   @override
   String get signUp => 'إنشاء حساب';

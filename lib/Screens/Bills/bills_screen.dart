@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_vesta/Helpers/language.dart';
+import 'package:frontend_vesta/Helpers/notifications.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_vesta/Helpers/colors.dart';
 import 'package:frontend_vesta/Helpers/icons.dart';
@@ -19,6 +20,10 @@ Future<bool> showBillSheet(
     showDragHandle: true,
     builder: (_) => _BillSheet(bill: bill),
   );
+  // A saved bill is when a reminder starts to matter
+  if (changed == true && context.mounted) {
+    await askForNotificationsOnce(context);
+  }
   return changed == true;
 }
 
